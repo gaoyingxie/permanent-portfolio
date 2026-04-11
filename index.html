@@ -430,6 +430,54 @@
     .change-down { color: var(--red); }
     .change-flat { color: var(--text-dim); }
 
+    /* ===== 年线信号条 ===== */
+    .signal-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .signal-tag.buy {
+      background: var(--green-glow);
+      color: var(--green);
+      border: 1px solid rgba(52,214,138,0.3);
+    }
+    .signal-tag.hold {
+      background: var(--yellow-glow);
+      color: var(--yellow);
+      border: 1px solid rgba(245,197,24,0.3);
+    }
+    .signal-tag.sell {
+      background: var(--red-glow);
+      color: var(--red);
+      border: 1px solid rgba(255,95,95,0.3);
+    }
+
+    .signal-bar-wrap { }
+    .signal-bar-track {
+      position: relative;
+      height: 8px;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+    }
+    .signal-bar-green { flex: 1; background: linear-gradient(90deg, #34d68a, #4ade80); }
+    .signal-bar-yellow { flex: 1; background: linear-gradient(90deg, #f5c518, #fbbf24); }
+    .signal-bar-red { flex: 1; background: linear-gradient(90deg, #ff8e53, #ff5f5f); }
+    .signal-bar-needle {
+      position: absolute;
+      top: -3px;
+      width: 2px;
+      height: 14px;
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 0 6px rgba(255,255,255,0.8);
+      transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .signal-bar-needle.over { box-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 8px rgba(255,95,95,0.6); }
+
     /* 入场动画 */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(12px); }
@@ -495,10 +543,29 @@
       <div class="card-meta">
         <span>持仓 <span class="val" id="hold-563020">--</span></span>
         <span>目标 <span class="val" id="target-563020">--</span></span>
-        <span>趋势线 <span class="val" id="trend-563020">--</span></span>
-        <span>乖离率 <span class="val" id="dev-563020">--</span></span>
+        <span>年均线 <span class="val" id="annual-avg-563020">--</span></span>
+        <span>年线偏离 <span class="val" id="dev-563020">--</span></span>
       </div>
-      <span class="status-tag status-buy" id="status-563020">买入信号</span>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+        <span class="signal-tag" id="signal-tag-563020">--</span>
+        <span class="signal-desc" id="signal-desc-563020" style="font-size:11px;color:var(--text-dim)">年线收益差：偏离度决定操作</span>
+      </div>
+      <div class="signal-bar-wrap" style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-bottom:4px">
+          <span>绿买入</span><span>黄持有</span><span>红卖出</span>
+        </div>
+        <div class="signal-bar">
+          <div class="signal-bar-track">
+            <div class="signal-bar-green"></div>
+            <div class="signal-bar-yellow"></div>
+            <div class="signal-bar-red"></div>
+            <div class="signal-bar-needle" id="signal-needle-563020"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-top:3px">
+            <span>0%</span><span>10%</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SPX -->
@@ -707,7 +774,7 @@ const STATIC_DATA = {
   // 行情API不可用时的价格fallback（不需要改，用USER_CONFIG填持仓/信号）
   funds: {
     '159222': { price: 1.4106, change_pct: 0.5, name: '自由现金流ETF', dev: 4.7, rsi: 44.6, dividend: 4.57 },
-    '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', trend: 1.2362, dev: -4.39 },
+    '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', annual_avg: 1.246, dev: -4.39, color: 'green', signal_text: '买入', signal: 'buy' },
     '513650': { price: 1.6786, change_pct: -0.56, name: 'SPX' },
     '518680': { price: null, change_pct: null, name: '富国上海金ETF' },
   },
@@ -761,13 +828,38 @@ function renderData(data) {
   document.getElementById('dividend-159222').textContent = f510880.dividend ? f510880.dividend.toFixed(2) + '%' : '--';
   updateSignal('159222', f510880);
 
-  // 563020
+  // 563020 红利低波（年线定投法信号）
   const f563020 = f['563020'] || STATIC_DATA.funds['563020'];
-  document.getElementById('price-563020').textContent = f563020.price?.toFixed(3) || '--';
+  document.getElementById('price-563020').textContent = f563020.price != null ? f563020.price.toFixed(3) : '--';
   setPriceColor('price-563020', f563020.change_pct);
-  document.getElementById('trend-563020').textContent = f563020.trend || '--';
-  document.getElementById('dev-563020').textContent = f563020.dev ? f563020.dev.toFixed(2) + '%' : '--';
-  updateSignal('563020', f563020);
+  document.getElementById('annual-avg-563020').textContent = f563020.annual_avg ? f563020.annual_avg.toFixed(3) : '--';
+  const dev563020 = f563020.dev;
+  document.getElementById('dev-563020').textContent = dev563020 != null ? dev563020.toFixed(2) + '%' : '--';
+
+  // 渲染年线信号
+  const signalTag = document.getElementById('signal-tag-563020');
+  const needle = document.getElementById('signal-needle-563020');
+  const card563020 = document.getElementById('card-563020');
+  const color = f563020.color || 'wait';
+  const signalText = f563020.signal_text || '--';
+  signalTag.textContent = signalText;
+  signalTag.className = 'signal-tag ' + (color === 'green' ? 'buy' : color === 'yellow' ? 'hold' : color === 'red' ? 'sell' : 'hold');
+  // 针位置: 0%在5%位置，10%在95%位置（留边距），超过10%超出去
+  let needlePct;
+  if (dev563020 == null) {
+    needlePct = 50;
+  } else if (dev563020 <= 0) {
+    needlePct = 5 + (dev563020 / 0) * 5; // 0%时在5%，负数按比例往左
+    needlePct = Math.max(0, needlePct);
+  } else if (dev563020 <= 10) {
+    needlePct = 5 + (dev563020 / 10) * 85 + 5; // 0-10%: 5%~90%
+  } else {
+    needlePct = 95 + Math.min((dev563020 - 10) / 5 * 5, 5); // 10%以上顶出去
+  }
+  needle.style.left = Math.min(98, Math.max(2, needlePct)) + '%';
+  needle.className = 'signal-bar-needle' + (dev563020 > 10 ? ' over' : '');
+  // 卡片边框色跟随信号
+  card563020.className = 'card ' + (color === 'green' ? 'card-buy' : color === 'red' ? 'card-sell' : 'card-pending');
 
   // SPX - 读取实际指数点位
   const spxData = data.index?.spx || STATIC_DATA.index?.spx;

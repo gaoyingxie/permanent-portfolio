@@ -7,15 +7,21 @@
 import json
 import urllib.request
 import ssl
-from datetime import datetime
+import os
+from datetime import datetime, timezone, timedelta
+
+# 北京时间（UTC+8）
+os.environ['TZ'] = 'Asia/Shanghai'
+_tz = timezone(timedelta(hours=8))
 
 # 忽略 SSL 证书验证
 ssl._create_default_https_context = ssl._create_unverified_context
 
 FUNDS = {
-    "510880": {"name": "红利ETF", "target": 0.70},
-    "512890": {"name": "红利低波", "target": 0.20},
-    "513100": {"name": "纳指ETF", "target": 0.10},
+    "159222": {"name": "自由现金流ETF", "target": 0.70},
+    "563020": {"name": "红利低波", "target": 0.20},
+    "513650": {"name": "标普500ETF", "target": 0.20},
+    "518680": {"name": "黄金ETF", "target": 0.10},
 }
 
 def fetch_fund_data(code: str) -> dict:
@@ -40,8 +46,8 @@ def fetch_fund_data(code: str) -> dict:
         print(f"获取 {code} 失败: {e}")
         return None
 
-def fetch_index_data(code: str) -> dict:
-    """获取指数数据（上证指数）"""
+def fetch_index_data(code: str, name: str = "上证指数") -> dict:
+    """获取指数数据"""
     url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f169,f170,f171"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -50,20 +56,38 @@ def fetch_index_data(code: str) -> dict:
         fields = data.get("data", {})
         return {
             "code": code,
-            "name": "上证指数",
+            "name": name,
             "price": fields.get("f43", 0) / 100,
-            "change_pct": fields.get("f170", 0),
+            "change_pct": round(fields.get("f170", 0) / 100, 2),
         }
     except Exception as e:
         print(f"获取指数 {code} 失败: {e}")
         return None
 
+def fetch_us_index_data(secid: str, name: str) -> dict:
+    """获取美股指数数据（SPX等）"""
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid={secid}&fields=f43,f169,f170,f171"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        fields = data.get("data", {})
+        return {
+            "code": secid,
+            "name": name,
+            "price": fields.get("f43", 0) / 100,
+            "change_pct": round(fields.get("f170", 0) / 100, 2),
+        }
+    except Exception as e:
+        print(f"获取 {name}({secid}) 失败: {e}")
+        return None
+
 def main():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 开始抓取数据...")
+    print(f"[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 开始抓取数据...")
 
     market = {
-        "updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "updated_date": datetime.now().strftime("%Y-%m-%d"),
+        "updated": datetime.now(_tz).strftime("%Y-%m-%d %H:%M:%S"),
+        "updated_date": datetime.now(_tz).strftime("%Y-%m-%d"),
         "funds": {},
         "index": {},
     }
@@ -80,6 +104,12 @@ def main():
     if sh:
         market["index"]["sh000001"] = sh
         print(f"  ✅ 上证指数: {sh['price']} ({sh['change_pct']:+.2f}%)")
+
+    # 抓取 S&P 500 指数
+    spx = fetch_us_index_data("100.SPX", "S&P 500")
+    if spx:
+        market["index"]["spx"] = spx
+        print(f"  ✅ S&P 500: {spx['price']} ({spx['change_pct']:+.2f}%)")
 
     # 写入 JSON 文件
     output_path = "data/market.json"

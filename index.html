@@ -260,64 +260,86 @@
 
 <div class="tabs">
   <div class="tab active" onclick="switchTab(this)">总览</div>
-  <div class="tab" onclick="switchTab(this)">510880 红利</div>
-  <div class="tab" onclick="switchTab(this)">512890 低波</div>
+  <div class="tab" onclick="switchTab(this)">自由现金流</div>
+  <div class="tab" onclick="switchTab(this)">563020 低波</div>
+  <div class="tab" onclick="switchTab(this)">SPX</div>
   <div class="tab" onclick="switchTab(this)">组合回测</div>
   <div class="tab" onclick="switchTab(this)">风险监控</div>
 </div>
 
 <!-- 核心指标卡片 -->
 <div class="cards-grid">
-  <!-- 510880 红利ETF -->
-  <div class="card card-pending" id="card-510880">
+  <!-- 自由现金流ETF -->
+  <div class="card card-pending" id="card-159222">
     <div class="card-label">
-      <span>510880 红利ETF</span>
+      <span>自由现金流ETF</span>
       <span class="card-code">红利</span>
     </div>
-    <div class="card-value price" id="price-510880">--</div>
+    <div class="card-value price" id="price-159222">--</div>
     <div class="card-meta">
-      <span>乖离率 <span class="val" id="dev-510880">--</span></span>
-      <span>RSI <span class="val" id="rsi-510880">--</span></span>
-      <span>股息率 <span class="val" id="dividend-510880">--</span></span>
-      <span>换手率 <span class="val">--</span></span>
+      <span>持仓 <span class="val" id="hold-159222">--</span></span>
+      <span>目标 <span class="val" id="target-159222">--</span></span>
+      <span>乖离率 <span class="val" id="dev-159222">--</span></span>
+      <span>RSI <span class="val" id="rsi-159222">--</span></span>
+      <span>股息率 <span class="val" id="dividend-159222">--</span></span>
     </div>
     <div style="margin-top:10px">
-      <span class="status-wait" id="status-510880">等待</span>
+      <span class="status-wait" id="status-159222">等待</span>
     </div>
   </div>
 
-  <!-- 512890 红利低波 -->
-  <div class="card card-buy" id="card-512890">
+  <!-- 563020 红利低波 -->
+  <div class="card card-buy" id="card-563020">
     <div class="card-label">
-      <span>512890 红利低波</span>
+      <span>563020 红利低波</span>
       <span class="card-code">卫星</span>
     </div>
-    <div class="card-value price" id="price-512890">--</div>
+    <div class="card-value price" id="price-563020">--</div>
     <div class="card-meta">
-      <span>趋势线 <span class="val" id="trend-512890">--</span></span>
-      <span>乖离率 <span class="val" id="dev-512890">--</span></span>
+      <span>持仓 <span class="val" id="hold-563020">--</span></span>
+      <span>目标 <span class="val" id="target-563020">--</span></span>
+      <span>趋势线 <span class="val" id="trend-563020">--</span></span>
+      <span>乖离率 <span class="val" id="dev-563020">--</span></span>
     </div>
     <div style="margin-top:10px">
-      <span class="status-buy" id="status-512890">买入信号</span>
+      <span class="status-buy" id="status-563020">买入信号</span>
     </div>
   </div>
 
-  <!-- 纳指 -->
-  <div class="card card-buy" id="card-nasdaq">
+  <!-- SPX -->
+  <div class="card card-buy" id="card-513650">
     <div class="card-label">
-      <span>纳指ETF</span>
+      <span>SPX</span>
       <span class="card-code">卫星</span>
     </div>
-    <div class="card-value price" id="price-nasdaq">--</div>
+    <div class="card-value price" id="price-spx">--</div>
     <div class="card-meta">
-      <span>持仓 <span class="val" id="hold-nasdaq">--</span></span>
-      <span>目标 <span class="val" id="target-nasdaq">108万</span></span>
+      <span>持仓 <span class="val" id="hold-spx">--</span></span>
+      <span>ETF场内 <span class="val" id="etf-spx">--</span></span>
+      <span>目标 <span class="val" id="target-513650">--</span></span>
     </div>
     <div style="margin-top:10px">
-      <span class="status-buy" id="status-nasdaq">定投 2000元/天</span>
+      <span class="status-buy" id="status-513650">定投 2000元/天</span>
     </div>
-    <div class="strategy-note">
-      区间 1.7-1.8 每天 2000元；&lt;1.7 每天 5000元
+    <div class="strategy-note" id="spx-strategy-note">
+      定投标普500，按策略自动执行
+    </div>
+  </div>
+
+
+  <!-- 518680 黄金ETF -->
+  <div class="card card-buy" id="card-518680">
+    <div class="card-label">
+      <span>518680 黄金ETF</span>
+      <span class="card-code">黄金</span>
+    </div>
+    <div class="card-value price" id="price-518680">--</div>
+    <div class="card-meta">
+      <span>持仓 <span class="val" id="hold-518680">--</span></span>
+      <span>目标 <span class="val" id="target-518680">--</span></span>
+    </div>
+    <div style="margin-top:10px">
+      <span class="status-wait" id="status-518680">等待</span>
     </div>
   </div>
 
@@ -327,10 +349,10 @@
       <span>杂仓清理</span>
       <span class="card-code">再平衡</span>
     </div>
-    <div class="big-amount" id="cleanup-amount">~230万</div>
-    <div class="strategy-note" style="margin-top:8px">
+    <div class="big-amount" id="cleanup-amount">~20万</div>
+    <div class="strategy-note" style="margin-top:8px" id="cleanup-note">
       触发条件：<br>
-      ① 510880 乖离率 ≤ 0% → 清仓杂仓转红利<br>
+      ① 159222 乖离率 ≤ 0% → 清仓杂仓转红利<br>
       ② 上证 ≥ 4000 → 每周机械卖出 1/5
     </div>
     <div style="margin-top:10px">
@@ -434,22 +456,68 @@
 const GITHUB_REPO = 'gaoyingxie/permanent-portfolio';
 const DATA_PATH = 'data/market.json';
 
+// 资产统一配色（确保当前持仓和目标配置颜色一致）
+const ASSET_COLORS = {
+  '杂仓':      '#ff6b6b',  // 红
+  '现金':      '#34d399',  // 青绿
+  '自由现金流': '#f9ca24',  // 黄
+  '红利低波':  '#3dd68c',  // 绿
+  '黄金':      '#a78bfa',  // 紫
+  'SPX':       '#60a5fa',  // 蓝
+};
+const ASSET_COLOR_LIST = Object.values(ASSET_COLORS);
+
+// ==================== 用户配置（修改这里）====================
+const USER_CONFIG = {
+  // ========== 只需要改这里 ==========
+  TOTAL_ASSETS: 100,        // 总资产（显示单位：万），会自动按比例分配 target
+  // 各ETF的持仓金额和信号
+  holdings: {
+    '159222': { hold: '0万',   signal: 'wait',   buy_amount: '' },              // 自由现金流 20%
+    '563020': { hold: '0万',   signal: 'wait',   buy_amount: '' },              // 红利低波 20%
+    '518680': { hold: '0万',   signal: 'wait',   buy_amount: '' },              // 黄金ETF 10%
+    'spx':    { hold: '0万',   signal: 'invest', invest_daily: '2000元/天' },   // SPX 20%
+  },
+  // 杂仓清理
+  cleanup: {
+    amount: '~20万',
+    trigger_dev_threshold: 0,   // 159222乖离率 ≤ 此值时触发
+    sh_threshold: 4000,        // 上证指数 ≥ 此值时每周卖1/5
+  },
+  // 定投策略（元/天）
+  invest_strategy: {
+    normal: 2000,
+    cheap: 5000,
+    cheap_threshold: 1.7,       // ETF价格 < 此值时用 cheap
+  },
+  // 风险灯阈值
+  risk: {
+    rate_max: 3.5,
+    rate_min: 0.5,
+    dividend_min: 3.0,
+    volatility_min: 10,
+  },
+  // 目标配置比例（%）
+  targets: [20, 20, 10, 20],  // 自由现金流20% / 红利低波20% / 黄金10% / SPX20%
+  target_labels: ['自由现金流', '红利低波', '黄金', 'SPX'],
+  // 持仓分布（万元）
+  positions: [35.2, 10, 3, 39, 11.3, 11.5],  // 杂仓35.2 / 现金10 / 自由现金流3 / 红利低波39 / 黄金11.3 / SPX11.5
+  position_labels: ['杂仓', '现金', '自由现金流', '红利低波', '黄金', 'SPX'],
+};
+// =======================================================
+
 // 硬编码静态数据（与截图保持一致，作为默认值）
 const STATIC_DATA = {
+  // 行情API不可用时的价格fallback（不需要改，用USER_CONFIG填持仓/信号）
   funds: {
-    '510880': { price: 3.217, change_pct: 0.45, name: '红利ETF', dev: 4.7, rsi: 44.6, dividend: 4.57, signal: 'wait' },
-    '512890': { price: 1.182, change_pct: -0.32, name: '红利低波ETF', trend: 1.2362, dev: -4.39, signal: 'buy', buy_amount: '7.4万' },
-    'nasdaq': { price: 1.752, change_pct: 0.28, name: '纳指ETF', hold: '14.6万', target: '108万', signal: 'invest', invest_daily: '2000元/天' },
+    '159222': { price: 1.4106, change_pct: 0.5, name: '自由现金流ETF', dev: 4.7, rsi: 44.6, dividend: 4.57 },
+    '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', trend: 1.2362, dev: -4.39 },
+    '513650': { price: 1.6786, change_pct: -0.56, name: 'SPX' },
+    '518680': { price: 5.80, change_pct: 0.3, name: '黄金ETF' },
   },
   sh: { price: 3350.12, change_pct: 0.87 },
-  cleanup_amount: '~230万',
-  positions: {
-    labels: ['杂仓', '现金/货基', '红利/高股息', '卫星仓', '医疗', '债券', '纳指/美股'],
-    values: [166, 63.4, 62, 8.2, 4.1, 15, 12],
-  },
-  targets: {
-    labels: ['红利', '现金', '纳指/美股'],
-    values: [70, 10, 20],
+  index: {
+    spx: { price: 6816.89, change_pct: -0.11, name: 'S&P 500' },
   },
   risk: {
     rate: 1.8,
@@ -489,28 +557,34 @@ function renderData(data) {
   const f = data.funds || {};
 
   // 510880
-  const f510880 = f['510880'] || STATIC_DATA.funds['510880'];
-  document.getElementById('price-510880').textContent = f510880.price?.toFixed(3) || '--';
-  setPriceColor('price-510880', f510880.change_pct);
-  document.getElementById('dev-510880').textContent = f510880.dev ? f510880.dev.toFixed(2) + '%' : '--';
-  document.getElementById('rsi-510880').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';
-  document.getElementById('dividend-510880').textContent = f510880.dividend ? f510880.dividend.toFixed(2) + '%' : '--';
-  updateSignal('510880', f510880);
+  const f510880 = f['159222'] || STATIC_DATA.funds['159222'];
+  document.getElementById('price-159222').textContent = f510880.price?.toFixed(3) || '--';
+  setPriceColor('price-159222', f510880.change_pct);
+  document.getElementById('dev-159222').textContent = f510880.dev ? f510880.dev.toFixed(2) + '%' : '--';
+  document.getElementById('rsi-159222').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';
+  document.getElementById('dividend-159222').textContent = f510880.dividend ? f510880.dividend.toFixed(2) + '%' : '--';
+  updateSignal('159222', f510880);
 
-  // 512890
-  const f512890 = f['512890'] || STATIC_DATA.funds['512890'];
-  document.getElementById('price-512890').textContent = f512890.price?.toFixed(3) || '--';
-  setPriceColor('price-512890', f512890.change_pct);
-  document.getElementById('trend-512890').textContent = f512890.trend || '--';
-  document.getElementById('dev-512890').textContent = f512890.dev ? f512890.dev.toFixed(2) + '%' : '--';
-  updateSignal('512890', f512890);
+  // 563020
+  const f563020 = f['563020'] || STATIC_DATA.funds['563020'];
+  document.getElementById('price-563020').textContent = f563020.price?.toFixed(3) || '--';
+  setPriceColor('price-563020', f563020.change_pct);
+  document.getElementById('trend-563020').textContent = f563020.trend || '--';
+  document.getElementById('dev-563020').textContent = f563020.dev ? f563020.dev.toFixed(2) + '%' : '--';
+  updateSignal('563020', f563020);
 
-  // 纳指
-  const fnasdaq = f['nasdaq'] || STATIC_DATA.funds['nasdaq'];
-  document.getElementById('price-nasdaq').textContent = fnasdaq.price?.toFixed(3) || '--';
-  setPriceColor('price-nasdaq', fnasdaq.change_pct);
-  document.getElementById('hold-nasdaq').textContent = fnasdaq.hold || '--';
-  updateSignal('nasdaq', fnasdaq);
+  // SPX - 读取实际指数点位
+  const spxData = data.index?.spx || STATIC_DATA.index?.spx;
+  if (spxData) {
+    document.getElementById('price-spx').textContent = spxData.price?.toFixed(2) || '--';
+    setPriceColor('price-spx', spxData.change_pct);
+  }
+  const fspx = f['513650'] || STATIC_DATA.funds['513650'];
+  if (fspx) {
+    document.getElementById('hold-spx').textContent = fspx.hold || '--';
+    document.getElementById('etf-spx').textContent = fspx.price?.toFixed(4) || '--';
+    updateSignal('513650', fspx);
+  }
 
   // 上证指数
   const sh = data.sh || data.index?.sh000001 || STATIC_DATA.sh;
@@ -527,23 +601,41 @@ function renderData(data) {
     document.getElementById('cleanup-amount').textContent = data.cleanup_amount;
   }
 
-  // 持仓图表
+
+  // 518680 黄金ETF
+  const static518680 = STATIC_DATA.funds['518680'] || { price: 0, change_pct: 0, name: '黄金ETF' };
+  const api518680 = f['518680'];
+  const cfg518680 = USER_CONFIG.holdings['518680'];
+  const final518680 = {
+    ...static518680,
+    ...(api518680 || {}),
+    hold: cfg518680.hold,
+    target: Math.round(USER_CONFIG.TOTAL_ASSETS * USER_CONFIG.targets[2] / 100),
+    signal: cfg518680.signal,
+    buy_amount: cfg518680.buy_amount,
+  };
+  document.getElementById('price-518680').textContent = final518680.price?.toFixed(4) || '--';
+  setPriceColor('price-518680', final518680.change_pct);
+  document.getElementById('hold-518680').textContent = final518680.hold || '--';
+  document.getElementById('target-518680').textContent = final518680.target + '万';
+  updateSignal('518680', final518680);
+  // 持仓图表（优先用API，其次用用户配置）
   if (data.positions) {
     renderPosChart(data.positions);
   } else {
-    renderPosChart(STATIC_DATA.positions);
+    renderPosChart({ labels: USER_CONFIG.position_labels, values: USER_CONFIG.positions });
   }
-  renderTargetChart(STATIC_DATA.targets);
+  renderTargetChart({ labels: USER_CONFIG.target_labels, values: USER_CONFIG.targets });
 
   // 风险灯（如果数据有则更新）
   if (data.risk) {
     if (data.risk.rate !== undefined) {
       document.getElementById('risk-rate').textContent = data.risk.rate.toFixed(2) + '%';
-      updateRiskLight('rate', data.risk.rate, 0.5, 3.5);
+      updateRiskLight('rate', data.risk.rate, USER_CONFIG.risk.rate_min, USER_CONFIG.risk.rate_max);
     }
     if (data.risk.dividend !== undefined) {
       document.getElementById('risk-dividend').textContent = data.risk.dividend.toFixed(2) + '%';
-      updateRiskLight('dividend', data.risk.dividend, 3, 999, true); // 下限警戒
+      updateRiskLight('dividend', data.risk.dividend, USER_CONFIG.risk.dividend_min, 999, true);
     }
   }
 }
@@ -592,13 +684,15 @@ const CHART_COLORS = ['#ff6b6b', '#3dd68c', '#f9ca24', '#60a5fa', '#a78bfa', '#3
 function renderPosChart(data) {
   const ctx = document.getElementById('posChart').getContext('2d');
   if (posChart) posChart.destroy();
+  // 按标签顺序从 ASSET_COLORS 取颜色，不存在的用备用色
+  const posColors = data.labels.map((label, i) => ASSET_COLORS[label] || CHART_COLORS[i % CHART_COLORS.length]);
   posChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: data.labels,
       datasets: [{
         data: data.values,
-        backgroundColor: CHART_COLORS,
+        backgroundColor: posColors,
         borderWidth: 0,
         hoverOffset: 4,
       }]
@@ -623,13 +717,15 @@ function renderPosChart(data) {
 function renderTargetChart(data) {
   const ctx = document.getElementById('targetChart').getContext('2d');
   if (targetChart) targetChart.destroy();
+  // 按标签顺序从 ASSET_COLORS 取颜色，不存在的用备用色
+  const targetColors = data.labels.map((label, i) => ASSET_COLORS[label] || CHART_COLORS[i % CHART_COLORS.length]);
   targetChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: data.labels,
       datasets: [{
         data: data.values,
-        backgroundColor: ['#f9ca24', '#3dd68c', '#60a5fa'],
+        backgroundColor: targetColors,
         borderWidth: 0,
         hoverOffset: 4,
       }]

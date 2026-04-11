@@ -613,7 +613,6 @@
         <span class="sh-index-price" id="sh-index-price">--</span>
         <span class="sh-index-change" id="sh-index-change">--</span>
       </div>
-      <div class="sh-index-meta">数据更新时间：<span id="sh-index-time">--</span></div>
     </div>
 
     <!-- 美元/人民币 -->
@@ -837,8 +836,6 @@ function renderData(data) {
     changeEl.textContent = (sh.change_pct >= 0 ? '+' : '') + sh.change_pct.toFixed(2) + '%';
     changeEl.className = sh.change_pct >= 0 ? 'change-up' : 'change-down';
   }
-  document.getElementById('sh-index-time').textContent = data.updated || '--';
-
   // 美元/人民币汇率
   if (data.fx && data.fx.usd_cny != null) {
     document.getElementById('fx-price').textContent = data.fx.usd_cny.toFixed(4);

@@ -674,6 +674,7 @@ const ASSET_COLORS = {
   '红利低波':  '#4ade80',  // 明绿
   '黄金':      '#fb923c',  // 橙色
   'SPX':       '#a78bfa',  // 紫罗兰
+  '自由仓位':  '#f472b6',  // 粉色
 };
 const ASSET_COLOR_LIST = Object.values(ASSET_COLORS);
 
@@ -708,8 +709,8 @@ const USER_CONFIG = {
     volatility_min: 10,
   },
   // 目标配置比例（%）
-  targets: [20, 20, 10, 20],  // 自由现金流20% / 红利低波20% / 黄金10% / SPX20%
-  target_labels: ['自由现金流', '红利低波', '黄金', 'SPX'],
+  targets: [10, 20, 10, 10, 10],  // 自由现金流10% / 红利低波20% / 黄金10% / SPX10% / 自由仓位10%
+  target_labels: ['自由现金流', '红利低波', '黄金', 'SPX', '自由仓位'],
   // 持仓分布（万元）
   positions: [35.2, 10, 3, 39, 11.3, 11.5],  // 杂仓35.2 / 现金10 / 自由现金流3 / 红利低波39 / 黄金11.3 / SPX11.5
   position_labels: ['杂仓', '现金', '自由现金流', '红利低波', '黄金', 'SPX'],

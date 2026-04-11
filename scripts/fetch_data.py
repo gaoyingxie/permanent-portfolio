@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""
+永久组合数据获取脚本
+抓取各ETF最新行情数据，输出 market.json
+"""
+
+import json
+import urllib.request
+import ssl
+from datetime import datetime
+
+# 忽略 SSL 证书验证
+ssl._create_default_https_context = ssl._create_unverified_context
+
+FUNDS = {
+    "510880": {"name": "红利ETF", "target": 0.70},
+    "512890": {"name": "红利低波", "target": 0.20},
+    "513100": {"name": "纳指ETF", "target": 0.10},
+}
+
+def fetch_fund_data(code: str) -> dict:
+    """从天天基金网获取单个基金数据"""
+    url = f"https://fundgz.1234567.com.cn/js/{code}.js"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            text = resp.read().decode("utf-8")
+        # 返回格式: jsonpgz({...});
+        # 去掉 jsonpgz( 和 );
+        text = text.replace("jsonpgz(", "").rstrip(");")
+        data = json.loads(text)
+        return {
+            "code": data.get("fundcode"),
+            "name": data.get("name"),
+            "price": float(data.get("gsz", 0)),
+            "change_pct": float(data.get("gszzl", 0)),
+            "date": data.get("gztime", "")[:10],
+        }
+    except Exception as e:
+        print(f"获取 {code} 失败: {e}")
+        return None
+
+def fetch_index_data(code: str) -> dict:
+    """获取指数数据（上证指数）"""
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f169,f170,f171"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        fields = data.get("data", {})
+        return {
+            "code": code,
+            "name": "上证指数",
+            "price": fields.get("f43", 0) / 100,
+            "change_pct": fields.get("f170", 0),
+        }
+    except Exception as e:
+        print(f"获取指数 {code} 失败: {e}")
+        return None
+
+def main():
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 开始抓取数据...")
+
+    market = {
+        "updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "updated_date": datetime.now().strftime("%Y-%m-%d"),
+        "funds": {},
+        "index": {},
+    }
+
+    # 抓取基金数据
+    for code, info in FUNDS.items():
+        fund = fetch_fund_data(code)
+        if fund:
+            market["funds"][code] = fund
+            print(f"  ✅ {info['name']}({code}): {fund['price']} ({fund['change_pct']:+.2f}%)")
+
+    # 抓取上证指数
+    sh = fetch_index_data("000001")
+    if sh:
+        market["index"]["sh000001"] = sh
+        print(f"  ✅ 上证指数: {sh['price']} ({sh['change_pct']:+.2f}%)")
+
+    # 写入 JSON 文件
+    output_path = "data/market.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(market, f, ensure_ascii=False, indent=2)
+
+    print(f"✅ 数据已保存至 {output_path}")
+
+if __name__ == "__main__":
+    main()

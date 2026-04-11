@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>永久组合 Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --card: #1a1d27;
+      --card-hover: #21253a;
+      --border: #2a2d3e;
+      --text: #e0e3ed;
+      --text-dim: #8891a8;
+      --green: #3dd68c;
+      --red: #ff6b6b;
+      --yellow: #f9ca24;
+      --blue: #60a5fa;
+      --purple: #a78bfa;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .update-time {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .refresh-btn:hover { background: var(--card-hover); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .refresh-btn .icon { font-size: 16px; }
+    .refresh-btn.loading .icon { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .tab {
+      padding: 6px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .tab.active { background: var(--card); color: var(--text); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* 核心指标卡片 */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: all 0.2s;
+    }
+    .card:hover { background: var(--card-hover); }
+    .card-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-code { font-size: 11px; color: var(--text-dim); opacity: 0.6; }
+    .card-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-value.price { font-variant-numeric: tabular-nums; }
+    .card-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .card-meta span { display: flex; justify-content: space-between; }
+    .card-meta .val { color: var(--text); font-variant-numeric: tabular-nums; }
+    .status-wait { color: var(--yellow); font-size: 13px; font-weight: 600; }
+    .status-buy { color: var(--green); font-size: 13px; font-weight: 600; }
+    .status-sell { color: var(--red); font-size: 13px; font-weight: 600; }
+    .card-pending {
+      border-left: 3px solid var(--yellow);
+    }
+    .card-buy {
+      border-left: 3px solid var(--green);
+    }
+    .card-sell {
+      border-left: 3px solid var(--red);
+    }
+
+    /* 大额金额展示 */
+    .big-amount {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    /* 主内容区 */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* 图表卡片 */
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .chart-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-dim);
+    }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .donut-wrap { position: relative; height: 200px; }
+    .donut-wrap canvas { height: 200px !important; }
+
+    /* 风险红绿灯 */
+    .risk-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .risk-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-dim);
+    }
+    .risk-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .risk-item:last-child { border-bottom: none; }
+    .risk-name { font-size: 13px; color: var(--text); }
+    .risk-params { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+    .risk-light {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      box-shadow: 0 0 6px currentColor;
+    }
+    .risk-light.green { background: var(--green); color: var(--green); }
+    .risk-light.yellow { background: var(--yellow); color: var(--yellow); }
+    .risk-light.red { background: var(--red); color: var(--red); }
+    .risk-value { text-align: right; }
+    .risk-val-num { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .risk-val-cond { font-size: 11px; color: var(--text-dim); }
+
+    /* 刷新遮罩提示 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      color: var(--text);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+    .toast.show { transform: none; opacity: 1; }
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error { border-left: 3px solid var(--red); }
+
+    /* 辅助信息 */
+    .strategy-note {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .change-up { color: var(--green); }
+    .change-down { color: var(--red); }
+    .change-flat { color: var(--text-dim); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>永久组合 Dashboard</h1>
+  <div class="header-right">
+    <span class="update-time" id="updateTime">加载中...</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="triggerRefresh()">
+      <span class="icon">🔄</span>
+      <span id="btnText">刷新数据</span>
+    </button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this)">总览</div>
+  <div class="tab" onclick="switchTab(this)">510880 红利</div>
+  <div class="tab" onclick="switchTab(this)">512890 低波</div>
+  <div class="tab" onclick="switchTab(this)">组合回测</div>
+  <div class="tab" onclick="switchTab(this)">风险监控</div>
+</div>
+
+<!-- 核心指标卡片 -->
+<div class="cards-grid">
+  <!-- 510880 红利ETF -->
+  <div class="card card-pending" id="card-510880">
+    <div class="card-label">
+      <span>510880 红利ETF</span>
+      <span class="card-code">红利</span>
+    </div>
+    <div class="card-value price" id="price-510880">--</div>
+    <div class="card-meta">
+      <span>乖离率 <span class="val" id="dev-510880">--</span></span>
+      <span>RSI <span class="val" id="rsi-510880">--</span></span>
+      <span>股息率 <span class="val" id="dividend-510880">--</span></span>
+      <span>换手率 <span class="val">--</span></span>
+    </div>
+    <div style="margin-top:10px">
+      <span class="status-wait" id="status-510880">等待</span>
+    </div>
+  </div>
+
+  <!-- 512890 红利低波 -->
+  <div class="card card-buy" id="card-512890">
+    <div class="card-label">
+      <span>512890 红利低波</span>
+      <span class="card-code">卫星</span>
+    </div>
+    <div class="card-value price" id="price-512890">--</div>
+    <div class="card-meta">
+      <span>趋势线 <span class="val" id="trend-512890">--</span></span>
+      <span>乖离率 <span class="val" id="dev-512890">--</span></span>
+    </div>
+    <div style="margin-top:10px">
+      <span class="status-buy" id="status-512890">买入信号</span>
+    </div>
+  </div>
+
+  <!-- 纳指 -->
+  <div class="card card-buy" id="card-nasdaq">
+    <div class="card-label">
+      <span>纳指ETF</span>
+      <span class="card-code">卫星</span>
+    </div>
+    <div class="card-value price" id="price-nasdaq">--</div>
+    <div class="card-meta">
+      <span>持仓 <span class="val" id="hold-nasdaq">--</span></span>
+      <span>目标 <span class="val" id="target-nasdaq">108万</span></span>
+    </div>
+    <div style="margin-top:10px">
+      <span class="status-buy" id="status-nasdaq">定投 2000元/天</span>
+    </div>
+    <div class="strategy-note">
+      区间 1.7-1.8 每天 2000元；&lt;1.7 每天 5000元
+    </div>
+  </div>
+
+  <!-- 杂仓清理 -->
+  <div class="card card-pending" id="card-cleanup">
+    <div class="card-label">
+      <span>杂仓清理</span>
+      <span class="card-code">再平衡</span>
+    </div>
+    <div class="big-amount" id="cleanup-amount">~230万</div>
+    <div class="strategy-note" style="margin-top:8px">
+      触发条件：<br>
+      ① 510880 乖离率 ≤ 0% → 清仓杂仓转红利<br>
+      ② 上证 ≥ 4000 → 每周机械卖出 1/5
+    </div>
+    <div style="margin-top:10px">
+      <span class="status-wait">等待触发</span>
+    </div>
+  </div>
+</div>
+
+<!-- 主图表区 -->
+<div class="main-grid">
+  <div>
+    <div class="chart-card">
+      <h3>持仓分布 vs 目标配置</h3>
+      <div class="charts-row">
+        <div class="donut-wrap">
+          <canvas id="posChart"></canvas>
+        </div>
+        <div class="donut-wrap">
+          <canvas id="targetChart"></canvas>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:32px;margin-top:12px;font-size:12px;color:var(--text-dim)">
+        <span>左：当前持仓</span>
+        <span>右：目标配置</span>
+      </div>
+    </div>
+
+    <!-- 上证指数 -->
+    <div class="chart-card" style="margin-bottom:0">
+      <h3>上证指数</h3>
+      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px">
+        <span style="font-size:28px;font-weight:700" id="sh-index-price">--</span>
+        <span id="sh-index-change" style="font-size:16px;font-weight:600">--</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim)">数据更新时间：<span id="sh-index-time">--</span></div>
+    </div>
+  </div>
+
+  <!-- 风险监控 -->
+  <div>
+    <div class="risk-card">
+      <h3>🟢 风险红绿灯</h3>
+      <div class="risk-item">
+        <div>
+          <div class="risk-name">利率环境</div>
+          <div class="risk-params">警戒：&gt;3.5% 或 &lt;0.5%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="risk-value">
+            <div class="risk-val-num" id="risk-rate">1.8%</div>
+          </div>
+          <div class="risk-light green" id="light-rate"></div>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div>
+          <div class="risk-name">分红可持续</div>
+          <div class="risk-params">警戒：股息率 &lt;3%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="risk-value">
+            <div class="risk-val-num" id="risk-dividend">4.46%</div>
+          </div>
+          <div class="risk-light green" id="light-dividend"></div>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div>
+          <div class="risk-name">波动性（振幅）</div>
+          <div class="risk-params">警戒：振幅 &lt;10%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="risk-value">
+            <div class="risk-val-num" id="risk-volatility">10.6%</div>
+          </div>
+          <div class="risk-light green" id="light-volatility"></div>
+        </div>
+      </div>
+      <div class="risk-item">
+        <div>
+          <div class="risk-name">信号频率</div>
+          <div class="risk-params">警戒：信号显著减少</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="risk-value">
+            <div class="risk-val-num">14次</div>
+            <div class="risk-val-cond">近3年穿越0线</div>
+          </div>
+          <div class="risk-light green" id="light-signal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== 配置 ====================
+const GITHUB_REPO = 'gaoyingxie/permanent-portfolio';
+const DATA_PATH = 'data/market.json';
+
+// 硬编码静态数据（与截图保持一致，作为默认值）
+const STATIC_DATA = {
+  funds: {
+    '510880': { price: 3.217, change_pct: 0.45, name: '红利ETF', dev: 4.7, rsi: 44.6, dividend: 4.57, signal: 'wait' },
+    '512890': { price: 1.182, change_pct: -0.32, name: '红利低波ETF', trend: 1.2362, dev: -4.39, signal: 'buy', buy_amount: '7.4万' },
+    'nasdaq': { price: 1.752, change_pct: 0.28, name: '纳指ETF', hold: '14.6万', target: '108万', signal: 'invest', invest_daily: '2000元/天' },
+  },
+  sh: { price: 3350.12, change_pct: 0.87 },
+  cleanup_amount: '~230万',
+  positions: {
+    labels: ['杂仓', '现金/货基', '红利/高股息', '卫星仓', '医疗', '债券', '纳指/美股'],
+    values: [166, 63.4, 62, 8.2, 4.1, 15, 12],
+  },
+  targets: {
+    labels: ['红利', '现金', '纳指/美股'],
+    values: [70, 10, 20],
+  },
+  risk: {
+    rate: 1.8,
+    dividend: 4.46,
+    volatility: 10.6,
+  }
+};
+
+// ==================== 全局变量 ====================
+let posChart, targetChart;
+
+// ==================== 初始化 ====================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+});
+
+// ==================== 数据加载 ====================
+async function loadData() {
+  try {
+    const resp = await fetch(DATA_PATH + '?t=' + Date.now());
+    if (!resp.ok) throw new Error('数据文件不存在');
+    const data = await resp.json();
+    renderData(data);
+    showToast('数据已更新', 'success');
+  } catch (e) {
+    console.warn('加载实时数据失败，使用静态数据:', e.message);
+    renderData(STATIC_DATA);
+  }
+}
+
+function renderData(data) {
+  // 更新时间
+  const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');
+  document.getElementById('updateTime').textContent = '更新: ' + updateTime;
+
+  // 基金数据
+  const f = data.funds || {};
+
+  // 510880
+  const f510880 = f['510880'] || STATIC_DATA.funds['510880'];
+  document.getElementById('price-510880').textContent = f510880.price?.toFixed(3) || '--';
+  setPriceColor('price-510880', f510880.change_pct);
+  document.getElementById('dev-510880').textContent = f510880.dev ? f510880.dev.toFixed(2) + '%' : '--';
+  document.getElementById('rsi-510880').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';
+  document.getElementById('dividend-510880').textContent = f510880.dividend ? f510880.dividend.toFixed(2) + '%' : '--';
+  updateSignal('510880', f510880);
+
+  // 512890
+  const f512890 = f['512890'] || STATIC_DATA.funds['512890'];
+  document.getElementById('price-512890').textContent = f512890.price?.toFixed(3) || '--';
+  setPriceColor('price-512890', f512890.change_pct);
+  document.getElementById('trend-512890').textContent = f512890.trend || '--';
+  document.getElementById('dev-512890').textContent = f512890.dev ? f512890.dev.toFixed(2) + '%' : '--';
+  updateSignal('512890', f512890);
+
+  // 纳指
+  const fnasdaq = f['nasdaq'] || STATIC_DATA.funds['nasdaq'];
+  document.getElementById('price-nasdaq').textContent = fnasdaq.price?.toFixed(3) || '--';
+  setPriceColor('price-nasdaq', fnasdaq.change_pct);
+  document.getElementById('hold-nasdaq').textContent = fnasdaq.hold || '--';
+  updateSignal('nasdaq', fnasdaq);
+
+  // 上证指数
+  const sh = data.sh || data.index?.sh000001 || STATIC_DATA.sh;
+  document.getElementById('sh-index-price').textContent = sh.price?.toFixed(2) || '--';
+  const changeEl = document.getElementById('sh-index-change');
+  if (sh.change_pct !== undefined) {
+    changeEl.textContent = (sh.change_pct >= 0 ? '+' : '') + sh.change_pct.toFixed(2) + '%';
+    changeEl.className = sh.change_pct >= 0 ? 'change-up' : 'change-down';
+  }
+  document.getElementById('sh-index-time').textContent = data.updated || '--';
+
+  // 杂仓
+  if (data.cleanup_amount) {
+    document.getElementById('cleanup-amount').textContent = data.cleanup_amount;
+  }
+
+  // 持仓图表
+  if (data.positions) {
+    renderPosChart(data.positions);
+  } else {
+    renderPosChart(STATIC_DATA.positions);
+  }
+  renderTargetChart(STATIC_DATA.targets);
+
+  // 风险灯（如果数据有则更新）
+  if (data.risk) {
+    if (data.risk.rate !== undefined) {
+      document.getElementById('risk-rate').textContent = data.risk.rate.toFixed(2) + '%';
+      updateRiskLight('rate', data.risk.rate, 0.5, 3.5);
+    }
+    if (data.risk.dividend !== undefined) {
+      document.getElementById('risk-dividend').textContent = data.risk.dividend.toFixed(2) + '%';
+      updateRiskLight('dividend', data.risk.dividend, 3, 999, true); // 下限警戒
+    }
+  }
+}
+
+function setPriceColor(id, change) {
+  const el = document.getElementById(id);
+  el.classList.remove('change-up', 'change-down', 'change-flat');
+  if (change > 0) el.classList.add('change-up');
+  else if (change < 0) el.classList.add('change-down');
+  else el.classList.add('change-flat');
+}
+
+function updateSignal(code, fund) {
+  const statusEl = document.getElementById('status-' + code);
+  const cardEl = document.getElementById('card-' + code);
+  if (!fund.signal || fund.signal === 'wait') {
+    statusEl.textContent = '等待';
+    statusEl.className = 'status-wait';
+    cardEl.className = cardEl.className.replace(/card-\w+/, 'card-pending');
+  } else if (fund.signal === 'buy') {
+    statusEl.textContent = '买入 ' + (fund.buy_amount || '');
+    statusEl.className = 'status-buy';
+    cardEl.className = cardEl.className.replace(/card-\w+/, 'card-buy');
+  } else if (fund.signal === 'invest') {
+    statusEl.textContent = '定投 ' + (fund.invest_daily || '');
+    statusEl.className = 'status-buy';
+    cardEl.className = cardEl.className.replace(/card-\w+/, 'card-buy');
+  }
+}
+
+function updateRiskLight(type, value, lowThreshold, highThreshold, lowDanger=false) {
+  const light = document.getElementById('light-' + type);
+  light.classList.remove('green', 'yellow', 'red');
+  if (lowDanger) {
+    if (value < lowThreshold) light.classList.add('red');
+    else light.classList.add('green');
+  } else {
+    if (value < lowThreshold || value > highThreshold) light.classList.add('red');
+    else light.classList.add('green');
+  }
+}
+
+// ==================== 图表 ====================
+const CHART_COLORS = ['#ff6b6b', '#3dd68c', '#f9ca24', '#60a5fa', '#a78bfa', '#34d399', '#f472b6'];
+
+function renderPosChart(data) {
+  const ctx = document.getElementById('posChart').getContext('2d');
+  if (posChart) posChart.destroy();
+  posChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        data: data.values,
+        backgroundColor: CHART_COLORS,
+        borderWidth: 0,
+        hoverOffset: 4,
+      }]
+    },
+    options: {
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#8891a8', font: { size: 11 }, padding: 8, boxWidth: 10 }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${ctx.raw}万`
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderTargetChart(data) {
+  const ctx = document.getElementById('targetChart').getContext('2d');
+  if (targetChart) targetChart.destroy();
+  targetChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        data: data.values,
+        backgroundColor: ['#f9ca24', '#3dd68c', '#60a5fa'],
+        borderWidth: 0,
+        hoverOffset: 4,
+      }]
+    },
+    options: {
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#8891a8', font: { size: 11 }, padding: 8, boxWidth: 10 }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${ctx.raw}%`
+          }
+        }
+      }
+    }
+  });
+}
+
+// ==================== 刷新按钮 ====================
+async function triggerRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  const btnText = document.getElementById('btnText');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btnText.textContent = '触发中...';
+  showToast('正在触发 GitHub Actions，请稍等...', 'success');
+
+  try {
+    // 通过 repository_dispatch 触发 workflow
+    const resp = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/dispatches', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event_type: 'refresh-data',
+      })
+    });
+    if (resp.status === 204 || resp.ok) {
+      showToast('✅ 刷新任务已触发，数据将在1-2分钟后更新', 'success');
+    } else {
+      throw new Error('API返回: ' + resp.status);
+    }
+  } catch (e) {
+    showToast('⚠️ 触发失败（可能缺少权限），请手动在 GitHub Actions 页面触发', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btnText.textContent = '刷新数据';
+  }
+}
+
+// ==================== Tab切换 ====================
+function switchTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ==================== Toast ====================
+function showToast(msg, type='success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast ' + type + ' show';
+  setTimeout(() => { toast.classList.remove('show'); }, 3500);
+}
+</script>
+</body>
+</html>

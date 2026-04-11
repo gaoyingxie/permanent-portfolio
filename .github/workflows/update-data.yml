@@ -1,0 +1,36 @@
+name: 更新行情数据
+
+on:
+  # 每天早上 9:00（北京时间 = UTC 1:00）自动运行
+  schedule:
+    - cron: '0 1 * * *'
+  # 手动触发（通过 repository_dispatch 事件）
+  repository_dispatch:
+    types: [refresh-data]
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install requests
+
+      - name: 运行数据抓取脚本
+        run: python scripts/fetch_data.py
+
+      - name: 提交更新
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/market.json
+          git diff --staged --quiet || git commit -m "auto: 更新行情数据 $(date '+%Y-%m-%d %H:%M')"
+          git push

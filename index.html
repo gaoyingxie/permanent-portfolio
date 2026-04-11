@@ -319,8 +319,10 @@
     }
     .donut-label {
       font-size: 13px;
-      color: var(--text-mid);
+      font-weight: 600;
+      color: var(--text);
       margin-top: 10px;
+      margin-bottom: 2px;
     }
 
     /* 上证指数 */
@@ -631,12 +633,14 @@
             <canvas id="posChart"></canvas>
           </div>
           <div class="donut-label">当前持仓</div>
+          <div class="chart-legend" id="pos-legend"></div>
         </div>
         <div class="donut-col">
           <div class="donut-wrap">
             <canvas id="targetChart"></canvas>
           </div>
           <div class="donut-label">目标配置</div>
+          <div class="chart-legend" id="target-legend"></div>
         </div>
       </div>
     </div>
@@ -746,8 +750,8 @@ const USER_CONFIG = {
   targets: [10, 10, 15, 20, 10, 15, 20],  // 现金10% / 债券10% / 自由现金流15% / 红利低波20% / 黄金10% / SPX15% / 自由仓位20%
   target_labels: ['现金', '债券', '自由现金流', '红利低波', '黄金', 'SPX', '自由仓位'],
   // 持仓分布（万元）
-  positions: [27, 3, 3, 39, 11.3, 11.5, 35.2],  // 债券27 / 现金3 / 自由现金流3 / 红利低波39 / 黄金11.3 / SPX11.5 / 自由仓位35.2
-  position_labels: ['债券', '现金', '自由现金流', '红利低波', '黄金', 'SPX', '自由仓位'],
+  positions: [3, 27, 3, 39, 11.3, 11.5, 35.2],  // 现金3 / 债券27 / 自由现金流3 / 红利低波39 / 黄金11.3 / SPX11.5 / 自由仓位35.2
+  position_labels: ['现金', '债券', '自由现金流', '红利低波', '黄金', 'SPX', '自由仓位'],
 };
 // =======================================================
 

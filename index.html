@@ -513,7 +513,7 @@ const STATIC_DATA = {
     '159222': { price: 1.4106, change_pct: 0.5, name: '自由现金流ETF', dev: 4.7, rsi: 44.6, dividend: 4.57 },
     '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', trend: 1.2362, dev: -4.39 },
     '513650': { price: 1.6786, change_pct: -0.56, name: 'SPX' },
-    '518680': { price: 10.53, change_pct: 0.5, name: '富国上海金ETF' },
+    '518680': { price: null, change_pct: null, name: '富国上海金ETF' },
   },
   sh: { price: 3350.12, change_pct: 0.87 },
   index: {
@@ -614,7 +614,7 @@ function renderData(data) {
     signal: cfg518680.signal,
     buy_amount: cfg518680.buy_amount,
   };
-  document.getElementById('price-518680').textContent = final518680.price?.toFixed(4) || '--';
+  document.getElementById('price-518680').textContent = final518680.price != null ? final518680.price.toFixed(4) : '未获取';
   setPriceColor('price-518680', final518680.change_pct);
   document.getElementById('hold-518680').textContent = final518680.hold || '--';
   document.getElementById('target-518680').textContent = final518680.target + '万';

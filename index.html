@@ -329,7 +329,7 @@
     .price-row {
       display: flex;
       align-items: baseline;
-      gap: 6px;
+      gap: 10px;
       margin-bottom: 4px;
     }
     .price-row .price {
@@ -937,9 +937,9 @@ function renderData(data) {
   if (data.gold) {
     // 主显示：SGE AU9999（元/克）
     if (data.gold.sge != null) {
-      goldPriceEl.textContent = data.gold.sge.toFixed(2) + ' 元/克';
+      goldPriceEl.textContent = data.gold.sge.toFixed(2);
     } else if (data.gold.global != null) {
-      goldPriceEl.textContent = data.gold.global.toFixed(2) + ' 元/克';
+      goldPriceEl.textContent = data.gold.global.toFixed(2);
     } else {
       goldPriceEl.textContent = '--';
     }

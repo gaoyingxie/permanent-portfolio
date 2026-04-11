@@ -1,9 +1,13 @@
 name: 更新行情数据
 
 on:
-  # 每4小时一次（北京时间 8/12/16/20/00 点）
+  # 每天5次：北京时间 09:30 / 10:30 / 13:30 / 14:30 / 22:00
   schedule:
-    - cron: '0 0,4,8,12,16 * * *'
+    - cron: '30 1 * * *'
+    - cron: '30 2 * * *'
+    - cron: '30 5 * * *'
+    - cron: '30 6 * * *'
+    - cron: '0 14 * * *'
   # 手动触发（通过 repository_dispatch 事件）
   repository_dispatch:
     types: [refresh-data]

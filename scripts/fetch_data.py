@@ -162,7 +162,7 @@ def fetch_gold() -> dict:
                 html = resp.read().decode("utf-8", errors="ignore")
             rows = re.findall(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
             for row in rows:
-                if "Au99.99" in row and "iAu99.99" not in row:
+                if "iAu99.99" in row:  # 国际板 AU9999
                     cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.DOTALL)
                     clean = [re.sub(r"<[^>]+>", "", c).strip() for c in cells]
                     if len(clean) > 5 and clean[3]:

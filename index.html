@@ -579,7 +579,6 @@
       </div>
       <div class="card-value price" id="gold-cny-price">--</div>
       <div class="card-meta">
-        <span>国内现货 <span class="val" id="gold-sge">--</span></span>
         <span>国际金价 <span class="val" id="gold-global">--</span></span>
         <span>ETF场内 <span class="val" id="etf-518680">--</span></span>
       </div>
@@ -869,23 +868,19 @@ function renderData(data) {
     signal: cfg518680.signal,
     buy_amount: cfg518680.buy_amount,
   };
-  // 黄金价格（国内SGE现货 + 国际COMEX）
+  // 黄金价格（SGE AU9999 国际板 + COMEX 国际金价）
   const goldPriceEl = document.getElementById('gold-cny-price');
-  const goldSgeEl = document.getElementById('gold-sge');
   const goldGlobalEl = document.getElementById('gold-global');
   if (data.gold) {
-    // 主显示：国内SGE现货（元/克）
+    // 主显示：SGE AU9999（元/克）
     if (data.gold.sge != null) {
       goldPriceEl.textContent = data.gold.sge.toFixed(2) + ' 元/克';
-      goldSgeEl.textContent = data.gold.sge.toFixed(2) + ' 元/克';
     } else if (data.gold.global != null) {
-      goldPriceEl.textContent = data.gold.global.toFixed(2) + ' USD/oz';
-      goldSgeEl.textContent = '--';
+      goldPriceEl.textContent = data.gold.global.toFixed(2) + ' 元/克';
     } else {
       goldPriceEl.textContent = '--';
-      goldSgeEl.textContent = '--';
     }
-    // 国际金价（美元/盎司）
+    // 副显示：COMEX 国际价（美元/盎司）
     if (data.gold.global != null) {
       goldGlobalEl.textContent = data.gold.global.toFixed(2) + ' USD/oz';
     } else {
@@ -893,7 +888,6 @@ function renderData(data) {
     }
   } else {
     goldPriceEl.textContent = '--';
-    goldSgeEl.textContent = '--';
     goldGlobalEl.textContent = '--';
   }
   // ETF场内价格

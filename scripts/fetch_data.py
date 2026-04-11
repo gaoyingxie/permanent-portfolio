@@ -46,17 +46,25 @@ def fetch_fund_data(code: str) -> dict:
         return None
 
 def fetch_fund_nav_and_info(code: str) -> dict:
-    """获取场内基金实时行情（从东方财富场内基金接口）"""
-    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f169,f170,f171"
+    """获取场内基金实时行情 + 净值（从东方财富场内基金接口）"""
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f169,f170,f171,f58"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         fields = data.get("data", {})
-        return {
-            "price": fields.get("f43", 0) / 100,
+        price = fields.get("f43", 0) / 100
+        # f58 通常是单位净值（iNAV）
+        nav = fields.get("f58", 0)
+        result = {
+            "price": price,
             "change_pct": round(fields.get("f170", 0) / 100, 2),
         }
+        if nav and nav > 0:
+            premium = (price - nav) / nav * 100
+            result["nav"] = round(nav, 4)
+            result["premium"] = round(premium, 2)
+        return result
     except Exception as e:
         print(f"获取 {code} 场内基金数据失败: {e}")
         return None

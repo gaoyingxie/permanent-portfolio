@@ -517,8 +517,6 @@
       </div>
       <div class="card-value price" id="price-159222">--</div>
       <div class="card-meta">
-        <span>持仓 <span class="val" id="hold-159222">--</span></span>
-        <span>目标 <span class="val" id="target-159222">--</span></span>
         <span>乖离率 <span class="val" id="dev-159222">--</span></span>
         <span>RSI <span class="val" id="rsi-159222">--</span></span>
         <span>股息率 <span class="val" id="dividend-159222">--</span></span>
@@ -536,8 +534,6 @@
         年线偏离 <span id="dev-563020" class="val">--</span>
       </div>
       <div class="card-meta">
-        <span>持仓 <span class="val" id="hold-563020">--</span></span>
-        <span>目标 <span class="val" id="target-563020">--</span></span>
         <span>年均线 <span class="val" id="annual-avg-563020">--</span></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
@@ -569,10 +565,8 @@
       </div>
       <div class="card-value price" id="price-spx">--</div>
       <div class="card-meta">
-        <span>持仓 <span class="val" id="hold-spx">--</span></span>
         <span>ETF场内 <span class="val" id="etf-spx">--</span></span>
         <span>溢价率 <span class="val" id="premium-spx">--</span></span>
-        <span>目标 <span class="val" id="target-513650">--</span></span>
       </div>
       <span class="status-tag status-buy" id="status-513650">定投 2000元/天</span>
       <div class="strategy-note" id="spx-strategy-note">定投标普500，按策略自动执行</div>
@@ -585,8 +579,6 @@
       </div>
       <div class="card-value price" id="price-518680">--</div>
       <div class="card-meta">
-        <span>持仓 <span class="val" id="hold-518680">--</span></span>
-        <span>目标 <span class="val" id="target-518680">--</span></span>
       </div>
       <span class="status-tag status-wait" id="status-518680">等待</span>
     </div>
@@ -815,7 +807,6 @@ function renderData(data) {
   }
   const fspx = f['513650'] || STATIC_DATA.funds['513650'];
   if (fspx) {
-    document.getElementById('hold-spx').textContent = fspx.hold || '--';
     document.getElementById('etf-spx').textContent = fspx.price?.toFixed(4) || '--';
     const premEl = document.getElementById('premium-spx');
     if (fspx.premium != null) {
@@ -858,8 +849,6 @@ function renderData(data) {
   };
   document.getElementById('price-518680').textContent = final518680.price != null ? final518680.price.toFixed(4) : '未获取';
   setPriceColor('price-518680', final518680.change_pct);
-  document.getElementById('hold-518680').textContent = final518680.hold || '--';
-  document.getElementById('target-518680').textContent = final518680.target + '万';
   updateSignal('518680', final518680);
   // 持仓图表（优先用API，其次用用户配置）
   if (data.positions) {

@@ -837,8 +837,15 @@ function renderData(data) {
     changeEl.className = sh.change_pct >= 0 ? 'change-up' : 'change-down';
   }
   // 美元/人民币汇率
-  if (data.fx && data.fx.usd_cny != null) {
-    document.getElementById('fx-price').textContent = data.fx.usd_cny.toFixed(4);
+  if (data.fx) {
+    if (data.fx.rate != null) {
+      document.getElementById('fx-price').textContent = data.fx.rate.toFixed(4);
+    }
+    if (data.fx.change_pct != null) {
+      const fxChangeEl = document.getElementById('fx-change');
+      fxChangeEl.textContent = (data.fx.change_pct >= 0 ? '+' : '') + data.fx.change_pct.toFixed(2) + '%';
+      fxChangeEl.className = data.fx.change_pct >= 0 ? 'sh-index-change change-up' : 'sh-index-change change-down';
+    }
   }
 
   // 杂仓

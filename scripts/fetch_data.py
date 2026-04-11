@@ -45,7 +45,7 @@ def fetch_fund_data(code: str) -> dict:
         print(f"获取 {code} 失败: {e}")
         return None
 
-def fetch_usd_cny_rate() -> float:
+def fetch_usd_cny_rate() -> dict:
     """获取美元兑人民币汇率（实时，在岸人民币）"""
     # 新浪财经外汇接口
     url = "https://hq.sinajs.cn/list=fx_susdcny"
@@ -56,14 +56,22 @@ def fetch_usd_cny_rate() -> float:
         })
         with urllib.request.urlopen(req, timeout=8) as resp:
             text = resp.read().decode("gbk", errors="ignore")
-        # 格式: "02:34:01,6.8285,6.8300,6.8305,...,在岸人民币,..."
+        # 格式: "时间,当前价,昨收,当前,...,在岸人民币,涨跌,涨跌幅,..."
         m = re.search(r'"([^"]+)"', text)
         if m:
             parts = m.group(1).split(",")
             if len(parts) > 1 and parts[1]:
                 rate = float(parts[1])
                 if 5 < rate < 10:
-                    return round(rate, 4)
+                    change_pct = None
+                    if len(parts) > 2:
+                        try:
+                            prev = float(parts[2])  # 昨收
+                            curr = float(parts[1])  # 当前价
+                            change_pct = round((curr - prev) / prev * 100, 2)
+                        except (ValueError, IndexError):
+                            pass
+                    return {"rate": round(rate, 4), "change_pct": change_pct}
     except Exception as e:
         print(f"获取USD/CNY汇率失败: {e}")
     return None
@@ -334,10 +342,10 @@ def main():
     print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 获取美元汇率...")
     usd_cny = fetch_usd_cny_rate()
     if usd_cny:
-        market["fx"] = {"usd_cny": usd_cny}
-        print(f"  ✅ 美元/人民币: {usd_cny:.4f}")
+        market["fx"] = usd_cny
+        print(f"  ✅ 美元/人民币: {usd_cny['rate']:.4f} ({usd_cny.get('change_pct')})")
     else:
-        market["fx"] = {"usd_cny": None}
+        market["fx"] = {"rate": None, "change_pct": None}
 
     # 抓取 S&P 500 指数
     spx = fetch_us_index_data("100.SPX", "S&P 500")

@@ -318,11 +318,26 @@
     .chart-legend {
       display: flex;
       justify-content: center;
-      gap: 20px;
+      gap: 32px;
       margin-top: 16px;
       font-size: 12px;
       color: var(--text-dim);
     }
+    .chart-legend span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-mid);
+    }
+    .chart-legend span::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .chart-legend span:first-child::before { background: #ff6b6b; }
+    .chart-legend span:last-child::before { background: #a78bfa; }
 
     /* 上证指数 */
     .sh-index-wrap {
@@ -612,16 +627,14 @@
       <div class="charts-row">
         <div class="donut-wrap">
           <canvas id="posChart"></canvas>
-          <div class="donut-center">
-            <div class="donut-center-text">当前持仓</div>
-          </div>
         </div>
         <div class="donut-wrap">
           <canvas id="targetChart"></canvas>
-          <div class="donut-center">
-            <div class="donut-center-text">目标配置</div>
-          </div>
         </div>
+      </div>
+      <div class="chart-legend">
+        <span>● 当前持仓</span>
+        <span>● 目标配置</span>
       </div>
     </div>
 

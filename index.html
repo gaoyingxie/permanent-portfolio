@@ -579,7 +579,7 @@
       </div>
       <div class="card-value price" id="gold-cny-price">--</div>
       <div class="card-meta">
-        <span>国内现货 <span class="val" id="gold-cny-sge">--</span></span>
+        <span>国际金价 <span class="val" id="gold-sge">--</span></span>
         <span>ETF场内 <span class="val" id="etf-518680">--</span></span>
       </div>
       <span class="status-tag status-wait" id="status-518680">等待</span>
@@ -868,12 +868,12 @@ function renderData(data) {
     signal: cfg518680.signal,
     buy_amount: cfg518680.buy_amount,
   };
-  // 国内黄金现货价（主显示，元/克）
+  // 国际黄金现货价（USD/盎司）
   const goldPriceEl = document.getElementById('gold-cny-price');
-  const goldSgeEl = document.getElementById('gold-cny-sge');
-  if (data.gold_cny != null) {
-    goldPriceEl.textContent = data.gold_cny.toFixed(2);
-    goldSgeEl.textContent = data.gold_cny.toFixed(2) + ' 元/克';
+  const goldSgeEl = document.getElementById('gold-sge');
+  if (data.gold != null) {
+    goldPriceEl.textContent = data.gold.toFixed(2) + ' USD/oz';
+    goldSgeEl.textContent = data.gold.toFixed(2) + ' USD/oz';
   } else {
     goldPriceEl.textContent = '--';
     goldSgeEl.textContent = '--';

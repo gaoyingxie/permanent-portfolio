@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 永久组合数据获取脚本
-抓取各ETF最新行情数据，输出 market.json
+抓取各ETF最新行情数据,输出 market.json
 """
 
 import json
@@ -11,7 +11,7 @@ import os
 import re
 from datetime import datetime, timezone, timedelta
 
-# 北京时间（UTC+8）
+# 北京时间(UTC+8)
 os.environ['TZ'] = 'Asia/Shanghai'
 _tz = timezone(timedelta(hours=8))
 
@@ -45,45 +45,28 @@ def fetch_fund_data(code: str) -> dict:
         print(f"获取 {code} 失败: {e}")
         return None
 
-def fetch_sge_gold_price() -> float:
-    """获取上海黄金交易所（SGE）现货金价（元/克），通过COMEX国际金价+USD/CNY换算"""
+def fetch_gold_price() -> float:
+    """获取国际金价（COMEX黄金，美元/盎司）"""
+    url = "https://hq.sinajs.cn/list=hf_GC"
     try:
-        # 获取国际金价（COMEX黄金，美元/盎司）
-        url_gold = "https://hq.sinajs.cn/list=hf_GC"
-        req_gold = urllib.request.Request(url_gold, headers={
+        req = urllib.request.Request(url, headers={
             "User-Agent": "Mozilla/5.0",
             "Referer": "https://finance.sina.com.cn/"
         })
-        with urllib.request.urlopen(req_gold, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=8) as resp:
             text = resp.read().decode("utf-8", errors="ignore")
         m = re.search(r'"([^"]+)"', text)
         if not m:
             return None
         parts = m.group(1).split(",")
-        usd_per_oz = float(parts[0])
-        # 获取USD/CNY
-        url_fx = "https://hq.sinajs.cn/list=fx_susdcny"
-        req_fx = urllib.request.Request(url_fx, headers={
-            "User-Agent": "Mozilla/5.0",
-            "Referer": "https://finance.sina.com.cn/"
-        })
-        with urllib.request.urlopen(req_fx, timeout=8) as resp:
-            text = resp.read().decode("gbk", errors="ignore")
-        m2 = re.search(r'"([^"]+)"', text)
-        if not m2:
-            return None
-        fx_parts = m2.group(1).split(",")
-        usd_cny = float(fx_parts[1])
-        # 换算：USD/oz → CNY/g（1 troy oz = 31.1035 g）
-        cny_per_g = usd_per_oz * usd_cny / 31.1035
-        return round(cny_per_g, 2)
+        return round(float(parts[0]), 2)
     except Exception as e:
-        print(f"获取SGE黄金价格失败: {e}")
+        print(f"获取国际金价失败: {e}")
         return None
 
 
 def fetch_usd_cny_rate() -> dict:
-    """获取美元兑人民币汇率（实时，在岸人民币）"""
+    """获取美元兑人民币汇率(实时,在岸人民币)"""
     # 新浪财经外汇接口
     url = "https://hq.sinajs.cn/list=fx_susdcny"
     try:
@@ -115,7 +98,7 @@ def fetch_usd_cny_rate() -> dict:
 
 
 def fetch_fund_nav_and_info(code: str) -> dict:
-    """获取场内基金实时行情（从东方财富场内基金接口）"""
+    """获取场内基金实时行情(从东方财富场内基金接口)"""
     url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -146,7 +129,7 @@ def fetch_fund_div_yield(code: str) -> float:
         text = text.replace("jsonpgz(", "").rstrip(");")
         data = json.loads(text)
         # 天天基金的股息率字段
-        dividend = data.get("dwjz", 0)  # 单位净值，股息率需要额外计算
+        dividend = data.get("dwjz", 0)  # 单位净值,股息率需要额外计算
         # 尝试从基金概况页面获取
         url2 = f"https://fund.10jqka.com.cn/{code}/fundinfo.html"
         req2 = urllib.request.Request(url2, headers={"User-Agent": "Mozilla/5.0"})
@@ -178,7 +161,7 @@ def fetch_index_data(code: str, name: str = "上证指数") -> dict:
         return None
 
 def fetch_us_index_data(secid: str, name: str) -> dict:
-    """获取美股指数数据（SPX等）"""
+    """获取美股指数数据(SPX等)"""
     url = f"https://push2.eastmoney.com/api/qt/stock/get?secid={secid}&fields=f43,f169,f170,f171"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -196,7 +179,7 @@ def fetch_us_index_data(secid: str, name: str) -> dict:
         return None
 
 def fetch_nav_history(code: str, days: int = 250) -> list:
-    """获取历史净值，用于计算年线"""
+    """获取历史净值,用于计算年线"""
     url = (f"https://push2his.eastmoney.com/api/qt/stock/kline/get"
            f"?secid=1.{code}&fields1=f1,f2,f3,f4,f5,f6"
            f"&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61"
@@ -216,7 +199,7 @@ def fetch_nav_history(code: str, days: int = 250) -> list:
         return []
 
 def calc_annual_avg_deviation(code: str) -> dict:
-    """计算年线偏离度（年线收益差）"""
+    """计算年线偏离度(年线收益差)"""
     history = fetch_nav_history(code, days=250)
     if not history or len(history) < 10:
         return None
@@ -240,9 +223,9 @@ def calc_annual_avg_deviation(code: str) -> dict:
     }
 
 def fetch_10y_china_bond_yield() -> float:
-    """获取中国10年期国债收益率（实时）"""
-    # 方法1：东方财富债券行情
-    # 019547 是10年期国债（代码可能随时间变化，这里用活跃券）
+    """获取中国10年期国债收益率(实时)"""
+    # 方法1:东方财富债券行情
+    # 019547 是10年期国债(代码可能随时间变化,这里用活跃券)
     codes = ["019547", "019547", "T2506", "T2509"]
     for secid in codes:
         url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{secid}&fields=f43,f170"
@@ -256,7 +239,7 @@ def fetch_10y_china_bond_yield() -> float:
                 return round(rate / 100, 4)
         except Exception:
             pass
-    # 方法2：中债国债收益率曲线（chinamoney）
+    # 方法2:中债国债收益率曲线(chinamoney)
     try:
         url2 = "https://www.chinamoney.com.cn/ags/ms/cm-u-bond-md/CurveCsv?nameCode=PY1026"
         req2 = urllib.request.Request(url2, headers={"User-Agent": "Mozilla/5.0"})
@@ -296,7 +279,7 @@ def fetch_563020_dividend_yield() -> float:
             return round(float(div), 2)
     except Exception as e:
         print(f"获取563020股息率失败: {e}")
-    # 备用：直接抓东财基金概况页
+    # 备用:直接抓东财基金概况页
     try:
         url3 = "https://fundf10.eastmoney.com/jjjz_563020.html"
         req3 = urllib.request.Request(url3, headers={"User-Agent": "Mozilla/5.0"})
@@ -326,7 +309,7 @@ def main():
             market["funds"][code] = fund
             print(f"  ✅ {info['name']}({code}): {fund['price']} ({fund['change_pct']:+.2f}%)")
 
-    # 抓取场内基金数据（513650 SPX、518680 黄金ETF）
+    # 抓取场内基金数据(513650 SPX、518680 黄金ETF)
     for code, name in [("513650", "标普500ETF"), ("518680", "黄金ETF")]:
         ind = fetch_fund_nav_and_info(code)
         if ind:
@@ -348,7 +331,7 @@ def main():
             "color": result["color"],
             "name": "红利低波",
         })
-        print(f"  ✅ 563020 年线偏离度: {result['deviation']:+.2f}% → {result['signal_text']}（{result['color']}）")
+        print(f"  ✅ 563020 年线偏离度: {result['deviation']:+.2f}% → {result['signal_text']}({result['color']})")
 
     # 获取10年期国债收益率
     print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 获取10年期国债收益率...")
@@ -384,14 +367,14 @@ def main():
     else:
         market["fx"] = {"rate": None, "change_pct": None}
 
-    # 抓取国内黄金现货价格
-    print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 获取国内黄金价格...")
-    gold_cny = fetch_sge_gold_price()
-    if gold_cny:
-        market["gold_cny"] = gold_cny
-        print(f"  ✅ 国内黄金(SGE): {gold_cny:.2f} 元/克")
+    # 抓取国际黄金价格
+    print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 获取国际黄金价格...")
+    gold = fetch_gold_price()
+    if gold:
+        market["gold"] = gold
+        print(f"  ✅ 国际黄金(COMEX): {gold} USD/oz")
     else:
-        market["gold_cny"] = None
+        market["gold"] = None
 
     # 抓取 S&P 500 指数
     spx = fetch_us_index_data("100.SPX", "S&P 500")

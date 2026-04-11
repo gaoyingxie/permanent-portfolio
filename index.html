@@ -7,352 +7,551 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #0f1117;
-      --card: #1a1d27;
-      --card-hover: #21253a;
-      --border: #2a2d3e;
-      --text: #e0e3ed;
-      --text-dim: #8891a8;
-      --green: #3dd68c;
-      --red: #ff6b6b;
-      --yellow: #f9ca24;
+      --bg: #080a12;
+      --bg2: #0d1019;
+      --card: #13172a;
+      --card-hover: #1a1f35;
+      --border: #1e2438;
+      --border-light: #252b42;
+      --text: #dde1f0;
+      --text-dim: #6b7594;
+      --text-mid: #9ba5c0;
+      --green: #34d68a;
+      --green-glow: rgba(52,214,138,0.15);
+      --red: #ff5f5f;
+      --red-glow: rgba(255,95,95,0.15);
+      --yellow: #f5c518;
+      --yellow-glow: rgba(245,197,24,0.15);
       --blue: #60a5fa;
       --purple: #a78bfa;
+      --orange: #fb923c;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
       background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(88,100,255,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(167,139,250,0.05) 0%, transparent 50%);
       color: var(--text);
       min-height: 100vh;
-      padding: 24px;
+      padding: 0;
     }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 28px 48px;
+    }
+
+    /* ===== Header ===== */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 28px;
+      margin-bottom: 36px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
     }
+    .header-left { display: flex; flex-direction: column; gap: 4px; }
     .header h1 {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.3px;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
     }
     .header-right {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
     .update-time {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
     }
     .refresh-btn {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
+      gap: 7px;
+      padding: 9px 18px;
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      color: var(--text-mid);
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
+      letter-spacing: 0.2px;
     }
-    .refresh-btn:hover { background: var(--card-hover); }
+    .refresh-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--blue);
+      color: var(--text);
+      box-shadow: 0 0 16px rgba(96,165,250,0.12);
+    }
     .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .refresh-btn .icon { font-size: 16px; }
+    .refresh-btn .icon { font-size: 15px; }
     .refresh-btn.loading .icon { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
+    /* ===== 资产标签 ===== */
+    .asset-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
     }
-    .tab {
-      padding: 6px 16px;
-      font-size: 13px;
-      color: var(--text-dim);
-      cursor: pointer;
-      border-radius: 6px;
-      transition: all 0.15s;
+    .asset-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
     }
-    .tab.active { background: var(--card); color: var(--text); }
-    .tab:hover:not(.active) { color: var(--text); }
 
-    /* 核心指标卡片 */
+    /* ===== 核心指标卡片 ===== */
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 16px;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 20px;
-      transition: all 0.2s;
+      border-radius: 16px;
+      padding: 22px 24px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
     }
-    .card:hover { background: var(--card-hover); }
-    .card-label {
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-bottom: 6px;
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 16px 16px 0 0;
+      opacity: 0.7;
+    }
+    .card-pending::before { background: linear-gradient(90deg, var(--yellow), transparent); }
+    .card-buy::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .card-sell::before { background: linear-gradient(90deg, var(--red), transparent); }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-light);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .card-pending:hover { box-shadow: 0 8px 32px var(--yellow-glow), 0 0 0 1px rgba(245,197,24,0.1); }
+    .card-buy:hover { box-shadow: 0 8px 32px var(--green-glow), 0 0 0 1px rgba(52,214,138,0.1); }
+    .card-sell:hover { box-shadow: 0 8px 32px var(--red-glow), 0 0 0 1px rgba(255,95,95,0.1); }
+
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 14px;
     }
-    .card-code { font-size: 11px; color: var(--text-dim); opacity: 0.6; }
+    .card-label {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
     .card-value {
-      font-size: 28px;
+      font-size: 30px;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.5px;
     }
-    .card-value.price { font-variant-numeric: tabular-nums; }
+    .card-value.price { font-size: 30px; }
     .card-meta {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 4px 12px;
+      gap: 6px 16px;
       font-size: 12px;
       color: var(--text-dim);
+      margin-bottom: 14px;
     }
     .card-meta span { display: flex; justify-content: space-between; }
-    .card-meta .val { color: var(--text); font-variant-numeric: tabular-nums; }
-    .status-wait { color: var(--yellow); font-size: 13px; font-weight: 600; }
-    .status-buy { color: var(--green); font-size: 13px; font-weight: 600; }
-    .status-sell { color: var(--red); font-size: 13px; font-weight: 600; }
-    .card-pending {
-      border-left: 3px solid var(--yellow);
+    .card-meta .val { color: var(--text-mid); font-variant-numeric: tabular-nums; }
+
+    /* 持仓进度条 */
+    .hold-bar-wrap {
+      margin-bottom: 12px;
     }
-    .card-buy {
-      border-left: 3px solid var(--green);
+    .hold-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 5px;
     }
-    .card-sell {
-      border-left: 3px solid var(--red);
+    .hold-bar-label .val { color: var(--text-mid); }
+    .hold-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .hold-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hold-bar-fill.over { background: var(--red); }
+    .hold-bar-fill.under { background: var(--green); }
+    .hold-bar-fill.near { background: var(--yellow); }
+
+    /* 状态标签 */
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-tag::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .status-wait { background: var(--yellow-glow); color: var(--yellow); }
+    .status-wait::before { background: var(--yellow); }
+    .status-buy { background: var(--green-glow); color: var(--green); }
+    .status-buy::before {
+      background: var(--green);
+      animation: pulse-green 2s ease-in-out infinite;
+    }
+    .status-sell { background: var(--red-glow); color: var(--red); }
+    .status-sell::before { background: var(--red); }
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,214,138,0.4); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(52,214,138,0); }
     }
 
-    /* 大额金额展示 */
+    /* 大额金额 */
     .big-amount {
-      font-size: 36px;
+      font-size: 38px;
       font-weight: 700;
-      color: var(--red);
+      background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
     }
 
-    /* 主内容区 */
+    /* 策略备注 */
+    .strategy-note {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    /* ===== 主内容区 ===== */
     .main-grid {
       display: grid;
       grid-template-columns: 1fr 340px;
-      gap: 20px;
+      gap: 24px;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 960px) {
       .main-grid { grid-template-columns: 1fr; }
     }
 
-    /* 图表卡片 */
+    /* ===== 图表卡片 ===== */
     .chart-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 24px;
       margin-bottom: 20px;
     }
     .chart-card h3 {
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chart-card h3::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--blue);
     }
     .charts-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 20px;
     }
     .donut-wrap { position: relative; height: 200px; }
     .donut-wrap canvas { height: 200px !important; }
+    .donut-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+    .donut-center-text {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
 
-    /* 风险红绿灯 */
+    /* 上证指数 */
+    .sh-index-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 6px;
+    }
+    .sh-index-price {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .sh-index-change {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .sh-index-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* ===== 风险红绿灯 ===== */
     .risk-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 24px;
     }
     .risk-card h3 {
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .risk-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
+      padding: 14px 0;
       border-bottom: 1px solid var(--border);
     }
     .risk-item:last-child { border-bottom: none; }
-    .risk-name { font-size: 13px; color: var(--text); }
-    .risk-params { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-    .risk-light {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      box-shadow: 0 0 6px currentColor;
-    }
-    .risk-light.green { background: var(--green); color: var(--green); }
-    .risk-light.yellow { background: var(--yellow); color: var(--yellow); }
-    .risk-light.red { background: var(--red); color: var(--red); }
+    .risk-name { font-size: 13px; color: var(--text); font-weight: 500; }
+    .risk-params { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
     .risk-value { text-align: right; }
-    .risk-val-num { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .risk-val-cond { font-size: 11px; color: var(--text-dim); }
+    .risk-val-num { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .risk-val-cond { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+    .risk-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .risk-light.green {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green), 0 0 16px rgba(52,214,138,0.25);
+      animation: glow-green 3s ease-in-out infinite;
+    }
+    .risk-light.yellow {
+      background: var(--yellow);
+      box-shadow: 0 0 8px var(--yellow);
+    }
+    .risk-light.red {
+      background: var(--red);
+      box-shadow: 0 0 8px var(--red), 0 0 16px rgba(255,95,95,0.25);
+      animation: glow-red 2s ease-in-out infinite;
+    }
+    @keyframes glow-green {
+      0%, 100% { box-shadow: 0 0 8px var(--green), 0 0 16px rgba(52,214,138,0.2); }
+      50% { box-shadow: 0 0 12px var(--green), 0 0 24px rgba(52,214,138,0.35); }
+    }
+    @keyframes glow-red {
+      0%, 100% { box-shadow: 0 0 8px var(--red), 0 0 16px rgba(255,95,95,0.2); }
+      50% { box-shadow: 0 0 12px var(--red), 0 0 24px rgba(255,95,95,0.4); }
+    }
 
-    /* 刷新遮罩提示 */
+    /* ===== Toast ===== */
     .toast {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      bottom: 28px;
+      right: 28px;
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 18px;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 13px 20px;
       font-size: 13px;
       color: var(--text);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      transform: translateY(80px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transform: translateY(100px);
       opacity: 0;
-      transition: all 0.3s ease;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 100;
+      backdrop-filter: blur(8px);
     }
     .toast.show { transform: none; opacity: 1; }
     .toast.success { border-left: 3px solid var(--green); }
     .toast.error { border-left: 3px solid var(--red); }
 
-    /* 辅助信息 */
-    .strategy-note {
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-top: 6px;
-      line-height: 1.5;
-    }
-
+    /* ===== 辅助 ===== */
     .change-up { color: var(--green); }
     .change-down { color: var(--red); }
     .change-flat { color: var(--text-dim); }
+
+    /* 入场动画 */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: none; }
+    }
+    .card, .chart-card, .risk-card {
+      animation: fadeUp 0.4s ease-out both;
+    }
+    .cards-grid .card:nth-child(1) { animation-delay: 0.05s; }
+    .cards-grid .card:nth-child(2) { animation-delay: 0.1s; }
+    .cards-grid .card:nth-child(3) { animation-delay: 0.15s; }
+    .cards-grid .card:nth-child(4) { animation-delay: 0.2s; }
+    .cards-grid .card:nth-child(5) { animation-delay: 0.25s; }
   </style>
 </head>
 <body>
+<div class="container">
 
-<div class="header">
-  <h1>永久组合 Dashboard</h1>
-  <div class="header-right">
-    <span class="update-time" id="updateTime">加载中...</span>
-    <button class="refresh-btn" id="refreshBtn" onclick="triggerRefresh()">
-      <span class="icon">🔄</span>
-      <span id="btnText">刷新数据</span>
-    </button>
-  </div>
-</div>
-
-
-
-<!-- 核心指标卡片 -->
-<div class="cards-grid">
-  <!-- 自由现金流ETF -->
-  <div class="card card-pending" id="card-159222">
-    <div class="card-label">
-      <span>自由现金流ETF</span>
-      <span class="card-code">红利</span>
+  <div class="header">
+    <div class="header-left">
+      <h1>永久组合 Dashboard</h1>
+      <div class="header-sub">PERMANENT PORTFOLIO · 25% 四象限配置</div>
     </div>
-    <div class="card-value price" id="price-159222">--</div>
-    <div class="card-meta">
-      <span>持仓 <span class="val" id="hold-159222">--</span></span>
-      <span>目标 <span class="val" id="target-159222">--</span></span>
-      <span>乖离率 <span class="val" id="dev-159222">--</span></span>
-      <span>RSI <span class="val" id="rsi-159222">--</span></span>
-      <span>股息率 <span class="val" id="dividend-159222">--</span></span>
-    </div>
-    <div style="margin-top:10px">
-      <span class="status-wait" id="status-159222">等待</span>
+    <div class="header-right">
+      <span class="update-time" id="updateTime">加载中...</span>
+      <button class="refresh-btn" id="refreshBtn" onclick="triggerRefresh()">
+        <span class="icon">🔄</span>
+        <span id="btnText">刷新数据</span>
+      </button>
     </div>
   </div>
 
-  <!-- 563020 红利低波 -->
-  <div class="card card-buy" id="card-563020">
-    <div class="card-label">
-      <span>563020 红利低波</span>
-      <span class="card-code">卫星</span>
+  <!-- 核心指标卡片 -->
+  <div class="cards-grid">
+    <!-- 自由现金流ETF -->
+    <div class="card card-pending" id="card-159222">
+      <div class="card-header">
+        <span class="card-label">自由现金流ETF</span>
+        <span class="asset-badge" style="background:rgba(245,197,24,0.12);color:#f9ca24">
+          <span class="asset-badge-dot" style="background:#facc15"></span>红利
+        </span>
+      </div>
+      <div class="card-value price" id="price-159222">--</div>
+      <div class="card-meta">
+        <span>持仓 <span class="val" id="hold-159222">--</span></span>
+        <span>目标 <span class="val" id="target-159222">--</span></span>
+        <span>乖离率 <span class="val" id="dev-159222">--</span></span>
+        <span>RSI <span class="val" id="rsi-159222">--</span></span>
+        <span>股息率 <span class="val" id="dividend-159222">--</span></span>
+      </div>
+      <span class="status-tag status-wait" id="status-159222">等待</span>
     </div>
-    <div class="card-value price" id="price-563020">--</div>
-    <div class="card-meta">
-      <span>持仓 <span class="val" id="hold-563020">--</span></span>
-      <span>目标 <span class="val" id="target-563020">--</span></span>
-      <span>趋势线 <span class="val" id="trend-563020">--</span></span>
-      <span>乖离率 <span class="val" id="dev-563020">--</span></span>
+
+    <!-- 563020 红利低波 -->
+    <div class="card card-buy" id="card-563020">
+      <div class="card-header">
+        <span class="card-label">563020 红利低波</span>
+        <span class="asset-badge" style="background:rgba(52,214,138,0.12);color:#4ade80">
+          <span class="asset-badge-dot" style="background:#4ade80"></span>卫星
+        </span>
+      </div>
+      <div class="card-value price" id="price-563020">--</div>
+      <div class="card-meta">
+        <span>持仓 <span class="val" id="hold-563020">--</span></span>
+        <span>目标 <span class="val" id="target-563020">--</span></span>
+        <span>趋势线 <span class="val" id="trend-563020">--</span></span>
+        <span>乖离率 <span class="val" id="dev-563020">--</span></span>
+      </div>
+      <span class="status-tag status-buy" id="status-563020">买入信号</span>
     </div>
-    <div style="margin-top:10px">
-      <span class="status-buy" id="status-563020">买入信号</span>
+
+    <!-- SPX -->
+    <div class="card card-buy" id="card-513650">
+      <div class="card-header">
+        <span class="card-label">SPX 标普500</span>
+        <span class="asset-badge" style="background:rgba(96,165,250,0.12);color:#60a5fa">
+          <span class="asset-badge-dot" style="background:#60a5fa"></span>卫星
+        </span>
+      </div>
+      <div class="card-value price" id="price-spx">--</div>
+      <div class="card-meta">
+        <span>持仓 <span class="val" id="hold-spx">--</span></span>
+        <span>ETF场内 <span class="val" id="etf-spx">--</span></span>
+        <span>目标 <span class="val" id="target-513650">--</span></span>
+      </div>
+      <span class="status-tag status-buy" id="status-513650">定投 2000元/天</span>
+      <div class="strategy-note" id="spx-strategy-note">定投标普500，按策略自动执行</div>
+    </div>
+
+    <!-- 518680 黄金ETF -->
+    <div class="card card-buy" id="card-518680">
+      <div class="card-header">
+        <span class="card-label">518680 黄金ETF</span>
+        <span class="asset-badge" style="background:rgba(251,146,60,0.12);color:#fb923c">
+          <span class="asset-badge-dot" style="background:#fb923c"></span>黄金
+        </span>
+      </div>
+      <div class="card-value price" id="price-518680">--</div>
+      <div class="card-meta">
+        <span>持仓 <span class="val" id="hold-518680">--</span></span>
+        <span>目标 <span class="val" id="target-518680">--</span></span>
+      </div>
+      <span class="status-tag status-wait" id="status-518680">等待</span>
+    </div>
+
+    <!-- 杂仓清理 -->
+    <div class="card card-pending" id="card-cleanup">
+      <div class="card-header">
+        <span class="card-label">杂仓清理</span>
+        <span class="asset-badge" style="background:rgba(255,95,95,0.12);color:#ff5f5f">
+          <span class="asset-badge-dot" style="background:#ff5f5f"></span>再平衡
+        </span>
+      </div>
+      <div class="big-amount" id="cleanup-amount">~20万</div>
+      <div class="strategy-note" id="cleanup-note">
+        触发条件：<br>
+        ① 159222 乖离率 ≤ 0% → 清仓杂仓转红利<br>
+        ② 上证 ≥ 4000 → 每周机械卖出 1/5
+      </div>
+      <span class="status-tag status-wait">等待触发</span>
     </div>
   </div>
-
-  <!-- SPX -->
-  <div class="card card-buy" id="card-513650">
-    <div class="card-label">
-      <span>SPX</span>
-      <span class="card-code">卫星</span>
-    </div>
-    <div class="card-value price" id="price-spx">--</div>
-    <div class="card-meta">
-      <span>持仓 <span class="val" id="hold-spx">--</span></span>
-      <span>ETF场内 <span class="val" id="etf-spx">--</span></span>
-      <span>目标 <span class="val" id="target-513650">--</span></span>
-    </div>
-    <div style="margin-top:10px">
-      <span class="status-buy" id="status-513650">定投 2000元/天</span>
-    </div>
-    <div class="strategy-note" id="spx-strategy-note">
-      定投标普500，按策略自动执行
-    </div>
-  </div>
-
-
-  <!-- 518680 黄金ETF -->
-  <div class="card card-buy" id="card-518680">
-    <div class="card-label">
-      <span>518680 黄金ETF</span>
-      <span class="card-code">黄金</span>
-    </div>
-    <div class="card-value price" id="price-518680">--</div>
-    <div class="card-meta">
-      <span>持仓 <span class="val" id="hold-518680">--</span></span>
-      <span>目标 <span class="val" id="target-518680">--</span></span>
-    </div>
-    <div style="margin-top:10px">
-      <span class="status-wait" id="status-518680">等待</span>
-    </div>
-  </div>
-
-  <!-- 杂仓清理 -->
-  <div class="card card-pending" id="card-cleanup">
-    <div class="card-label">
-      <span>杂仓清理</span>
-      <span class="card-code">再平衡</span>
-    </div>
-    <div class="big-amount" id="cleanup-amount">~20万</div>
-    <div class="strategy-note" style="margin-top:8px" id="cleanup-note">
-      触发条件：<br>
-      ① 159222 乖离率 ≤ 0% → 清仓杂仓转红利<br>
-      ② 上证 ≥ 4000 → 每周机械卖出 1/5
-    </div>
-    <div style="margin-top:10px">
-      <span class="status-wait">等待触发</span>
-    </div>
-  </div>
-</div>
 
 <!-- 主图表区 -->
 <div class="main-grid">
@@ -362,32 +561,34 @@
       <div class="charts-row">
         <div class="donut-wrap">
           <canvas id="posChart"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-text">当前持仓</div>
+          </div>
         </div>
         <div class="donut-wrap">
           <canvas id="targetChart"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-text">目标配置</div>
+          </div>
         </div>
-      </div>
-      <div style="display:flex;justify-content:center;gap:32px;margin-top:12px;font-size:12px;color:var(--text-dim)">
-        <span>左：当前持仓</span>
-        <span>右：目标配置</span>
       </div>
     </div>
 
     <!-- 上证指数 -->
     <div class="chart-card" style="margin-bottom:0">
       <h3>上证指数</h3>
-      <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px">
-        <span style="font-size:28px;font-weight:700" id="sh-index-price">--</span>
-        <span id="sh-index-change" style="font-size:16px;font-weight:600">--</span>
+      <div class="sh-index-wrap">
+        <span class="sh-index-price" id="sh-index-price">--</span>
+        <span class="sh-index-change" id="sh-index-change">--</span>
       </div>
-      <div style="font-size:12px;color:var(--text-dim)">数据更新时间：<span id="sh-index-time">--</span></div>
+      <div class="sh-index-meta">数据更新时间：<span id="sh-index-time">--</span></div>
     </div>
   </div>
 
   <!-- 风险监控 -->
   <div>
     <div class="risk-card">
-      <h3>🟢 风险红绿灯</h3>
+      <h3>风险红绿灯</h3>
       <div class="risk-item">
         <div>
           <div class="risk-name">利率环境</div>
@@ -440,6 +641,8 @@
     </div>
   </div>
 </div>
+
+</div><!-- end container -->
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
@@ -646,15 +849,15 @@ function updateSignal(code, fund) {
   const cardEl = document.getElementById('card-' + code);
   if (!fund.signal || fund.signal === 'wait') {
     statusEl.textContent = '等待';
-    statusEl.className = 'status-wait';
+    statusEl.className = 'status-tag status-wait';
     cardEl.className = cardEl.className.replace(/card-\w+/, 'card-pending');
   } else if (fund.signal === 'buy') {
     statusEl.textContent = '买入 ' + (fund.buy_amount || '');
-    statusEl.className = 'status-buy';
+    statusEl.className = 'status-tag status-buy';
     cardEl.className = cardEl.className.replace(/card-\w+/, 'card-buy');
   } else if (fund.signal === 'invest') {
     statusEl.textContent = '定投 ' + (fund.invest_daily || '');
-    statusEl.className = 'status-buy';
+    statusEl.className = 'status-tag status-buy';
     cardEl.className = cardEl.className.replace(/card-\w+/, 'card-buy');
   }
 }

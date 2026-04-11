@@ -8,6 +8,7 @@ import json
 import urllib.request
 import ssl
 import os
+import re
 from datetime import datetime, timezone, timedelta
 
 # 北京时间（UTC+8）
@@ -43,6 +44,45 @@ def fetch_fund_data(code: str) -> dict:
     except Exception as e:
         print(f"获取 {code} 失败: {e}")
         return None
+
+def fetch_fund_nav_and_info(code: str) -> dict:
+    """获取场内基金实时行情（从东方财富场内基金接口）"""
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f169,f170,f171"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        fields = data.get("data", {})
+        return {
+            "price": fields.get("f43", 0) / 100,
+            "change_pct": round(fields.get("f170", 0) / 100, 2),
+        }
+    except Exception as e:
+        print(f"获取 {code} 场内基金数据失败: {e}")
+        return None
+
+def fetch_fund_div_yield(code: str) -> float:
+    """从天天基金网获取基金股息率"""
+    url = f"https://fundgz.1234567.com.cn/js/{code}.js"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            text = resp.read().decode("utf-8")
+        text = text.replace("jsonpgz(", "").rstrip(");")
+        data = json.loads(text)
+        # 天天基金的股息率字段
+        dividend = data.get("dwjz", 0)  # 单位净值，股息率需要额外计算
+        # 尝试从基金概况页面获取
+        url2 = f"https://fund.10jqka.com.cn/{code}/fundinfo.html"
+        req2 = urllib.request.Request(url2, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req2, timeout=10) as resp2:
+            html = resp2.read().decode("utf-8")
+        m = re.search(r'股息率[^>]*?>([^<]+)%', html)
+        if m:
+            return float(m.group(1))
+    except Exception as e:
+        print(f"获取 {code} 股息率失败: {e}")
+    return None
 
 def fetch_index_data(code: str, name: str = "上证指数") -> dict:
     """获取指数数据"""
@@ -82,7 +122,6 @@ def fetch_us_index_data(secid: str, name: str) -> dict:
 
 def fetch_nav_history(code: str, days: int = 250) -> list:
     """获取历史净值，用于计算年线"""
-    # 东方财富历史净值接口
     url = (f"https://push2his.eastmoney.com/api/qt/stock/kline/get"
            f"?secid=1.{code}&fields1=f1,f2,f3,f4,f5,f6"
            f"&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61"
@@ -92,43 +131,30 @@ def fetch_nav_history(code: str, days: int = 250) -> list:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         klines = data.get("data", {}).get("klines", [])
-        # 每条格式: "日期,开盘,收盘,最高,最低,成交量,..."
         result = []
         for line in klines:
             parts = line.split(",")
-            result.append({
-                "date": parts[0],
-                "close": float(parts[2]),
-            })
+            result.append({"date": parts[0], "close": float(parts[2])})
         return result
     except Exception as e:
         print(f"获取 {code} 历史净值失败: {e}")
         return []
 
 def calc_annual_avg_deviation(code: str) -> dict:
-    """
-    计算年线偏离度（年线收益差）
-    规则：红利低波年线定投法
-    - 年线收益差 < 0%  → 买入（绿）
-    - 0% ≤ 年线收益差 ≤ 10% → 持有（黄）
-    - 年线收益差 > 10% → 卖出（红）
-    """
+    """计算年线偏离度（年线收益差）"""
     history = fetch_nav_history(code, days=250)
     if not history or len(history) < 10:
         return None
     closes = [h["close"] for h in history]
     annual_avg = sum(closes) / len(closes)
     current_price = closes[-1]
-    deviation = (current_price / annual_avg - 1) * 100  # 百分比
+    deviation = (current_price / annual_avg - 1) * 100
     if deviation < 0:
-        signal, signal_text = "buy", "买入"
-        color = "green"
+        signal, signal_text, color = "buy", "买入", "green"
     elif deviation <= 10:
-        signal, signal_text = "hold", "持有"
-        color = "yellow"
+        signal, signal_text, color = "hold", "持有", "yellow"
     else:
-        signal, signal_text = "sell", "卖出"
-        color = "red"
+        signal, signal_text, color = "sell", "卖出", "red"
     return {
         "price": round(current_price, 3),
         "annual_avg": round(annual_avg, 3),
@@ -136,8 +162,77 @@ def calc_annual_avg_deviation(code: str) -> dict:
         "signal": signal,
         "signal_text": signal_text,
         "color": color,
-        "history_count": len(history),
     }
+
+def fetch_10y_china_bond_yield() -> float:
+    """获取中国10年期国债收益率（实时）"""
+    # 方法1：东方财富债券行情
+    # 019547 是10年期国债（代码可能随时间变化，这里用活跃券）
+    codes = ["019547", "019547", "T2506", "T2509"]
+    for secid in codes:
+        url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{secid}&fields=f43,f170"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            fields = data.get("data", {})
+            rate = fields.get("f43", 0)
+            if rate and 1 < rate < 10:  # 国债收益率通常在1%-4%之间
+                return round(rate / 100, 4)
+        except Exception:
+            pass
+    # 方法2：中债国债收益率曲线（chinamoney）
+    try:
+        url2 = "https://www.chinamoney.com.cn/ags/ms/cm-u-bond-md/CurveCsv?nameCode=PY1026"
+        req2 = urllib.request.Request(url2, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req2, timeout=10) as resp2:
+            text = resp2.read().decode("utf-8")
+        for line in text.split('\n'):
+            if '"value"' in line or "'value'" in line:
+                m = re.search(r'["\']?value["\']?\s*[:=]\s*["\']?([0-9.]+)', line)
+                if m:
+                    val = float(m.group(1))
+                    if 1 < val < 10:
+                        return round(val, 4)
+    except Exception as e:
+        print(f"中债曲线获取失败: {e}")
+    return None
+
+def fetch_563020_dividend_yield() -> float:
+    """获取563020红利低波ETF的股息率"""
+    # 从天天基金网基本信息获取
+    url = "https://fundgz.1234567.com.cn/js/563020.js"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            text = resp.read().decode("utf-8")
+        text = text.replace("jsonpgz(", "").rstrip(");")
+        data = json.loads(text)
+        name = data.get("name", "")
+        # 尝试从东方财富获取股息率
+        url2 = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.563020&fields=f10,f12,f14"
+        req2 = urllib.request.Request(url2, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req2, timeout=10) as resp2:
+            data2 = json.loads(resp2.read().decode("utf-8"))
+        fields2 = data2.get("data", {})
+        # f10 通常是股息率
+        div = fields2.get("f10", 0)
+        if div:
+            return round(float(div), 2)
+    except Exception as e:
+        print(f"获取563020股息率失败: {e}")
+    # 备用：直接抓东财基金概况页
+    try:
+        url3 = "https://fundf10.eastmoney.com/jjjz_563020.html"
+        req3 = urllib.request.Request(url3, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req3, timeout=10) as resp3:
+            html = resp3.read().decode("utf-8")
+        m = re.search(r'股息率[^>]*?>([^<]+)%', html)
+        if m:
+            return round(float(m.group(1)), 2)
+    except Exception as e:
+        print(f"备用股息率获取也失败: {e}")
+    return None
 
 def main():
     print(f"[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 开始抓取数据...")
@@ -156,7 +251,15 @@ def main():
             market["funds"][code] = fund
             print(f"  ✅ {info['name']}({code}): {fund['price']} ({fund['change_pct']:+.2f}%)")
 
-    # 计算 563020 红利低波的年线偏离度（需要历史数据，先单独做）
+    # 抓取场内基金数据（513650 SPX、518680 黄金ETF）
+    for code, name in [("513650", "标普500ETF"), ("518680", "黄金ETF")]:
+        ind = fetch_fund_nav_and_info(code)
+        if ind:
+            market["funds"][code] = market["funds"].get(code, {})
+            market["funds"][code].update(ind)
+            print(f"  ✅ {name}({code}): {ind['price']} ({ind['change_pct']:+.2f}%)")
+
+    # 计算 563020 红利低波的年线偏离度
     print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 计算 563020 年线偏离度...")
     result = calc_annual_avg_deviation("563020")
     if result:
@@ -172,11 +275,30 @@ def main():
         })
         print(f"  ✅ 563020 年线偏离度: {result['deviation']:+.2f}% → {result['signal_text']}（{result['color']}）")
 
+    # 获取10年期国债收益率
+    print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 获取10年期国债收益率...")
+    bond_yield = fetch_10y_china_bond_yield()
+
+    # 获取563020股息率
+    div_yield = fetch_563020_dividend_yield()
+    market["risk"] = {
+        "rate": bond_yield,
+        "dividend": div_yield,
+    }
+    if bond_yield:
+        print(f"  ✅ 10年国债收益率: {bond_yield:.4f}%")
+    else:
+        print(f"  ⚠️ 10年国债收益率获取失败")
+    if div_yield:
+        print(f"  ✅ 563020 股息率: {div_yield:.2f}%")
+    else:
+        print(f"  ⚠️ 563020 股息率获取失败")
+
     # 抓取上证指数
     sh = fetch_index_data("000001")
     if sh:
         market["index"]["sh000001"] = sh
-        print(f"  ✅ 上证指数: {sh['price']} ({sh['change_pct']:+.2f}%)")
+        print(f"\n  ✅ 上证指数: {sh['price']} ({sh['change_pct']:+.2f}%)")
 
     # 抓取 S&P 500 指数
     spx = fetch_us_index_data("100.SPX", "S&P 500")

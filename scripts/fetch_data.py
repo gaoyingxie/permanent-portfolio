@@ -45,26 +45,48 @@ def fetch_fund_data(code: str) -> dict:
         print(f"获取 {code} 失败: {e}")
         return None
 
+def fetch_usd_cny_rate() -> float:
+    """获取美元兑人民币汇率（实时，在岸人民币）"""
+    # 新浪财经外汇接口
+    url = "https://hq.sinajs.cn/list=fx_susdcny"
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://finance.sina.com.cn/"
+        })
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            text = resp.read().decode("gbk", errors="ignore")
+        # 格式: "02:34:01,6.8285,6.8300,6.8305,...,在岸人民币,..."
+        m = re.search(r'"([^"]+)"', text)
+        if m:
+            parts = m.group(1).split(",")
+            if len(parts) > 1 and parts[1]:
+                rate = float(parts[1])
+                if 5 < rate < 10:
+                    return round(rate, 4)
+    except Exception as e:
+        print(f"获取USD/CNY汇率失败: {e}")
+    return None
+
+
 def fetch_fund_nav_and_info(code: str) -> dict:
-    """获取场内基金实时行情 + 净值（从东方财富场内基金接口）"""
-    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f169,f170,f171,f58"
+    """获取场内基金实时行情（从东方财富场内基金接口）"""
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         fields = data.get("data", {})
-        price = fields.get("f43", 0) / 100
-        # f58 通常是单位净值（iNAV）
-        nav = fields.get("f58", 0)
-        result = {
-            "price": price,
-            "change_pct": round(fields.get("f170", 0) / 100, 2),
+        if not fields:
+            return None
+        f43 = fields.get("f43")
+        f170 = fields.get("f170")
+        if not isinstance(f43, (int, float)) or not isinstance(f170, (int, float)):
+            return None
+        return {
+            "price": round(float(f43) / 100, 4),
+            "change_pct": round(float(f170) / 100, 2),
         }
-        if nav and nav > 0:
-            premium = (price - nav) / nav * 100
-            result["nav"] = round(nav, 4)
-            result["premium"] = round(premium, 2)
-        return result
     except Exception as e:
         print(f"获取 {code} 场内基金数据失败: {e}")
         return None
@@ -307,6 +329,15 @@ def main():
     if sh:
         market["index"]["sh000001"] = sh
         print(f"\n  ✅ 上证指数: {sh['price']} ({sh['change_pct']:+.2f}%)")
+
+    # 抓取美元兑人民币汇率
+    print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 获取美元汇率...")
+    usd_cny = fetch_usd_cny_rate()
+    if usd_cny:
+        market["fx"] = {"usd_cny": usd_cny}
+        print(f"  ✅ 美元/人民币: {usd_cny:.4f}")
+    else:
+        market["fx"] = {"usd_cny": None}
 
     # 抓取 S&P 500 指数
     spx = fetch_us_index_data("100.SPX", "S&P 500")

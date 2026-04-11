@@ -615,6 +615,15 @@
       </div>
       <div class="sh-index-meta">数据更新时间：<span id="sh-index-time">--</span></div>
     </div>
+
+    <!-- 美元/人民币 -->
+    <div class="chart-card" style="margin-bottom:0">
+      <h3>美元 / 人民币</h3>
+      <div class="sh-index-wrap">
+        <span class="sh-index-price" id="fx-price">--</span>
+        <span class="sh-index-change" id="fx-change">--</span>
+      </div>
+    </div>
   </div>
 
   <!-- 风险监控 -->
@@ -828,6 +837,11 @@ function renderData(data) {
     changeEl.className = sh.change_pct >= 0 ? 'change-up' : 'change-down';
   }
   document.getElementById('sh-index-time').textContent = data.updated || '--';
+
+  // 美元/人民币汇率
+  if (data.fx && data.fx.usd_cny != null) {
+    document.getElementById('fx-price').textContent = data.fx.usd_cny.toFixed(4);
+  }
 
   // 杂仓
   if (data.cleanup_amount) {

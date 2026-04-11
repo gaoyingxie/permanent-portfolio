@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-11 15:59:18",
+  "updated": "2026-04-11 16:12:08",
   "updated_date": "2026-04-11",
   "funds": {
     "159222": {
@@ -24,19 +24,25 @@
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.6786,
-      "change_pct": -0.56,
+      "price": 17.27,
+      "change_pct": 0.88,
       "date": "2026-04-11"
     },
     "518680": {
       "code": "518680",
       "name": "金ETF富国",
-      "price": 10.3603,
-      "change_pct": 0.0,
+      "price": 104.29,
+      "change_pct": 0.63,
       "date": "2026-04-10"
     }
   },
   "index": {
+    "sh000001": {
+      "code": "000001",
+      "name": "上证指数",
+      "price": 3986.22,
+      "change_pct": 0.51
+    },
     "spx": {
       "code": "100.SPX",
       "name": "S&P 500",
@@ -47,5 +53,8 @@
   "risk": {
     "rate": null,
     "dividend": null
+  },
+  "fx": {
+    "usd_cny": 6.8285
   }
 }

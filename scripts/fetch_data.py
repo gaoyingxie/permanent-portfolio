@@ -59,10 +59,10 @@ def fetch_fund_nav(code: str) -> dict:
             "change_pct": round(float(f170) / 100, 2),
         }
         f116 = fields.get("f116")
-        if f116 and isinstance(f116, (int, float)) and f116 > 0:
+        if f116 and isinstance(f116, (int, float)) and 0 < f116 < 300:
             result["pe"] = round(float(f116), 1)
         f162 = fields.get("f162")
-        if f162 and isinstance(f162, (int, float)) and f162 > 0:
+        if f162 and isinstance(f162, (int, float)) and 0 < f162 < 50:
             result["dividend"] = round(float(f162), 2)
         return result
     except Exception as e:

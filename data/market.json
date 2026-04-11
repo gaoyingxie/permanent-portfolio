@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-11 14:29:04",
+  "updated": "2026-04-11 15:49:35",
   "updated_date": "2026-04-11",
   "funds": {
     "159222": {
@@ -9,28 +9,31 @@
       "change_pct": 0.5,
       "date": "2026-04-10"
     },
+    "563020": {
+      "code": "563020",
+      "name": "红利低波",
+      "price": 1.191,
+      "change_pct": -0.08,
+      "date": "2026-04-10",
+      "annual_avg": 1.184,
+      "dev": 0.62,
+      "signal": "hold",
+      "signal_text": "持有",
+      "color": "yellow"
+    },
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.6786,
-      "change_pct": -0.56,
+      "price": 17.27,
+      "change_pct": 0.88,
       "date": "2026-04-11"
     },
     "518680": {
       "code": "518680",
       "name": "金ETF富国",
-      "price": 10.3603,
-      "change_pct": 0.0,
+      "price": 104.29,
+      "change_pct": 0.63,
       "date": "2026-04-10"
-    },
-    "563020": {
-      "price": 1.191,
-      "annual_avg": 1.184,
-      "dev": 0.62,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow",
-      "name": "红利低波"
     }
   },
   "index": {
@@ -46,5 +49,9 @@
       "price": 6816.89,
       "change_pct": -0.11
     }
+  },
+  "risk": {
+    "rate": null,
+    "dividend": null
   }
 }

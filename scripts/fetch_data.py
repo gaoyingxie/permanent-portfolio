@@ -99,23 +99,25 @@ def fetch_us_index(secid: str, name: str) -> dict:
         print(f"  [FAIL] us_index {name}: {e}")
         return None
 
-def fetch_nav_history(code: str, days: int = 250) -> list:
+def fetch_nav_history(secid: str, days: int = 250) -> list:
     url = (f"https://push2his.eastmoney.com/api/qt/stock/kline/get"
-           f"?secid=1.{code}&fields1=f1,f2,f3,f4,f5,f6"
+           f"?secid={secid}&fields1=f1,f2,f3,f4,f5,f6"
            f"&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61"
            f"&klt=101&fqt=1&end=20500101&lmt={days}")
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-        klines = data.get("data", {}).get("klines", [])
+        klines = data.get("data", {}).get("klines", []) if data.get("data") else []
         return [{"date": line.split(",")[0], "close": float(line.split(",")[2])} for line in klines]
     except Exception as e:
-        print(f"  [FAIL] nav_history {code}: {e}")
+        print(f"  [FAIL] nav_history {secid}: {e}")
         return []
 
 def calc_annual_deviation(code: str) -> dict:
-    history = fetch_nav_history(code, 250)
+    # secid mapping: 159222=深圳基金(0), others=上海(1)
+    hist_code = "0." + code if code == "159222" else "1." + code
+    history = fetch_nav_history(hist_code, 250)
     if not history or len(history) < 10:
         return None
     closes = [h["close"] for h in history]
@@ -263,7 +265,8 @@ def fetch_pe_percentile(code: str) -> float | None:
         pass
     # Fallback: use price-based approximation from nav history
     try:
-        history = fetch_nav_history(code, 250)
+        secid = "0." + code if code == "159222" else "1." + code
+        history = fetch_nav_history(secid, 250)
         if not history or len(history) < 20:
             return None
         closes = [h["close"] for h in history]

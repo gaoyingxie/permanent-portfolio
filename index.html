@@ -302,36 +302,18 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
+    .donut-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     .donut-wrap { position: relative; height: 200px; }
     .donut-wrap canvas { height: 200px !important; }
-    .donut-center {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      pointer-events: none;
-    }
-    .donut-center-text {
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-    .chart-legend {
-      display: flex;
-      justify-content: center;
-      gap: 32px;
-      margin-top: 16px;
-      font-size: 12px;
-      color: var(--text-dim);
-    }
-    .chart-legend {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin-top: 16px;
+    .donut-label {
       font-size: 13px;
       color: var(--text-mid);
+      margin-top: 10px;
     }
-    .chart-legend span { color: var(--text-mid); }
 
     /* 上证指数 */
     .sh-index-wrap {
@@ -607,16 +589,18 @@
     <div class="chart-card">
       <h3>持仓分布 vs 目标配置</h3>
       <div class="charts-row">
-        <div class="donut-wrap">
-          <canvas id="posChart"></canvas>
+        <div class="donut-col">
+          <div class="donut-wrap">
+            <canvas id="posChart"></canvas>
+          </div>
+          <div class="donut-label">当前持仓</div>
         </div>
-        <div class="donut-wrap">
-          <canvas id="targetChart"></canvas>
+        <div class="donut-col">
+          <div class="donut-wrap">
+            <canvas id="targetChart"></canvas>
+          </div>
+          <div class="donut-label">目标配置</div>
         </div>
-      </div>
-      <div class="chart-legend">
-        <span>● 当前持仓</span>
-        <span>● 目标配置</span>
       </div>
     </div>
 

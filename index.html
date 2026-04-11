@@ -269,6 +269,43 @@
 
 <!-- 核心指标卡片 -->
 <div class="cards-grid">
+  <!-- 自由现金流ETF -->
+  <div class="card card-pending" id="card-159222">
+    <div class="card-label">
+      <span>自由现金流ETF</span>
+      <span class="card-code">红利</span>
+    </div>
+    <div class="card-value price" id="price-159222">--</div>
+    <div class="card-meta">
+      <span>持仓 <span class="val" id="hold-159222">--</span></span>
+      <span>目标 <span class="val" id="target-159222">--</span></span>
+      <span>乖离率 <span class="val" id="dev-159222">--</span></span>
+      <span>RSI <span class="val" id="rsi-159222">--</span></span>
+      <span>股息率 <span class="val" id="dividend-159222">--</span></span>
+    </div>
+    <div style="margin-top:10px">
+      <span class="status-wait" id="status-159222">等待</span>
+    </div>
+  </div>
+
+  <!-- 563020 红利低波 -->
+  <div class="card card-buy" id="card-563020">
+    <div class="card-label">
+      <span>563020 红利低波</span>
+      <span class="card-code">卫星</span>
+    </div>
+    <div class="card-value price" id="price-563020">--</div>
+    <div class="card-meta">
+      <span>持仓 <span class="val" id="hold-563020">--</span></span>
+      <span>目标 <span class="val" id="target-563020">--</span></span>
+      <span>趋势线 <span class="val" id="trend-563020">--</span></span>
+      <span>乖离率 <span class="val" id="dev-563020">--</span></span>
+    </div>
+    <div style="margin-top:10px">
+      <span class="status-buy" id="status-563020">买入信号</span>
+    </div>
+  </div>
+
   <!-- SPX -->
   <div class="card card-buy" id="card-513650">
     <div class="card-label">
@@ -315,7 +352,8 @@
     <div class="big-amount" id="cleanup-amount">~20万</div>
     <div class="strategy-note" style="margin-top:8px" id="cleanup-note">
       触发条件：<br>
-      ① 上证 ≥ 4000 → 每周机械卖出 1/5
+      ① 159222 乖离率 ≤ 0% → 清仓杂仓转红利<br>
+      ② 上证 ≥ 4000 → 每周机械卖出 1/5
     </div>
     <div style="margin-top:10px">
       <span class="status-wait">等待触发</span>
@@ -517,6 +555,23 @@ function renderData(data) {
 
   // 基金数据
   const f = data.funds || {};
+
+  // 510880
+  const f510880 = f['159222'] || STATIC_DATA.funds['159222'];
+  document.getElementById('price-159222').textContent = f510880.price?.toFixed(3) || '--';
+  setPriceColor('price-159222', f510880.change_pct);
+  document.getElementById('dev-159222').textContent = f510880.dev ? f510880.dev.toFixed(2) + '%' : '--';
+  document.getElementById('rsi-159222').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';
+  document.getElementById('dividend-159222').textContent = f510880.dividend ? f510880.dividend.toFixed(2) + '%' : '--';
+  updateSignal('159222', f510880);
+
+  // 563020
+  const f563020 = f['563020'] || STATIC_DATA.funds['563020'];
+  document.getElementById('price-563020').textContent = f563020.price?.toFixed(3) || '--';
+  setPriceColor('price-563020', f563020.change_pct);
+  document.getElementById('trend-563020').textContent = f563020.trend || '--';
+  document.getElementById('dev-563020').textContent = f563020.dev ? f563020.dev.toFixed(2) + '%' : '--';
+  updateSignal('563020', f563020);
 
   // SPX - 读取实际指数点位
   const spxData = data.index?.spx || STATIC_DATA.index?.spx;

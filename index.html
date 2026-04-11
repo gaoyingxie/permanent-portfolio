@@ -1020,39 +1020,11 @@ function renderTargetChart(data) {
 }
 
 // ==================== 刷新按钮 ====================
-async function triggerRefresh() {
-  const btn = document.getElementById('refreshBtn');
-  const btnText = document.getElementById('btnText');
-  btn.disabled = true;
-  btn.classList.add('loading');
-  btnText.textContent = '触发中...';
-  showToast('正在触发 GitHub Actions，请稍等...', 'success');
-
-  try {
-    // 通过 repository_dispatch 触发 workflow
-    const resp = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/dispatches', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        event_type: 'refresh-data',
-      })
-    });
-    if (resp.status === 204 || resp.ok) {
-      showToast('✅ 刷新任务已触发，数据将在1-2分钟后更新', 'success');
-    } else {
-      throw new Error('API返回: ' + resp.status);
-    }
-  } catch (e) {
-    showToast('⚠️ 触发失败（可能缺少权限），请手动在 GitHub Actions 页面触发', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove('loading');
-    btnText.textContent = '刷新数据';
-  }
+function triggerRefresh() {
+  // 直接跳转到 GitHub Actions 页面手动触发
+  window.open('https://github.com/' + GITHUB_REPO + '/actions', '_blank');
 }
+
 
 // ==================== Tab切换 ====================
 function switchTab(el) {

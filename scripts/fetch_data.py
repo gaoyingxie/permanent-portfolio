@@ -42,7 +42,7 @@ def fetch_fund_data(code: str) -> dict:
         return None
 
 def fetch_fund_nav(code: str) -> dict:
-    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170"
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170,f116,f162"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -54,10 +54,17 @@ def fetch_fund_nav(code: str) -> dict:
         f170 = fields.get("f170")
         if not isinstance(f43, (int, float)) or not isinstance(f170, (int, float)):
             return None
-        return {
+        result = {
             "price": round(float(f43) / 100, 4),
             "change_pct": round(float(f170) / 100, 2),
         }
+        f116 = fields.get("f116")
+        if f116 and isinstance(f116, (int, float)) and f116 > 0:
+            result["pe"] = round(float(f116), 1)
+        f162 = fields.get("f162")
+        if f162 and isinstance(f162, (int, float)) and f162 > 0:
+            result["dividend"] = round(float(f162), 2)
+        return result
     except Exception as e:
         print(f"  [FAIL] nav {code}: {e}")
         return None
@@ -235,6 +242,41 @@ def fetch_563020_dividend() -> float:
         print(f"  [FAIL] 563020 dividend: {e}")
     return None
 
+def fetch_pe_percentile(code: str) -> float | None:
+    """Fetch PE historical percentile for a fund from eastmoney"""
+    try:
+        url = (f"https://datacenter.eastmoney.com/securities/api/data/v1/get"
+               f"?reportName=RPT_FUND_BASIC_INFO"
+               f"&columns=SECURITY_CODE,PE_TTM_HISTORY_PECT"
+               f"&filter=SECURITY_CODE%3D%22{code}%22")
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        result = data.get("result", {})
+        if result:
+            items = result.get("data", [])
+            if items:
+                pct = items[0].get("PE_TTM_HISTORY_PECT")
+                if pct and isinstance(pct, (int, float)):
+                    return round(float(pct), 1)
+    except Exception:
+        pass
+    # Fallback: use price-based approximation from nav history
+    try:
+        history = fetch_nav_history(code, 250)
+        if not history or len(history) < 20:
+            return None
+        closes = [h["close"] for h in history]
+        curr = closes[-1]
+        min_p = min(closes)
+        max_p = max(closes)
+        if max_p == min_p:
+            return None
+        pct = (curr - min_p) / (max_p - min_p) * 100
+        return round(pct, 1)
+    except Exception:
+        return None
+
 def main():
     now = datetime.now(_tz).strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{now}] Fetching market data...")
@@ -286,13 +328,22 @@ def main():
         print(f"  [OK] 10Y bond: {bond:.4f}%")
     market["risk"] = {"rate": bond}
 
-    # 563020 dividend
+    # 563020 dividend (from nav data if available)
     div = fetch_563020_dividend()
     if div:
         print(f"  [OK] 563020 dividend: {div:.2f}%")
         market["risk"]["dividend"] = div
+        if "dividend" not in market["funds"].get("563020", {}):
+            market["funds"].setdefault("563020", {})["dividend"] = div
     else:
         market["risk"]["dividend"] = None
+
+    # PE percentile for each non-gold fund
+    for code in ["159222", "563020", "513650"]:
+        pct = fetch_pe_percentile(code)
+        if pct is not None:
+            market["funds"].setdefault(code, {})["pe_pct"] = pct
+            print(f"  [OK] {code} PE历史: {pct:.1f}%")
 
     # USD/CNY
     print(f"\n  -- Fetching USD/CNY...")

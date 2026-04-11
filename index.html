@@ -323,21 +323,15 @@
       font-size: 12px;
       color: var(--text-dim);
     }
-    .chart-legend span {
+    .chart-legend {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 16px;
+      font-size: 13px;
       color: var(--text-mid);
     }
-    .chart-legend span::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .chart-legend span:first-child::before { background: #ff6b6b; }
-    .chart-legend span:last-child::before { background: #a78bfa; }
+    .chart-legend span { color: var(--text-mid); }
 
     /* 上证指数 */
     .sh-index-wrap {
@@ -449,32 +443,36 @@
     .signal-tag {
       display: inline-flex;
       align-items: center;
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 16px;
       font-weight: 700;
+      letter-spacing: 0.5px;
     }
     .signal-tag.buy {
-      background: var(--green-glow);
+      background: rgba(52,214,138,0.18);
       color: var(--green);
-      border: 1px solid rgba(52,214,138,0.3);
+      border: 1px solid rgba(52,214,138,0.4);
+      box-shadow: 0 0 12px rgba(52,214,138,0.15);
     }
     .signal-tag.hold {
-      background: var(--yellow-glow);
+      background: rgba(245,197,24,0.18);
       color: var(--yellow);
-      border: 1px solid rgba(245,197,24,0.3);
+      border: 1px solid rgba(245,197,24,0.4);
+      box-shadow: 0 0 12px rgba(245,197,24,0.15);
     }
     .signal-tag.sell {
-      background: var(--red-glow);
+      background: rgba(255,95,95,0.18);
       color: var(--red);
-      border: 1px solid rgba(255,95,95,0.3);
+      border: 1px solid rgba(255,95,95,0.4);
+      box-shadow: 0 0 12px rgba(255,95,95,0.15);
     }
 
-    .signal-bar-wrap { }
+    .signal-bar-wrap { margin-top: 12px; }
     .signal-bar-track {
       position: relative;
-      height: 8px;
-      border-radius: 8px;
+      height: 10px;
+      border-radius: 10px;
       overflow: hidden;
       display: flex;
     }
@@ -483,15 +481,15 @@
     .signal-bar-red { flex: 1; background: linear-gradient(90deg, #ff8e53, #ff5f5f); }
     .signal-bar-needle {
       position: absolute;
-      top: -3px;
-      width: 2px;
-      height: 14px;
+      top: -4px;
+      width: 3px;
+      height: 18px;
       background: white;
       border-radius: 2px;
-      box-shadow: 0 0 6px rgba(255,255,255,0.8);
+      box-shadow: 0 0 8px rgba(255,255,255,0.9);
       transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .signal-bar-needle.over { box-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 8px rgba(255,95,95,0.6); }
+    .signal-bar-needle.over { box-shadow: 0 0 8px rgba(255,255,255,0.9), 0 0 10px rgba(255,95,95,0.7); }
 
     /* 入场动画 */
     @keyframes fadeUp {
@@ -563,7 +561,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
         <span class="signal-tag" id="signal-tag-563020">--</span>
-        <span class="signal-desc" id="signal-desc-563020" style="font-size:11px;color:var(--text-dim)">年线收益差：偏离度决定操作</span>
+        <span class="signal-desc" id="signal-desc-563020" style="font-size:12px;color:var(--text-mid)">年线收益差</span>
       </div>
       <div class="signal-bar-wrap" style="margin-top:10px">
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-bottom:4px">

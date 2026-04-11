@@ -877,11 +877,14 @@ function renderData(data) {
 
   // 上证指数
   const sh = data.sh || data.index?.sh000001 || STATIC_DATA.sh;
-  document.getElementById('sh-index-price').textContent = sh.price?.toFixed(2) || '--';
+  const shPriceEl = document.getElementById('sh-index-price');
+  shPriceEl.textContent = sh.price?.toFixed(2) || '--';
   const changeEl = document.getElementById('sh-index-change');
   if (sh.change_pct !== undefined) {
+    const shColor = sh.change_pct >= 0 ? 'var(--red)' : 'var(--green)';
     changeEl.textContent = (sh.change_pct >= 0 ? '+' : '') + sh.change_pct.toFixed(2) + '%';
-    changeEl.className = sh.change_pct >= 0 ? 'change-up' : 'change-down';
+    changeEl.style.color = shColor;
+    shPriceEl.style.color = shColor;
   }
   // 美元/人民币汇率
   if (data.fx) {
@@ -890,8 +893,10 @@ function renderData(data) {
     }
     if (data.fx.change_pct != null) {
       const fxChangeEl = document.getElementById('fx-change');
+      const fxColor = data.fx.change_pct >= 0 ? 'var(--red)' : 'var(--green)';
       fxChangeEl.textContent = (data.fx.change_pct >= 0 ? '+' : '') + data.fx.change_pct.toFixed(2) + '%';
-      fxChangeEl.style.color = data.fx.change_pct >= 0 ? 'var(--red)' : 'var(--green)';
+      fxChangeEl.style.color = fxColor;
+      document.getElementById('fx-price').style.color = fxColor;
     }
   }
 

@@ -486,8 +486,9 @@
       display: flex;
       box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.3);
     }
-    .signal-bar-green { flex: 1; background: linear-gradient(90deg, #22c55e, #4ade80); }
-    .signal-bar-yellow { flex: 1; background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    /* 绿色=价格<均线(买入区间)，黄色=0%~10%持有区间，红色>10%卖出区间 */
+    .signal-bar-green { flex: 0 0 30%; background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .signal-bar-yellow { flex: 0 0 40%; background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .signal-bar-red { flex: 1; background: linear-gradient(90deg, #ef4444, #ff6b6b); }
     .signal-bar-needle {
       position: absolute;
@@ -564,7 +565,6 @@
         <span class="change" id="change-563020">--</span>
       </div>
       <div class="card-meta">
-        <span>250日均线 <span class="val" id="annual-avg-563020">--</span></span>
         <span>偏离 <span class="val" id="dev-563020">--</span></span>
         <span>股息率 <span class="val" id="dividend-563020">--</span></span>
         <span>市盈率 <span class="val" id="pe-563020">--</span></span>
@@ -572,12 +572,9 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
         <span class="signal-tag" id="signal-tag-563020">--</span>
-        <span class="signal-desc" id="signal-desc-563020" style="font-size:12px;color:var(--text-mid)">年线收益差</span>
+        <span class="signal-desc" id="signal-desc-563020" style="font-size:12px;color:var(--text-mid)"></span>
       </div>
-      <div class="signal-bar-wrap" style="margin-top:10px">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
-          <span>买入</span><span>持有</span><span>卖出</span>
-        </div>
+      <div class="signal-bar-wrap" style="margin-top:10px;position:relative">
         <div class="signal-bar">
           <div class="signal-bar-track">
             <div class="signal-bar-green"></div>
@@ -586,7 +583,7 @@
             <div class="signal-bar-needle" id="signal-needle-563020"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-mid);margin-top:4px">
-            <span>0%</span><span>10%</span>
+            <span>买入</span><span>持有</span><span>卖出</span>
           </div>
         </div>
       </div>
@@ -831,7 +828,6 @@ function renderData(data) {
   setPriceColor('price-563020', f563020.change_pct);
   document.getElementById('change-563020').textContent = f563020.change_pct != null ? (f563020.change_pct >= 0 ? '+' : '') + f563020.change_pct.toFixed(2) + '%' : '';
   document.getElementById('change-563020').style.color = f563020.change_pct > 0 ? 'var(--red)' : f563020.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
-  document.getElementById('annual-avg-563020').textContent = f563020.annual_avg ? f563020.annual_avg.toFixed(3) : '--';
   document.getElementById('dividend-563020').textContent = f563020.dividend ? f563020.dividend.toFixed(2) + '%' : '--';
   document.getElementById('pe-563020').textContent = f563020.pe ? f563020.pe.toFixed(1) : '--';
   document.getElementById('pe-pct-563020').textContent = f563020.pe_pct != null ? f563020.pe_pct.toFixed(1) + '%' : '--';
@@ -840,25 +836,30 @@ function renderData(data) {
 
   // 渲染年线信号
   const signalTag = document.getElementById('signal-tag-563020');
+  const signalDesc = document.getElementById('signal-desc-563020');
   const needle = document.getElementById('signal-needle-563020');
   const card563020 = document.getElementById('card-563020');
   const color = f563020.color || 'wait';
   const signalText = f563020.signal_text || '--';
   signalTag.textContent = signalText;
+  const avgText = f563020.annual_avg != null ? '，均线' + f563020.annual_avg.toFixed(3) + '元' : '';
+  signalDesc.textContent = '年线收益差' + avgText;
   signalTag.className = 'signal-tag ' + (color === 'green' ? 'buy' : color === 'yellow' ? 'hold' : color === 'red' ? 'sell' : 'hold');
-  // 针位置: 0%在5%位置，10%在95%位置（留边距），超过10%超出去
+  // 针位置: 绿区(0-30%,dev<0%), 黄区(30-70%,dev 0-10%), 红区(70-100%,dev>10%)
   let needlePct;
   if (dev563020 == null) {
     needlePct = 50;
   } else if (dev563020 <= 0) {
-    needlePct = 5 + (dev563020 / 0) * 5; // 0%时在5%，负数按比例往左
-    needlePct = Math.max(0, needlePct);
+    needlePct = 15 + (dev563020 / 10) * 30; // -10%~0% → 0%~30%
+    needlePct = Math.max(0, Math.min(30, needlePct));
   } else if (dev563020 <= 10) {
-    needlePct = 5 + (dev563020 / 10) * 85 + 5; // 0-10%: 5%~90%
+    needlePct = 30 + (dev563020 / 10) * 40; // 0%~10% → 30%~70%
+    needlePct = Math.max(30, Math.min(70, needlePct));
   } else {
-    needlePct = 95 + Math.min((dev563020 - 10) / 5 * 5, 5); // 10%以上顶出去
+    needlePct = 70 + ((dev563020 - 10) / 15) * 30; // 10%~25% → 70%~100%
+    needlePct = Math.max(70, Math.min(100, needlePct));
   }
-  needle.style.left = Math.min(98, Math.max(2, needlePct)) + '%';
+  needle.style.left = needlePct + '%';
   needle.className = 'signal-bar-needle' + (dev563020 > 10 ? ' over' : '');
   // 卡片边框色跟随信号
   card563020.className = 'card ' + (color === 'green' ? 'card-buy' : color === 'red' ? 'card-sell' : 'card-pending');

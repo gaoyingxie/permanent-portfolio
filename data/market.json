@@ -1,53 +1,48 @@
 {
-  "updated": "2026-04-11 10:00:00",
+  "updated": "2026-04-11 12:39:52",
   "updated_date": "2026-04-11",
   "funds": {
-    "510880": {
-      "code": "510880",
-      "name": "红利ETF",
-      "price": 3.217,
-      "change_pct": 0.45,
-      "date": "2026-04-11",
-      "dev": 4.7,
-      "rsi": 44.6,
-      "dividend": 4.57,
-      "signal": "wait"
+    "159222": {
+      "code": "159222",
+      "name": "自由现金流ETF易方达",
+      "price": 1.4106,
+      "change_pct": 0.5,
+      "date": "2026-04-10"
     },
-    "512890": {
-      "code": "512890",
-      "name": "红利低波ETF",
-      "price": 1.182,
-      "change_pct": -0.32,
-      "date": "2026-04-11",
-      "trend": 1.2362,
-      "dev": -4.39,
-      "signal": "buy",
-      "buy_amount": "7.4万"
+    "563020": {
+      "code": "563020",
+      "name": "红利低波ETF易方达",
+      "price": 1.191,
+      "change_pct": -0.08,
+      "date": "2026-04-10"
     },
-    "nasdaq": {
-      "code": "513100",
-      "name": "纳指ETF",
-      "price": 1.752,
-      "change_pct": 0.28,
-      "date": "2026-04-11",
-      "hold": "14.6万",
-      "target": "108万",
-      "signal": "invest",
-      "invest_daily": "2000元/天"
+    "513650": {
+      "code": "513650",
+      "name": "标普500ETF南方",
+      "price": 1.6786,
+      "change_pct": -0.56,
+      "date": "2026-04-11"
+    },
+    "518680": {
+      "code": "518680",
+      "name": "金ETF富国",
+      "price": 10.3603,
+      "change_pct": 0.0,
+      "date": "2026-04-10"
     }
   },
   "index": {
     "sh000001": {
       "code": "000001",
       "name": "上证指数",
-      "price": 3350.12,
-      "change_pct": 0.87
+      "price": 3986.22,
+      "change_pct": 0.51
+    },
+    "spx": {
+      "code": "100.SPX",
+      "name": "S&P 500",
+      "price": 6816.89,
+      "change_pct": -0.11
     }
-  },
-  "cleanup_amount": "~230万",
-  "risk": {
-    "rate": 1.8,
-    "dividend": 4.46,
-    "volatility": 10.6
   }
 }

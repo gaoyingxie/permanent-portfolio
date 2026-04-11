@@ -889,7 +889,7 @@ function renderData(data) {
     if (data.fx.change_pct != null) {
       const fxChangeEl = document.getElementById('fx-change');
       fxChangeEl.textContent = (data.fx.change_pct >= 0 ? '+' : '') + data.fx.change_pct.toFixed(2) + '%';
-      fxChangeEl.className = data.fx.change_pct >= 0 ? 'sh-index-change change-up' : 'sh-index-change change-down';
+      fxChangeEl.className = data.fx.change_pct > 0 ? 'change-up' : 'change-down' if data.fx.change_pct != 0 else 'sh-index-change';
     }
   }
 

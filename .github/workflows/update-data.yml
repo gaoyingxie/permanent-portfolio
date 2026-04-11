@@ -1,9 +1,9 @@
 name: 更新行情数据
 
 on:
-  # 每天早上 9:00（北京时间 = UTC 1:00）自动运行
+  # 每4小时一次（北京时间 8/12/16/20/00 点）
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 0,4,8,12,16 * * *'
   # 手动触发（通过 repository_dispatch 事件）
   repository_dispatch:
     types: [refresh-data]

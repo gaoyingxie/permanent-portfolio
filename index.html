@@ -575,10 +575,12 @@
     <!-- 518680 黄金ETF -->
     <div class="card card-buy" id="card-518680">
       <div class="card-header">
-        <span class="card-label">518680 黄金ETF</span>
+        <span class="card-label">黄金 ETF</span>
       </div>
-      <div class="card-value price" id="price-518680">--</div>
+      <div class="card-value price" id="gold-cny-price">--</div>
       <div class="card-meta">
+        <span>国内现货 <span class="val" id="gold-cny-sge">--</span></span>
+        <span>ETF场内 <span class="val" id="etf-518680">--</span></span>
       </div>
       <span class="status-tag status-wait" id="status-518680">等待</span>
     </div>
@@ -866,8 +868,24 @@ function renderData(data) {
     signal: cfg518680.signal,
     buy_amount: cfg518680.buy_amount,
   };
-  document.getElementById('price-518680').textContent = final518680.price != null ? final518680.price.toFixed(4) : '未获取';
-  setPriceColor('price-518680', final518680.change_pct);
+  // 国内黄金现货价（主显示，元/克）
+  const goldPriceEl = document.getElementById('gold-cny-price');
+  const goldSgeEl = document.getElementById('gold-cny-sge');
+  if (data.gold_cny != null) {
+    goldPriceEl.textContent = data.gold_cny.toFixed(2);
+    goldSgeEl.textContent = data.gold_cny.toFixed(2) + ' 元/克';
+  } else {
+    goldPriceEl.textContent = '--';
+    goldSgeEl.textContent = '--';
+  }
+  // ETF场内价格
+  const etf518680El = document.getElementById('etf-518680');
+  if (final518680.price != null) {
+    etf518680El.textContent = final518680.price.toFixed(4);
+    setPriceColor('gold-cny-price', final518680.change_pct);
+  } else {
+    etf518680El.textContent = '--';
+  }
   updateSignal('518680', final518680);
   // 持仓图表（优先用API，其次用用户配置）
   if (data.positions) {

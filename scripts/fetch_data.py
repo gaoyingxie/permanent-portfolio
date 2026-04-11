@@ -45,6 +45,43 @@ def fetch_fund_data(code: str) -> dict:
         print(f"获取 {code} 失败: {e}")
         return None
 
+def fetch_sge_gold_price() -> float:
+    """获取上海黄金交易所（SGE）现货金价（元/克），通过COMEX国际金价+USD/CNY换算"""
+    try:
+        # 获取国际金价（COMEX黄金，美元/盎司）
+        url_gold = "https://hq.sinajs.cn/list=hf_GC"
+        req_gold = urllib.request.Request(url_gold, headers={
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://finance.sina.com.cn/"
+        })
+        with urllib.request.urlopen(req_gold, timeout=8) as resp:
+            text = resp.read().decode("utf-8", errors="ignore")
+        m = re.search(r'"([^"]+)"', text)
+        if not m:
+            return None
+        parts = m.group(1).split(",")
+        usd_per_oz = float(parts[0])
+        # 获取USD/CNY
+        url_fx = "https://hq.sinajs.cn/list=fx_susdcny"
+        req_fx = urllib.request.Request(url_fx, headers={
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://finance.sina.com.cn/"
+        })
+        with urllib.request.urlopen(req_fx, timeout=8) as resp:
+            text = resp.read().decode("gbk", errors="ignore")
+        m2 = re.search(r'"([^"]+)"', text)
+        if not m2:
+            return None
+        fx_parts = m2.group(1).split(",")
+        usd_cny = float(fx_parts[1])
+        # 换算：USD/oz → CNY/g（1 troy oz = 31.1035 g）
+        cny_per_g = usd_per_oz * usd_cny / 31.1035
+        return round(cny_per_g, 2)
+    except Exception as e:
+        print(f"获取SGE黄金价格失败: {e}")
+        return None
+
+
 def fetch_usd_cny_rate() -> dict:
     """获取美元兑人民币汇率（实时，在岸人民币）"""
     # 新浪财经外汇接口
@@ -343,9 +380,18 @@ def main():
     usd_cny = fetch_usd_cny_rate()
     if usd_cny:
         market["fx"] = usd_cny
-        print(f"  ✅ 美元/人民币: {usd_cny['rate']:.4f} ({usd_cny.get('change_pct')})")
+        print(f"  ✅ 美元/人民币: {usd_cny['rate']:.4f}")
     else:
         market["fx"] = {"rate": None, "change_pct": None}
+
+    # 抓取国内黄金现货价格
+    print(f"\n[{datetime.now(_tz).strftime('%Y-%m-%d %H:%M:%S')}] 获取国内黄金价格...")
+    gold_cny = fetch_sge_gold_price()
+    if gold_cny:
+        market["gold_cny"] = gold_cny
+        print(f"  ✅ 国内黄金(SGE): {gold_cny:.2f} 元/克")
+    else:
+        market["gold_cny"] = None
 
     # 抓取 S&P 500 指数
     spx = fetch_us_index_data("100.SPX", "S&P 500")

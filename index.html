@@ -580,7 +580,7 @@
             <div class="signal-bar-green"></div>
             <div class="signal-bar-yellow"></div>
             <div class="signal-bar-red"></div>
-            <div class="signal-bar-needle" id="signal-needle-563020"></div>
+            <div class="signal-bar-needle" id="signal-needle-563020" title="偏离：0%"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-mid);margin-top:4px">
             <span>买入</span><span>持有</span><span>卖出</span>
@@ -861,6 +861,7 @@ function renderData(data) {
   }
   needle.style.left = needlePct + '%';
   needle.className = 'signal-bar-needle' + (dev563020 > 10 ? ' over' : '');
+  needle.title = '偏离：' + (dev563020 != null ? dev563020.toFixed(2) + '%' : '--');
   // 卡片边框色跟随信号
   card563020.className = 'card ' + (color === 'green' ? 'card-buy' : color === 'red' ? 'card-sell' : 'card-pending');
 

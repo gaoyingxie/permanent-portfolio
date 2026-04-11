@@ -473,23 +473,24 @@
       position: relative;
       height: 10px;
       border-radius: 10px;
-      overflow: hidden;
+      overflow: visible;
       display: flex;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.3);
     }
-    .signal-bar-green { flex: 1; background: linear-gradient(90deg, #34d68a, #4ade80); }
-    .signal-bar-yellow { flex: 1; background: linear-gradient(90deg, #f5c518, #fbbf24); }
-    .signal-bar-red { flex: 1; background: linear-gradient(90deg, #ff8e53, #ff5f5f); }
+    .signal-bar-green { flex: 1; background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .signal-bar-yellow { flex: 1; background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .signal-bar-red { flex: 1; background: linear-gradient(90deg, #ef4444, #ff6b6b); }
     .signal-bar-needle {
       position: absolute;
-      top: -4px;
-      width: 3px;
-      height: 18px;
-      background: white;
-      border-radius: 2px;
-      box-shadow: 0 0 8px rgba(255,255,255,0.9);
+      top: -6px;
+      width: 4px;
+      height: 22px;
+      background: #ffffff;
+      border-radius: 3px;
+      box-shadow: 0 0 10px rgba(255,255,255,1), 0 2px 8px rgba(0,0,0,0.5);
       transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .signal-bar-needle.over { box-shadow: 0 0 8px rgba(255,255,255,0.9), 0 0 10px rgba(255,95,95,0.7); }
+    .signal-bar-needle.over { box-shadow: 0 0 12px rgba(255,255,255,1), 0 0 14px rgba(255,95,95,0.8), 0 2px 8px rgba(0,0,0,0.5); }
 
     /* 入场动画 */
     @keyframes fadeUp {

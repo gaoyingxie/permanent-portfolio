@@ -205,6 +205,39 @@ def fetch_fx_usdcny() -> dict:
         print(f"  [FAIL] USD/CNY: {e}")
     return None
 
+def fetch_fund_indicators() -> dict:
+    """Fetch dividend yield and PE from Tencent API for all funds.
+    Tencent field[38] = dividend yield (%), field[44] = PE TTM"""
+    # Mapping: code -> (Tencent prefix, Tencent code)
+    # 159222: sz (深圳基金), 563020: sh (上海ETF), 513650: sh (上海ETF)
+    codes = {
+        "159222": ("sz", "159222"),
+        "563020": ("sh", "563020"),
+        "513650": ("sh", "513650"),
+    }
+    result = {}
+    for code, (prefix, tcode) in codes.items():
+        url = f"https://qt.gtimg.cn/q={prefix}{tcode}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Referer": "https://finance.qq.com/"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                text = resp.read().decode("gbk", errors="replace")
+            if "none_match" in text or not text.strip():
+                continue
+            parts = text.split("~")
+            div = parts[38].strip() if len(parts) > 38 and parts[38].strip() else None
+            pe = parts[44].strip() if len(parts) > 44 and parts[44].strip() else None
+            div = float(div) if div and div not in ["N/A", "-", ""] else None
+            pe = float(pe) if pe and pe not in ["N/A", "-", ""] else None
+            if div is not None or pe is not None:
+                result[code] = {"dividend": round(div, 2) if div else None, "pe": round(pe, 2) if pe else None}
+                div_str = f"{div:.2f}%" if div else "--"
+                pe_str = f"{pe:.2f}" if pe else "--"
+                print(f"  [OK] {code} 股息率={div_str} PE={pe_str} (腾讯)")
+        except Exception as e:
+            print(f"  [FAIL] {code} Tencent indicators: {e}")
+    return result
+
 def fetch_bond_yield() -> float:
     """10-Year China Government Bond Yield"""
     import subprocess
@@ -352,22 +385,14 @@ def main():
         print(f"  [OK] 10Y bond: {bond:.4f}%")
     market["risk"] = {"rate": bond}
 
-    # 563020 dividend (from nav data if available)
-    div = fetch_563020_dividend()
-    if div:
-        print(f"  [OK] 563020 dividend: {div:.2f}%")
-        market["risk"]["dividend"] = div
-        if "dividend" not in market["funds"].get("563020", {}):
-            market["funds"].setdefault("563020", {})["dividend"] = div
-    else:
-        market["risk"]["dividend"] = None
-
-    # PE percentile for each non-gold fund
-    for code in ["159222", "563020", "513650"]:
-        pct = fetch_pe_percentile(code)
-        if pct is not None:
-            market["funds"].setdefault(code, {})["pe_pct"] = pct
-            print(f"  [OK] {code} PE历史: {pct:.1f}%")
+    # Fund indicators (dividend yield + PE) from Tencent
+    print(f"\n  -- Fetching fund indicators (dividend + PE)...")
+    indicators = fetch_fund_indicators()
+    for code, ind in indicators.items():
+        market["funds"].setdefault(code, {}).update(ind)
+    # Also store 563020 dividend in risk for the red/yellow/green light
+    if "563020" in indicators and indicators["563020"].get("dividend"):
+        market["risk"]["dividend"] = indicators["563020"]["dividend"]
 
     # USD/CNY
     print(f"\n  -- Fetching USD/CNY...")

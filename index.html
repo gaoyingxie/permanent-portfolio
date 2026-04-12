@@ -265,11 +265,17 @@
     /* ===== 主内容区 ===== */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 24px;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
     }
     @media (max-width: 960px) {
       .main-grid { grid-template-columns: 1fr; }
+    }
+    .right-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     /* ===== 图表卡片 ===== */
@@ -308,13 +314,13 @@
     }
     .donut-wrap {
       position: relative;
-      height: 240px;
+      height: 200px;
       width: 100%;
       display: flex;
       justify-content: center;
     }
     .donut-wrap canvas {
-      height: 240px !important;
+      height: 200px !important;
       max-width: 100%;
     }
     .donut-label {
@@ -323,6 +329,16 @@
       color: var(--text);
       margin-top: 10px;
       margin-bottom: 2px;
+    }
+
+    /* 紧凑型图表卡片（用于上证/美元等单行数据） */
+    .chart-card-compact {
+      padding: 16px 20px;
+      margin-bottom: 0 !important;
+    }
+    .chart-card-compact h3 {
+      font-size: 13px;
+      margin-bottom: 10px;
     }
 
     /* 图例 */
@@ -698,48 +714,46 @@
 
 <!-- 主图表区 -->
 <div class="main-grid">
-  <div>
-    <div class="chart-card">
-      <h3>持仓分布 vs 目标配置</h3>
-      <div class="charts-row">
-        <div class="donut-col">
-          <div class="donut-wrap">
-            <canvas id="posChart"></canvas>
-          </div>
-          <div class="donut-label">当前持仓</div>
-          <div class="chart-legend" id="pos-legend"></div>
+  <!-- 左列：环形图 -->
+  <div class="chart-card">
+    <h3>持仓分布 vs 目标配置</h3>
+    <div class="charts-row">
+      <div class="donut-col">
+        <div class="donut-wrap">
+          <canvas id="posChart"></canvas>
         </div>
-        <div class="donut-col">
-          <div class="donut-wrap">
-            <canvas id="targetChart"></canvas>
-          </div>
-          <div class="donut-label">目标配置</div>
-          <div class="chart-legend" id="target-legend"></div>
+        <div class="donut-label">当前持仓</div>
+        <div class="chart-legend" id="pos-legend"></div>
+      </div>
+      <div class="donut-col">
+        <div class="donut-wrap">
+          <canvas id="targetChart"></canvas>
         </div>
+        <div class="donut-label">目标配置</div>
+        <div class="chart-legend" id="target-legend"></div>
       </div>
     </div>
+  </div>
 
+  <!-- 右列：指数+风险 -->
+  <div class="right-stack">
     <!-- 上证指数 -->
-    <div class="chart-card" style="margin-bottom:0">
+    <div class="chart-card chart-card-compact">
       <h3>上证指数</h3>
       <div class="sh-index-wrap">
         <span class="sh-index-price" id="sh-index-price">--</span>
         <span class="sh-index-change" id="sh-index-change">--</span>
       </div>
     </div>
-
     <!-- 美元/人民币 -->
-    <div class="chart-card" style="margin-bottom:0">
+    <div class="chart-card chart-card-compact">
       <h3>美元 / 人民币</h3>
       <div class="sh-index-wrap">
         <span class="sh-index-price" id="fx-price">--</span>
         <span class="sh-index-change" id="fx-change">--</span>
       </div>
     </div>
-  </div>
-
-  <!-- 风险监控 -->
-  <div>
+    <!-- 风险红绿灯 -->
     <div class="risk-card">
       <h3>风险红绿灯</h3>
       <div class="risk-item">

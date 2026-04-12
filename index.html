@@ -598,7 +598,7 @@
             <div class="signal-bar-needle" id="signal-needle-563020"></div>
           </div>
           <div class="signal-scale">
-            <div class="scale-tick" style="left:15%"><div class="scale-tick-line"></div><span>0%</span></div>
+            <div class="scale-tick" style="left:30%"><div class="scale-tick-line"></div><span>0%</span></div>
             <div class="scale-tick" style="left:70%"><div class="scale-tick-line"></div><span>10%</span></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-top:2px;opacity:0.7">
@@ -850,7 +850,7 @@ function renderData(data) {
   if (dev563020 == null) {
     needlePct = 50;
   } else if (dev563020 <= 0) {
-    needlePct = 15 + (dev563020 / 10) * 30; // -10%~0% → 0%~30%
+    needlePct = 30 + (dev563020 / 10) * 30; // -10%~0% → 0%~30%
     needlePct = Math.max(0, Math.min(30, needlePct));
   } else if (dev563020 <= 10) {
     needlePct = 30 + (dev563020 / 10) * 40; // 0%~10% → 30%~70%

@@ -882,10 +882,10 @@ function renderData(data) {
   const f = data.funds || {};
 
   // 安全设置DOM文本（防止元素ID不存在时崩溃）
-  const ss = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  const ss = (id, val) => { try { const e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; } catch(e) {} };
 
   // Safe setter for element reference
-  const sa = (el, val) => { if (el) el.textContent = val; };
+  const sa = (el, val) => { try { if (el) el.textContent = val != null ? val : ''; } catch(e) {} };
 
   // 510880
   const f510880 = f['159222'] || STATIC_DATA.funds['159222'];

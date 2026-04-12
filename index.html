@@ -1116,6 +1116,7 @@ function renderRiskItems(risk) {
     container.appendChild(item);
   });
 }
+function setPriceColor(id, change) {
   const el = document.getElementById(id);
   el.classList.remove('change-up', 'change-down', 'change-flat');
   if (change > 0) el.classList.add('change-up');

@@ -1241,7 +1241,7 @@ function switchTab(el) {
 // ==================== Toast ====================
 function showToast(msg, type='success') {
   const toast = document.getElementById('toast');
-  sa(toast, msg);
+  toast.textContent = msg;
   toast.className = 'toast ' + type + ' show';
   setTimeout(() => { toast.classList.remove('show'); }, 3500);
 }

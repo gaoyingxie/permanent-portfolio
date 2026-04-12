@@ -135,7 +135,9 @@
       transition: all 0.25s ease;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
     }
+    .chart-card { cursor: pointer; }
     .card::before {
       content: '';
       position: absolute;
@@ -586,6 +588,90 @@
       color: var(--text-mid);
       line-height: 1.55;
     }
+
+    /* ===== 资产详情弹窗 ===== */
+    .asset-modal .risk-modal-content {
+      max-width: 480px;
+    }
+    .asset-modal .risk-modal-header {
+      background: linear-gradient(135deg, var(--bg2) 0%, var(--card) 100%);
+      border-radius: 16px 16px 0 0;
+      padding: 20px 20px 16px;
+    }
+    .asset-modal .asset-modal-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .asset-modal .asset-modal-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .asset-modal .asset-modal-price {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .asset-modal .asset-modal-change {
+      font-size: 14px;
+      color: var(--text-mid);
+    }
+    .asset-modal .risk-modal-body { padding: 16px 20px 20px; }
+    .asset-modal .asset-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.6;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      border-left: 3px solid var(--blue);
+    }
+    .asset-modal .asset-indicators { display: flex; flex-direction: column; gap: 8px; }
+    .asset-modal .asset-ind-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg);
+      border-radius: 8px;
+    }
+    .asset-modal .asset-ind-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--card-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .asset-modal .asset-ind-content { flex: 1; min-width: 0; }
+    .asset-modal .asset-ind-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .asset-modal .asset-ind-desc {
+      font-size: 12px;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+    .asset-modal .asset-modal-footer {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(96,165,250,0.1);
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+    .asset-modal .asset-modal-footer strong { color: var(--blue); }
 
     /* ===== 辅助 ===== */
     .change-up { color: var(--red); }
@@ -1308,57 +1394,63 @@ const ASSET_DETAILS = {
   '159222': {
     name: '自由现金流ETF',
     desc: '华泰柏瑞中证红利低波动ETF（512890），跟踪中证红利低波动指数，投资高股息、低波动特征的A股上市公司，追求稳定分红收益。',
+    footer: '<strong>提示：</strong>股息率越高，持有收息越可观；PE分位 < 30% 通常是较好的布局区间。',
     sections: [
       { title: '乖离率', body: '当前价格与年均线的偏离程度。偏离过大往往意味着短期回调或反弹概率增加。通常 -5% 以下可能偏低，+5% 以上可能偏高。' },
-      { title: 'RSI 相对强弱指数', body: '衡量股价涨跌速度和幅度的技术指标。RSI > 70 为超买（可能回调），RSI < 30 为超卖（可能反弹）。' },
-      { title: '市盈率 PE', body: '每份份额对应的盈利倍数。PE 越低说明投资回本周期越短，但需结合行业和分红率综合判断。' },
+      { title: 'RSI 相对强弱指数', body: 'RSI > 70 为超买（可能回调），RSI < 30 为超卖（可能反弹）。' },
+      { title: '市盈率 PE', body: '每份份额对应的盈利倍数。PE 越低说明投资回本周期越短。' },
       { title: '股息率', body: '每年分红金额占当前股价的比例。高股息率意味着持有该ETF可获得较稳定的现金分红收益。' },
     ],
   },
   '563020': {
     name: '563020 红利低波',
     desc: '易方达红利ETF，复制跟踪中证红利指数，精选现金分红多、分红稳定的A股，追求长期资本增值与稳定现金流。',
+    footer: '<strong>年线定投法：</strong>价格高于年线（买入区）时定投，低于年线（卖出区）时止盈。',
     sections: [
       { title: '乖离率', body: '当前价格与年均线的偏离程度。偏离过大往往意味着短期回调或反弹概率增加。通常 -5% 以下可能偏低，+5% 以上可能偏高。' },
-      { title: 'RSI 相对强弱指数', body: '衡量股价涨跌速度和幅度的技术指标。RSI > 70 为超买，RSI < 30 为超卖。' },
+      { title: 'RSI 相对强弱指数', body: 'RSI > 70 为超买，RSI < 30 为超卖。' },
       { title: '市盈率 PE', body: '每份份额对应的盈利倍数。PE 越低说明投资回本周期越短。' },
       { title: '股息率', body: '每年分红金额占当前股价的比例。股息率越高，持有收益越可观。' },
-      { title: '年线定投信号', body: '基于均线定投法的择时信号：价格高于年线（买入区）时定投，低于是均线（卖出区）时止盈。绿色区域建议买入，黄色区域持有，红色区域卖出。' },
+      { title: '年线定投信号', body: '基于均线定投法的择时信号：价格高于年线（买入区）时定投，低于年线（卖出区）时止盈。绿色区域建议买入，黄色区域持有，红色区域卖出。' },
     ],
   },
   '513650': {
     name: 'SPX 标普500',
     desc: '华夏标普500ETF（513650），复制跟踪美国标普500指数，覆盖美国500家最大上市公司，是配置美国资产的核心工具。场内交易，存在溢价/折价。',
+    footer: '<strong>提示：</strong>溢价率超过 +2% 时需谨慎，可能存在溢价过高被套利回归的风险。',
     sections: [
       { title: 'ETF场内价格', body: '在A股市场实时交易的报价。由于套利机制，ETF价格通常围绕净值小幅波动。' },
-      { title: '溢价率', body: 'ETF价格相对净值的偏离程度。正溢价表示买贵了（溢价买入），负溢价（折价）表示买得划算。溢价率过大时需谨慎。' },
+      { title: '溢价率', body: 'ETF价格相对净值的偏离程度。
+正溢价表示买贵了，负溢价（折价）表示买得划算。溢价率超过 ±2% 时需注意。' },
       { title: '市盈率 PE', body: '标普500成分股的整体市盈率，反映美股整体估值水平。与历史均值对比可判断美股贵贱。' },
       { title: '股息率', body: '标普500成分股的整体现金股息率。美股股息率通常低于A股高股息ETF。' },
-      { title: '乖离率', body: '当前价格与年均线的偏离程度。' },
-      { title: 'RSI', body: '衡量涨跌速度的技术指标。RSI > 70 超买，RSI < 30 超卖。' },
+      { title: '乖离率 / RSI', body: '乖离率反映与均线的偏离程度；RSI 衡量涨跌速度，RSI > 70 超买，RSI < 30 超卖。' },
     ],
   },
   gold: {
     name: '黄金',
     desc: '黄金是永久组合的避险资产，用于对冲股市下跌和货币贬值风险。组合中配置约7.5%的黄金（目标比例）。',
+    footer: '<strong>提示：</strong>黄金短期波动较大，不宜频繁操作。配置目的是降低投资组合整体波动。',
     sections: [
       { title: 'SGE AU9999（元/克）', body: '上海黄金交易所的实物黄金现货价格，是国内黄金的人民币定价基准，每日交易时段实时更新。' },
       { title: 'COMEX 国际金价（USD/oz）', body: '纽约商品交易所的黄金期货价格，以美元/盎司报价，是全球黄金的美元定价基准。' },
-      { title: 'ETF场内价格', body: '黄金ETF（518680）在A股市场的交易价格，围绕净值波动，存在小幅溢价或折价。' },
+      { title: 'ETF场内价格（518680）', body: '黄金ETF在A股市场的交易价格，围绕净值波动，存在小幅溢价或折价。' },
     ],
   },
   sh: {
     name: '上证指数',
     desc: '上海证券交易所全部A股的综合指数，反映中国A股整体市场表现，是衡量中国股市大盘走势的核心指标。',
+    footer: '<strong>提示：</strong>上证指数主要用于观察大盘整体温度，非组合配置品种。',
     sections: [
-      { title: '上证指数', body: '由上海证券交易所全部A股以自由流通股本加权计算的综合股价指数，代码000001，涵盖上交所最重要的800多只股票。' },
+      { title: '上证指数', body: '由上海证券交易所全部A股以自由流通股本加权计算的综合股价指数，代码000001。' },
     ],
   },
   fx: {
     name: '美元 / 人民币',
     desc: '美元兑人民币汇率，反映人民币相对美元的强弱程度。汇率升值意味着人民币贬值，汇率贬值意味着人民币升值。',
+    footer: '<strong>提示：</strong>汇率波动会直接影响QDII基金（SPX）的实际收益，换汇时需关注。',
     sections: [
-      { title: '汇率', body: '1美元兑换多少人民币。汇率上升（数值变大）表示人民币贬值；汇率下降表示人民币升值。该汇率直接影响QDII基金的实际收益。' },
+      { title: '汇率', body: '1美元兑换多少人民币。汇率上升（数值变大）表示人民币贬值；汇率下降表示人民币升值。' },
     ],
   },
 };
@@ -1366,23 +1458,53 @@ const ASSET_DETAILS = {
 function openAssetModal(key) {
   const info = ASSET_DETAILS[key];
   if (!info) return;
-  const data = window.__assetData || {};
-  let currentVal = '--';
-  if (key === '159222') currentVal = data['159222']?.price?.toFixed(3) || '--';
-  else if (key === '563020') currentVal = data['563020']?.price?.toFixed(3) || '--';
-  else if (key === '513650') currentVal = data['513650']?.price?.toFixed(4) || '--';
-  else if (key === 'gold') currentVal = data.gold?.sge?.toFixed(2) || data.gold?.global?.toFixed(2) || '--';
-  else if (key === 'sh') currentVal = data.sh?.price?.toFixed(2) || '--';
-  else if (key === 'fx') currentVal = data.fx?.rate?.toFixed(4) || '--';
-  document.getElementById('modalTitle').textContent = info.name;
-  document.getElementById('modalValue').textContent = currentVal;
-  document.getElementById('modalDesc').textContent = info.desc;
-  const sectionList = info.sections.map(s => '<div class="modal-section-item"><div class="modal-section-title">' + s.title + '</div><div class="modal-section-body">' + s.body + '</div></div>').join('');
-  document.getElementById('modalNormal').innerHTML = '<div class="modal-section-list">' + sectionList + '</div>';
-  document.getElementById('modalRisk').textContent = '';
-  document.getElementById('modalCurrent').textContent = '';
-  document.getElementById('riskModal').classList.add('show');
-  document.getElementById('riskModal').onclick = (e) => { if (e.target === document.getElementById('riskModal')) closeRiskModal(); };
+  const modal = document.getElementById('riskModal');
+  // 从DOM读取当前显示值（最可靠）
+  const domMap = {
+    '159222':  { price: 'price-159222',   change: 'change-159222',   icon: '\u2606' },
+    '563020':  { price: 'price-563020',   change: 'change-563020',   icon: '\u2606' },
+    '513650':  { price: 'etf-spx',        change: 'change-spx',       icon: '\u2606' },
+    'gold':    { price: 'gold-cny-price', change: 'change-518680',   icon: '\u26C8' },
+    'sh':      { price: 'sh-index-price', change: 'sh-index-change',  icon: '\u2191' },
+    'fx':      { price: 'fx-price',       change: 'fx-change',        icon: '\uD83D\uDCC8' },
+  };
+  const mapping = domMap[key] || {};
+  const priceEl = document.getElementById(mapping.price);
+  const changeEl = document.getElementById(mapping.change);
+  const priceText = priceEl ? priceEl.textContent.trim() : '--';
+  const changeText = changeEl ? changeEl.textContent.trim() : '';
+
+  // 渲染资产弹窗内容
+  const sectionHtml = info.sections.map(s =>
+    '<div class="asset-ind-item">' +
+      '<div class="asset-ind-icon">' + (s.icon || '\u2139') + '</div>' +
+      '<div class="asset-ind-content">' +
+        '<div class="asset-ind-name">' + s.title + '</div>' +
+        '<div class="asset-ind-desc">' + s.body + '</div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+
+  modal.innerHTML = '' +
+    '<div class="risk-modal-content asset-modal-inner">' +
+      '<div class="risk-modal-header">' +
+        '<div>' +
+          '<div class="asset-modal-name">' + info.name + '</div>' +
+          '<div class="asset-modal-price-row">' +
+            '<span class="asset-modal-price">' + priceText + '</span>' +
+            '<span class="asset-modal-change">' + changeText + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<button class="risk-modal-close" onclick="closeRiskModal()">&times;</button>' +
+      '</div>' +
+      '<div class="risk-modal-body">' +
+        '<div class="asset-desc">' + info.desc + '</div>' +
+        '<div class="asset-indicators">' + sectionHtml + '</div>' +
+        (info.footer ? '<div class="asset-modal-footer">' + info.footer + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  modal.className = 'risk-modal asset-modal show';
+  modal.onclick = (e) => { if (e.target === modal) closeRiskModal(); };
 }
 
 function closeRiskModal() {
@@ -1390,12 +1512,12 @@ function closeRiskModal() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRiskModal(); });
 (function initAssetLabels() {
-  document.getElementById('label-159222')?.addEventListener('click', () => openAssetModal('159222'));
-  document.getElementById('label-563020')?.addEventListener('click', () => openAssetModal('563020'));
-  document.getElementById('label-513650')?.addEventListener('click', () => openAssetModal('513650'));
-  document.getElementById('label-gold')?.addEventListener('click', () => openAssetModal('gold'));
-  document.getElementById('label-sh')?.addEventListener('click', () => openAssetModal('sh'));
-  document.getElementById('label-fx')?.addEventListener('click', () => openAssetModal('fx'));
+  document.getElementById('card-159222')?.addEventListener('click', () => openAssetModal('159222'));
+  document.getElementById('card-563020')?.addEventListener('click', () => openAssetModal('563020'));
+  document.getElementById('card-513650')?.addEventListener('click', () => openAssetModal('513650'));
+  document.getElementById('card-518680')?.addEventListener('click', () => openAssetModal('gold'));
+  document.getElementById('label-sh')?.parentElement?.addEventListener('click', () => openAssetModal('sh'));
+  document.getElementById('label-fx')?.parentElement?.addEventListener('click', () => openAssetModal('fx'));
 })();
 function setPriceColor(id, change) {
   const el = document.getElementById(id);

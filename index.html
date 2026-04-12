@@ -875,17 +875,13 @@ async function loadData() {
 
 function renderData(data) {
   // 更新时间
+  const ss = (id, val) => { try { const e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; } catch(e) {} };
+  const sa = (el, val) => { try { if (el) el.textContent = val != null ? val : ''; } catch(e) {} };
   const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');
   ss('updateTime', '更新: ' + updateTime);
 
   // 基金数据
   const f = data.funds || {};
-
-  // 安全设置DOM文本（防止元素ID不存在时崩溃）
-  const ss = (id, val) => { try { const e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; } catch(e) {} };
-
-  // Safe setter for element reference
-  const sa = (el, val) => { try { if (el) el.textContent = val != null ? val : ''; } catch(e) {} };
 
   // 510880
   const f510880 = f['159222'] || STATIC_DATA.funds['159222'];

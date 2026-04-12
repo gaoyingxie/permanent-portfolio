@@ -28,10 +28,11 @@
       "dividend": 4.5,
       "pe_percent": 66.5,
       "annual_avg": 1.1836,
-      "dev": 0.63,
+      "dev": 0.62,
       "signal": "hold",
       "signal_text": "持有",
-      "color": "yellow"
+      "color": "yellow",
+      "rsi": 44.6
     },
     "513650": {
       "code": "513650",
@@ -42,7 +43,9 @@
       "pe": 25.0,
       "dividend": 1.24,
       "pe_percent": 77.7,
-      "premium": -0.55
+      "premium": -0.55,
+      "dev": 3.25,
+      "rsi": 56.0
     },
     "518680": {
       "code": "518680",

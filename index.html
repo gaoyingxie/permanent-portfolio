@@ -595,6 +595,10 @@
         <span>股息率 <span class="val" id="dividend-563020">--</span></span>
       </div>
       <div class="card-meta" style="margin-top:4px">
+        <span>乖离率 <span class="val" id="dev-563020">--</span></span>
+        <span>RSI <span class="val" id="rsi-563020">--</span></span>
+      </div>
+      <div class="card-meta" style="margin-top:4px">
         <span>PE百分位 <span class="val" id="pe_pct-563020">--</span></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
@@ -636,6 +640,10 @@
       <div class="card-meta" style="margin-top:4px">
         <span>市盈率 <span class="val" id="pe-spx">--</span></span>
         <span>股息率 <span class="val" id="dividend-spx">--</span></span>
+      </div>
+      <div class="card-meta" style="margin-top:4px">
+        <span>乖离率 <span class="val" id="dev-spx">--</span></span>
+        <span>RSI <span class="val" id="rsi-spx">--</span></span>
       </div>
       <div class="card-meta" style="margin-top:4px">
         <span>PE百分位 <span class="val" id="pe_pct-spx">--</span></span>
@@ -784,8 +792,8 @@ const STATIC_DATA = {
   // 行情API不可用时的价格fallback（不需要改，用USER_CONFIG填持仓/信号）
   funds: {
     '159222': { price: 1.4106, change_pct: 0.5, name: '自由现金流ETF', pe: 15.5, dividend: 3.16, pe_percent: 83.1, dev: 4.7, rsi: 44.6 },
-    '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', pe: 8.4, dividend: 4.5, pe_percent: 66.5, annual_avg: 1.246, dev: -4.39, color: 'green', signal_text: '买入', signal: 'buy' },
-    '513650': { price: 1.6786, change_pct: -0.56, name: 'SPX', pe: 25.0, dividend: 1.24, pe_percent: 77.7, premium: -0.55 },
+    '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', pe: 8.4, dividend: 4.5, pe_percent: 66.5, dev: 0.62, rsi: 44.6, annual_avg: 1.246, color: 'green', signal_text: '买入', signal: 'buy' },
+    '513650': { price: 1.6786, change_pct: -0.56, name: 'SPX', pe: 25.0, dividend: 1.24, pe_percent: 77.7, premium: -0.55, dev: 3.25, rsi: 56.0 },
     '518680': { price: null, change_pct: null, name: '富国上海金ETF' },
   },
   sh: { price: 3350.12, change_pct: 0.87 },
@@ -854,6 +862,8 @@ function renderData(data) {
   ss('dividend-563020', f563020.dividend != null ? f563020.dividend.toFixed(2) + '%' : '--');
   ss('pe-563020', f563020.pe != null ? f563020.pe.toFixed(1) : '--');
   ss('pe_pct-563020', f563020.pe_percent != null ? f563020.pe_percent.toFixed(1) + '%' : '--');
+  ss('dev-563020', f563020.dev != null ? f563020.dev.toFixed(2) + '%' : '--');
+  ss('rsi-563020', f563020.rsi != null ? f563020.rsi.toFixed(1) : '--');
   const dev563020 = f563020.dev;
 
   // 渲染年线信号
@@ -911,6 +921,8 @@ function renderData(data) {
     ss('dividend-spx', fspx.dividend != null ? fspx.dividend.toFixed(2) + '%' : '--');
     ss('pe-spx', fspx.pe != null ? fspx.pe.toFixed(1) : '--');
     ss('pe_pct-spx', fspx.pe_percent != null ? fspx.pe_percent.toFixed(1) + '%' : '--');
+    ss('dev-spx', fspx.dev != null ? fspx.dev.toFixed(2) + '%' : '--');
+    ss('rsi-spx', fspx.rsi != null ? fspx.rsi.toFixed(1) : '--');
     updateSignal('513650', fspx);
   }
 

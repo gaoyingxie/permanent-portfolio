@@ -122,15 +122,7 @@ def fetch_fund_indicators(code: str) -> dict:
                     try:
                         div_raw = float(f79)
                         if 0 < div_raw < 5000:
-                            if code == "513650" and f85:
-                                # f79是原始股息（分），需除以价格（f85，人民币元）再乘100换算为百分比
-                                try:
-                                    price_raw = float(f85)
-                                    if price_raw > 0:
-                                        result["dividend"] = round(div_raw / 100 / price_raw * 100, 2)
-                                except (ValueError, TypeError):
-                                    pass
-                            elif code == "563020" and div_raw > 5:
+                            if code == "563020" and div_raw > 5:
                                 result["dividend"] = round(div_raw / 2.1, 2)
                             elif div_raw < 50:
                                 result["dividend"] = round(div_raw, 2)

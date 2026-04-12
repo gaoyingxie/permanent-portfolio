@@ -874,7 +874,6 @@ async function loadData() {
 }
 
 function renderData(data) {
-  try {
   // 更新时间
   const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');
   ss('updateTime', '更新: ' + updateTime);
@@ -1057,7 +1056,6 @@ function renderData(data) {
 
   // 风险灯（实时真实数据）
   renderRiskItems(data.risk);
-  } catch(e) { console.error('renderData ERROR:', e.message, e.stack ? e.stack.split('\n').slice(0,3) : ''); }
 }
 
 function renderRiskItems(risk) {

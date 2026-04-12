@@ -1072,7 +1072,7 @@ async function loadData() {
     renderData(data);
     showToast('数据已更新', 'success');
   } catch (e) {
-    console.warn('加载实时数据失败，使用静态数据:', e.message);
+    console.warn('加载实时数据失败，使用静态数据:', e.message, 'stack:', e.stack);
     renderData(STATIC_DATA);
   }
 }
@@ -1080,7 +1080,7 @@ async function loadData() {
 function renderData(data) {
   window.__assetData = data;
   console.log('renderData START');
-  const ss = (id, val) => { try { const e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; } catch(e) { console.error('ss error on id:', id, e.message); } };
+  const ss = (id, val) => { const e = document.getElementById(id); if (!e) { console.warn('ss: element not found:', id); return; } e.textContent = val != null ? val : ''; };
   console.log('ss defined ok');
   const sa = (el, val) => { try { if (el) el.textContent = val != null ? val : ''; } catch(e) {} };
   const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');

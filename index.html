@@ -568,6 +568,24 @@
       color: var(--text-mid);
       line-height: 1.6;
     }
+    .modal-section-list { display: flex; flex-direction: column; gap: 10px; }
+    .modal-section-item {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 10px 12px;
+      border-left: 3px solid var(--blue);
+    }
+    .modal-section-item .modal-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .modal-section-item .modal-section-body {
+      font-size: 12px;
+      color: var(--text-mid);
+      line-height: 1.55;
+    }
 
     /* ===== 辅助 ===== */
     .change-up { color: var(--red); }
@@ -1359,7 +1377,8 @@ function openAssetModal(key) {
   document.getElementById('modalTitle').textContent = info.name;
   document.getElementById('modalValue').textContent = currentVal;
   document.getElementById('modalDesc').textContent = info.desc;
-  document.getElementById('modalNormal').textContent = info.sections.map(s => '【' + s.title + '】' + s.body).join('\n\n');
+  const sectionList = info.sections.map(s => '<div class="modal-section-item"><div class="modal-section-title">' + s.title + '</div><div class="modal-section-body">' + s.body + '</div></div>').join('');
+  document.getElementById('modalNormal').innerHTML = '<div class="modal-section-list">' + sectionList + '</div>';
   document.getElementById('modalRisk').textContent = '';
   document.getElementById('modalCurrent').textContent = '';
   document.getElementById('riskModal').classList.add('show');

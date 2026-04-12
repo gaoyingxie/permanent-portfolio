@@ -12,10 +12,11 @@
       "dividend": 3.16,
       "pe_percent": 83.1,
       "annual_avg": 1.1836,
-      "dev": 0.63,
+      "dev": 15.88,
       "signal": "hold",
       "signal_text": "持有",
-      "color": "yellow"
+      "color": "yellow",
+      "rsi": 53.1
     },
     "563020": {
       "code": "563020",

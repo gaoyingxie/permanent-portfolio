@@ -182,6 +182,22 @@ def fetch_nav_history(secid: str, days: int = 250) -> list:
         print(f"  [FAIL] nav_history {secid}: {e}")
         return []
 
+def calc_rsi(prices, period=14):
+    if len(prices) < period + 1:
+        return None
+    gains = []
+    losses = []
+    for i in range(1, len(prices)):
+        diff = prices[i] - prices[i - 1]
+        gains.append(max(diff, 0))
+        losses.append(max(-diff, 0))
+    avg_gain = sum(gains[-period:]) / period
+    avg_loss = sum(losses[-period:]) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return round(100 - (100 / (1 + rs)), 1)
+
 def calc_annual_deviation(code: str) -> dict:
     # secid mapping: 159222=深圳基金(0), others=上海(1)
     hist_code = "0." + code if code == "159222" else "1." + code
@@ -192,18 +208,21 @@ def calc_annual_deviation(code: str) -> dict:
     avg = sum(closes) / len(closes)
     curr = closes[-1]
     dev = (curr / avg - 1) * 100
+    rsi = calc_rsi(closes, 14)
     if dev < 0:
         sig, txt, color = "buy", "买入", "green"
     elif dev <= 10:
         sig, txt, color = "hold", "持有", "yellow"
     else:
         sig, txt, color = "sell", "卖出", "red"
-    return {
+    result = {
         "price": round(curr, 3),
         "annual_avg": round(avg, 3),
         "dev": round(dev, 2),
+        "rsi": rsi,
         "signal": sig, "signal_text": txt, "color": color,
     }
+    return result
 
 def fetch_gold() -> dict:
     """Get both international (COMEX USD/oz) and domestic (SGE CNY/g) gold prices"""
@@ -421,12 +440,16 @@ def main():
             div_str = f"{ind['dividend']:.2f}%" if 'dividend' in ind else 'N/A'
             print(f"  [OK] {code}: PE={pe_str}, 股息率={div_str}")
 
-    # 563020 annual deviation
-    print(f"\n  -- Calculating 563020 annual deviation...")
-    dev_result = calc_annual_deviation("563020")
-    if dev_result:
-        market["funds"]["563020"].update(dev_result)
-        print(f"  [OK] 563020 deviation: {dev_result['dev']:+.2f}% -> {dev_result['signal_text']}")
+    # Annual deviation + RSI for all funds (except gold ETF)
+    print(f"\n  -- Calculating annual deviation + RSI for all funds...")
+    for code in FUNDS:
+        if code == "518680":
+            continue
+        dev_result = calc_annual_deviation(code)
+        if dev_result:
+            market["funds"][code].update(dev_result)
+            rsi_str = f", RSI={dev_result['rsi']}" if dev_result.get('rsi') else ""
+            print(f"  [OK] {code}: dev={dev_result['dev']:+.2f}% -> {dev_result['signal_text']}{rsi_str}")
 
     # Gold prices
     print(f"\n  -- Fetching gold prices...")

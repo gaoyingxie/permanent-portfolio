@@ -640,15 +640,20 @@
       border-radius: 8px;
     }
     .asset-modal .asset-ind-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
       background: var(--card-hover);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
       flex-shrink: 0;
+    }
+    .asset-modal .ind-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--blue);
     }
     .asset-modal .asset-ind-content { flex: 1; min-width: 0; }
     .asset-modal .asset-ind-name {
@@ -1477,7 +1482,7 @@ function openAssetModal(key) {
   // 渲染资产弹窗内容
   const sectionHtml = info.sections.map(s =>
     '<div class="asset-ind-item">' +
-      '<div class="asset-ind-icon">' + (s.icon || '\u2139') + '</div>' +
+      '<div class="asset-ind-icon"><span class="ind-dot"></span></div>' +
       '<div class="asset-ind-content">' +
         '<div class="asset-ind-name">' + s.title + '</div>' +
         '<div class="asset-ind-desc">' + s.body + '</div>' +

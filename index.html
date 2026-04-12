@@ -498,7 +498,7 @@
 
     /* ===== 风险指标弹窗 ===== */
     .risk-modal {
-      display: none;
+      display: none !important;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.7);
@@ -507,7 +507,7 @@
       justify-content: center;
       backdrop-filter: blur(4px);
     }
-    .risk-modal.show { display: flex; }
+    .risk-modal.show { display: flex !important; }
     .risk-modal-content {
       background: var(--card);
       border: 1px solid var(--border-light);

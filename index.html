@@ -989,9 +989,7 @@ function renderData(data) {
   }
 
   // 杂仓
-  if (data.cleanup_amount) {
-    document.getElementById('cleanup-amount').textContent = data.cleanup_amount;
-  }
+  ss('cleanup-amount', data.cleanup_amount || '');
 
   // 黄金
   const static518680 = STATIC_DATA.funds['518680'] || { price: 0, change_pct: 0, name: '黄金ETF' };

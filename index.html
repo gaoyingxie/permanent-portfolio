@@ -876,7 +876,7 @@ async function loadData() {
 function renderData(data) {
   // 更新时间
   const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');
-  document.getElementById('updateTime').textContent = '更新: ' + updateTime;
+  ss('updateTime', '更新: ' + updateTime);
 
   // 基金数据
   const f = data.funds || {};
@@ -884,14 +884,17 @@ function renderData(data) {
   // 安全设置DOM文本（防止元素ID不存在时崩溃）
   const ss = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
 
+  // Safe setter for element reference
+  const sa = (el, val) => { if (el) el.textContent = val; };
+
   // 510880
   const f510880 = f['159222'] || STATIC_DATA.funds['159222'];
-  document.getElementById('price-159222').textContent = f510880.price?.toFixed(3) || '--';
+  ss('price-159222', f510880.price?.toFixed(3) || '--');
   setPriceColor('price-159222', f510880.change_pct);
-  document.getElementById('change-159222').textContent = f510880.change_pct != null ? (f510880.change_pct >= 0 ? '+' : '') + f510880.change_pct.toFixed(2) + '%' : '';
+  ss('change-159222', f510880.change_pct != null ? (f510880.change_pct >= 0 ? '+' : '') + f510880.change_pct.toFixed(2) + '%' : '');
   document.getElementById('change-159222').style.color = f510880.change_pct > 0 ? 'var(--red)' : f510880.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
-  document.getElementById('dev-159222').textContent = f510880.dev ? f510880.dev.toFixed(2) + '%' : '--';
-  document.getElementById('rsi-159222').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';
+  ss('dev-159222', f510880.dev ? f510880.dev.toFixed(2) + '%' : '--');
+  ss('rsi-159222', f510880.rsi ? f510880.rsi.toFixed(1) : '--');
   ss('dividend-159222', f510880.dividend != null ? f510880.dividend.toFixed(2) + '%' : '--');
   ss('pe-159222', f510880.pe != null ? f510880.pe.toFixed(1) : '--');
   ss('pe_pct-159222', f510880.pe_percent != null ? f510880.pe_percent.toFixed(1) + '%' : '--');
@@ -899,9 +902,9 @@ function renderData(data) {
 
   // 563020 红利低波（年线定投法信号）
   const f563020 = f['563020'] || STATIC_DATA.funds['563020'];
-  document.getElementById('price-563020').textContent = f563020.price != null ? f563020.price.toFixed(3) : '--';
+  ss('price-563020', f563020.price != null ? f563020.price.toFixed(3) : '--');
   setPriceColor('price-563020', f563020.change_pct);
-  document.getElementById('change-563020').textContent = f563020.change_pct != null ? (f563020.change_pct >= 0 ? '+' : '') + f563020.change_pct.toFixed(2) + '%' : '';
+  ss('change-563020', f563020.change_pct != null ? (f563020.change_pct >= 0 ? '+' : '') + f563020.change_pct.toFixed(2) + '%' : '');
   document.getElementById('change-563020').style.color = f563020.change_pct > 0 ? 'var(--red)' : f563020.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
   ss('dividend-563020', f563020.dividend != null ? f563020.dividend.toFixed(2) + '%' : '--');
   ss('pe-563020', f563020.pe != null ? f563020.pe.toFixed(1) : '--');
@@ -917,9 +920,9 @@ function renderData(data) {
   const card563020 = document.getElementById('card-563020');
   const color = f563020.color || 'wait';
   const signalText = f563020.signal_text || '--';
-  signalTag.textContent = signalText;
+  sa(signalTag, signalText);
   const avgText = f563020.annual_avg != null ? '，均线' + f563020.annual_avg.toFixed(3) + '元' : '';
-  signalDesc.textContent = '年线收益差' + avgText;
+  sa(signalDesc, '年线收益差' + avgText);
   signalTag.className = 'signal-tag ' + (color === 'green' ? 'buy' : color === 'yellow' ? 'hold' : color === 'red' ? 'sell' : 'hold');
   // 针位置: 绿区(0-30%,dev<0%), 黄区(30-70%,dev 0-10%), 红区(70-100%,dev>10%)
   let needlePct;
@@ -946,21 +949,21 @@ function renderData(data) {
   // SPX - 读取实际指数点位
   const spxData = data.index?.spx || STATIC_DATA.index?.spx;
   if (spxData) {
-    document.getElementById('price-spx').textContent = spxData.price?.toFixed(2) || '--';
-    document.getElementById('change-spx').textContent = spxData.change_pct != null ? (spxData.change_pct >= 0 ? '+' : '') + spxData.change_pct.toFixed(2) + '%' : '';
+    ss('price-spx', spxData.price?.toFixed(2) || '--');
+    ss('change-spx', spxData.change_pct != null ? (spxData.change_pct >= 0 ? '+' : '') + spxData.change_pct.toFixed(2) + '%' : '');
     document.getElementById('change-spx').style.color = spxData.change_pct > 0 ? 'var(--red)' : spxData.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
     setPriceColor('price-spx', spxData.change_pct);
   }
   const fspx = f['513650'] || STATIC_DATA.funds['513650'];
   if (fspx) {
-    document.getElementById('etf-spx').textContent = fspx.price?.toFixed(4) || '--';
+    ss('etf-spx', fspx.price?.toFixed(4) || '--');
     const premEl = document.getElementById('premium-spx');
     if (fspx.premium != null) {
       const sign = fspx.premium >= 0 ? '+' : '';
-      premEl.textContent = sign + fspx.premium.toFixed(2) + '%';
+      sa(premEl, sign + fspx.premium.toFixed(2) + '%');
       premEl.className = 'val ' + (fspx.premium >= 0 ? 'change-up' : 'change-down');
     } else {
-      premEl.textContent = '--';
+      sa(premEl, '--');
     }
     ss('dividend-spx', fspx.dividend != null ? fspx.dividend.toFixed(2) + '%' : '--');
     ss('pe-spx', fspx.pe != null ? fspx.pe.toFixed(1) : '--');
@@ -973,23 +976,23 @@ function renderData(data) {
   // 上证指数
   const sh = data.sh || data.index?.sh000001 || STATIC_DATA.sh;
   const shPriceEl = document.getElementById('sh-index-price');
-  shPriceEl.textContent = sh.price?.toFixed(2) || '--';
+  sa(shPriceEl, sh.price?.toFixed(2) || '--');
   const changeEl = document.getElementById('sh-index-change');
   if (sh.change_pct !== undefined) {
     const shColor = sh.change_pct >= 0 ? 'var(--red)' : 'var(--green)';
-    changeEl.textContent = (sh.change_pct >= 0 ? '+' : '') + sh.change_pct.toFixed(2) + '%';
+    sa(changeEl, (sh.change_pct >= 0 ? '+' : '') + sh.change_pct.toFixed(2) + '%');
     changeEl.style.color = shColor;
     shPriceEl.style.color = shColor;
   }
   // 美元/人民币汇率
   if (data.fx) {
     if (data.fx.rate != null) {
-      document.getElementById('fx-price').textContent = data.fx.rate.toFixed(4);
+      ss('fx-price', data.fx.rate.toFixed(4));
     }
     if (data.fx.change_pct != null) {
       const fxChangeEl = document.getElementById('fx-change');
       const fxColor = data.fx.change_pct >= 0 ? 'var(--red)' : 'var(--green)';
-      fxChangeEl.textContent = (data.fx.change_pct >= 0 ? '+' : '') + data.fx.change_pct.toFixed(2) + '%';
+      sa(fxChangeEl, (data.fx.change_pct >= 0 ? '+' : '') + data.fx.change_pct.toFixed(2) + '%');
       fxChangeEl.style.color = fxColor;
       document.getElementById('fx-price').style.color = fxColor;
     }
@@ -1016,31 +1019,31 @@ function renderData(data) {
   if (data.gold) {
     // 主显示：SGE AU9999（元/克）
     if (data.gold.sge != null) {
-      goldPriceEl.textContent = data.gold.sge.toFixed(2);
+      sa(goldPriceEl, data.gold.sge.toFixed(2));
     } else if (data.gold.global != null) {
-      goldPriceEl.textContent = data.gold.global.toFixed(2);
+      sa(goldPriceEl, data.gold.global.toFixed(2));
     } else {
-      goldPriceEl.textContent = '--';
+      sa(goldPriceEl, '--');
     }
     // 副显示：COMEX 国际价（美元/盎司）
     if (data.gold.global != null) {
-      goldGlobalEl.textContent = data.gold.global.toFixed(2) + ' USD/oz';
+      sa(goldGlobalEl, data.gold.global.toFixed(2) + ' USD/oz');
     } else {
-      goldGlobalEl.textContent = '--';
+      sa(goldGlobalEl, '--');
     }
   } else {
-    goldPriceEl.textContent = '--';
-    goldGlobalEl.textContent = '--';
+    sa(goldPriceEl, '--');
+    sa(goldGlobalEl, '--');
   }
   // ETF场内价格
   const etf518680El = document.getElementById('etf-518680');
   if (final518680.price != null) {
-    etf518680El.textContent = final518680.price.toFixed(4);
+    sa(etf518680El, final518680.price.toFixed(4));
     setPriceColor('gold-cny-price', final518680.change_pct);
-    document.getElementById('change-518680').textContent = final518680.change_pct != null ? (final518680.change_pct >= 0 ? '+' : '') + final518680.change_pct.toFixed(2) + '%' : '';
+    ss('change-518680', final518680.change_pct != null ? (final518680.change_pct >= 0 ? '+' : '') + final518680.change_pct.toFixed(2) + '%' : '');
     document.getElementById('change-518680').style.color = final518680.change_pct > 0 ? 'var(--red)' : final518680.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
   } else {
-    etf518680El.textContent = '--';
+    sa(etf518680El, '--');
   }
   updateSignal('518680', final518680);
   // 持仓图表（优先用API，其次用用户配置）
@@ -1242,7 +1245,7 @@ function switchTab(el) {
 // ==================== Toast ====================
 function showToast(msg, type='success') {
   const toast = document.getElementById('toast');
-  toast.textContent = msg;
+  sa(toast, msg);
   toast.className = 'toast ' + type + ' show';
   setTimeout(() => { toast.classList.remove('show'); }, 3500);
 }

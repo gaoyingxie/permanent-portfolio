@@ -948,29 +948,6 @@
 <div class="toast" id="toast"></div>
 <div class="risk-modal" id="riskModal"></div>
 <div class="risk-modal asset-modal" id="assetModal"></div>
-  <div class="risk-modal-content">
-    <div class="risk-modal-header">
-      <span id="modalTitle">指标名称</span>
-      <button class="risk-modal-close" onclick="closeRiskModal()">&times;</button>
-    </div>
-    <div class="risk-modal-body">
-      <div class="risk-modal-value" id="modalValue">--</div>
-      <div class="risk-modal-desc" id="modalDesc"></div>
-      <div class="risk-modal-section">
-        <div class="risk-modal-section-title">指标说明</div>
-        <div class="risk-modal-section-body" id="modalNormal"></div>
-      </div>
-      <div class="risk-modal-section">
-        <div class="risk-modal-section-title">当前风险解读</div>
-        <div class="risk-modal-section-body" id="modalRisk"></div>
-      </div>
-      <div class="risk-modal-section">
-        <div class="risk-modal-section-title">投资提示</div>
-        <div class="risk-modal-section-body" id="modalCurrent"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
 // ==================== 配置 ====================
@@ -1386,14 +1363,10 @@ function openRiskModal(ind) {
   const light = ind.getLight(risk[ind.key]);
   const colorMap = { green: '#34d68a', yellow: '#f5c518', red: '#ff5f5f' };
   const icon = '\u25CF';
-  document.getElementById('modalTitle').textContent = ind.name;
-  document.getElementById('modalValue').innerHTML = (val || '--') + ' <span style="font-size:20px;' + (colorMap[light] ? 'color:' + colorMap[light] : '') + '">' + icon + '</span>';
-  document.getElementById('modalDesc').textContent = ind.detail.desc;
-  document.getElementById('modalNormal').textContent = ind.detail.normal;
-  document.getElementById('modalRisk').textContent = light === 'red' ? ind.detail.risk_high : light === 'green' ? ind.detail.risk_low : ind.detail.risk_high;
-  document.getElementById('modalCurrent').textContent = ind.detail.current;
+  const c = colorMap[light] || '#888';
+  modal.innerHTML = '<div class="risk-modal-content"><div class="risk-modal-header"><span style="font-size:15px;font-weight:600;color:var(--text)">' + ind.name + '</span><button class="risk-modal-close" onclick="closeModal()">&times;</button></div><div class="risk-modal-body"><div class="risk-modal-value">' + (val || '--') + ' <span style="font-size:20px;color:' + c + '">' + icon + '</span></div><div class="risk-modal-desc">' + ind.detail.desc + '</div><div class="risk-modal-section"><div class="risk-modal-section-title">指标说明</div><div class="risk-modal-section-body">' + ind.detail.normal + '</div></div><div class="risk-modal-section"><div class="risk-modal-section-title">当前风险解读</div><div class="risk-modal-section-body">' + (light === 'red' ? ind.detail.risk_high : light === 'green' ? ind.detail.risk_low : ind.detail.risk_high) + '</div></div><div class="risk-modal-section"><div class="risk-modal-section-title">投资提示</div><div class="risk-modal-section-body">' + ind.detail.current + '</div></div></div></div>';
   modal.classList.add('show');
-  modal.onclick = (e) => { if (e.target === modal) closeRiskModal(); };
+  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 }
 
 const ASSET_DETAILS = {

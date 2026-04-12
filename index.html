@@ -325,6 +325,36 @@
       margin-bottom: 2px;
     }
 
+    /* 图例 */
+    .chart-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-mid);
+    }
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .legend-label {
+      flex: 1;
+    }
+    .legend-pct {
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
     /* 上证指数 */
     .price-row {
       display: flex;
@@ -1090,7 +1120,6 @@ function renderPosChart(data) {
 function renderTargetChart(data) {
   const ctx = document.getElementById('targetChart').getContext('2d');
   if (targetChart) targetChart.destroy();
-  // 按标签顺序从 ASSET_COLORS 取颜色，不存在的用备用色
   const targetColors = data.labels.map((label, i) => ASSET_COLORS[label] || CHART_COLORS[i % CHART_COLORS.length]);
   targetChart = new Chart(ctx, {
     type: 'doughnut',
@@ -1106,10 +1135,7 @@ function renderTargetChart(data) {
     options: {
       cutout: '65%',
       plugins: {
-        legend: {
-          position: 'right',
-          labels: { color: '#8891a8', font: { size: 11 }, padding: 8, boxWidth: 10 }
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             label: ctx => ` ${ctx.label}: ${ctx.raw}%`
@@ -1117,6 +1143,17 @@ function renderTargetChart(data) {
         }
       }
     }
+  });
+  // 自定义图例：颜色块 + 名称 + 百分比
+  const legendEl = document.getElementById('target-legend');
+  legendEl.innerHTML = '';
+  data.labels.forEach((label, i) => {
+    const pct = data.values[i];
+    if (!pct) return;
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-swatch" style="background:${targetColors[i]}"></span><span class="legend-label">${label}</span><span class="legend-pct">${pct}%</span>`;
+    legendEl.appendChild(item);
   });
 }
 

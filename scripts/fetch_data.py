@@ -319,12 +319,9 @@ def main():
             market["funds"][code] = fund
             print(f"  [OK] {info['name']}({code}): {fund['price']} ({fund['change_pct']:+.2f}%)")
 
-    # Indoor fund prices (513650 SPX, 518680 Gold ETF)
-    for code, name in [("513650", "SPX ETF"), ("518680", "Gold ETF")]:
-        ind = fetch_fund_nav(code)
-        if ind:
-            market["funds"][code] = {**market["funds"].get(code, {}), **ind}
-            print(f"  [OK] {name}({code}): {ind['price']} ({ind['change_pct']:+.2f}%)")
+    # Note: 腾讯 indoor 接口 (secid 1.xxx) 单位与 fundgz 不一致，会导致价格错误，
+    # 故 indoor 基金改价直接用 fundgz 数据，不再用腾讯接口覆盖。
+    # 如需 PE/股息率等指标，改为单独调用 fetch_fund_indicators() 接口。
 
     # 563020 annual deviation
     print(f"\n  -- Calculating 563020 annual deviation...")

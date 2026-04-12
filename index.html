@@ -570,7 +570,11 @@
       </div>
       <div class="card-meta">
         <span>乖离率 <span class="val" id="dev-159222">--</span></span>
-        <span>RSI <span class="val" id="rsi-159222">--</span></span>      </div>    </div>
+        <span>RSI <span class="val" id="rsi-159222">--</span></span>
+        <span>股息率 <span class="val" id="dividend-159222">--</span></span>
+        <span>市盈率 <span class="val" id="pe-159222">--</span></span>
+      </div>
+    </div>
 
     <!-- 563020 红利低波 -->
     <div class="card card-buy" id="card-563020">
@@ -581,7 +585,10 @@
         <span class="price" id="price-563020">--</span>
         <span class="change" id="change-563020">--</span>
       </div>
-      <div class="card-meta">      </div>
+      <div class="card-meta">
+        <span>股息率 <span class="val" id="dividend-563020">--</span></span>
+        <span>市盈率 <span class="val" id="pe-563020">--</span></span>
+      </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
         <span class="signal-tag" id="signal-tag-563020">--</span>
         <span class="signal-desc" id="signal-desc-563020" style="font-size:12px;color:var(--text-mid)"></span>
@@ -616,7 +623,10 @@
       </div>
       <div class="card-meta">
         <span>ETF场内 <span class="val" id="etf-spx">--</span></span>
-        <span>溢价率 <span class="val" id="premium-spx">--</span></span>      </div>    </div>
+        <span>溢价率 <span class="val" id="premium-spx">--</span></span>
+        <span>股息率 <span class="val" id="dividend-spx">--</span></span>
+        <span>市盈率 <span class="val" id="pe-spx">--</span></span>
+      </div>    </div>
 
     <!-- 黄金 -->
     <div class="card card-buy" id="card-518680">
@@ -812,14 +822,20 @@ function renderData(data) {
   document.getElementById('change-159222').textContent = f510880.change_pct != null ? (f510880.change_pct >= 0 ? '+' : '') + f510880.change_pct.toFixed(2) + '%' : '';
   document.getElementById('change-159222').style.color = f510880.change_pct > 0 ? 'var(--red)' : f510880.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
   document.getElementById('dev-159222').textContent = f510880.dev ? f510880.dev.toFixed(2) + '%' : '--';
-  document.getElementById('rsi-159222').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';  updateSignal('159222', f510880);
+  document.getElementById('rsi-159222').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';
+  document.getElementById('dividend-159222').textContent = f510880.dividend ? f510880.dividend.toFixed(2) + '%' : '--';
+  document.getElementById('pe-159222').textContent = f510880.pe ? f510880.pe.toFixed(1) : '--';
+  updateSignal('159222', f510880);
 
   // 563020 红利低波（年线定投法信号）
   const f563020 = f['563020'] || STATIC_DATA.funds['563020'];
   document.getElementById('price-563020').textContent = f563020.price != null ? f563020.price.toFixed(3) : '--';
   setPriceColor('price-563020', f563020.change_pct);
   document.getElementById('change-563020').textContent = f563020.change_pct != null ? (f563020.change_pct >= 0 ? '+' : '') + f563020.change_pct.toFixed(2) + '%' : '';
-  document.getElementById('change-563020').style.color = f563020.change_pct > 0 ? 'var(--red)' : f563020.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';  const dev563020 = f563020.dev;
+  document.getElementById('change-563020').style.color = f563020.change_pct > 0 ? 'var(--red)' : f563020.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
+  document.getElementById('dividend-563020').textContent = f563020.dividend ? f563020.dividend.toFixed(2) + '%' : '--';
+  document.getElementById('pe-563020').textContent = f563020.pe ? f563020.pe.toFixed(1) : '--';
+  const dev563020 = f563020.dev;
 
   // 渲染年线信号
   const signalTag = document.getElementById('signal-tag-563020');
@@ -872,7 +888,10 @@ function renderData(data) {
       premEl.className = 'val ' + (fspx.premium >= 0 ? 'change-up' : 'change-down');
     } else {
       premEl.textContent = '--';
-    }    updateSignal('513650', fspx);
+    }
+    document.getElementById('dividend-spx').textContent = fspx.dividend ? fspx.dividend.toFixed(2) + '%' : '--';
+    document.getElementById('pe-spx').textContent = fspx.pe ? fspx.pe.toFixed(1) : '--';
+    updateSignal('513650', fspx);
   }
 
   // 上证指数

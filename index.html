@@ -1079,7 +1079,9 @@ async function loadData() {
 
 function renderData(data) {
   window.__assetData = data;
-  const ss = (id, val) => { try { const e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; } catch(e) {} };
+  console.log('renderData START');
+  const ss = (id, val) => { try { const e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; } catch(e) { console.error('ss error on id:', id, e.message); } };
+  console.log('ss defined ok');
   const sa = (el, val) => { try { if (el) el.textContent = val != null ? val : ''; } catch(e) {} };
   const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');
   ss('updateTime', '更新: ' + updateTime);

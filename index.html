@@ -4,39 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>永久组合 Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #080a12;
-      --bg2: #0d1019;
-      --card: #13172a;
-      --card-hover: #1a1f35;
-      --border: #1e2438;
-      --border-light: #252b42;
-      --text: #dde1f0;
-      --text-dim: #6b7594;
-      --text-mid: #9ba5c0;
-      --green: #34d68a;
-      --green-glow: rgba(52,214,138,0.15);
-      --red: #ff5f5f;
-      --red-glow: rgba(255,95,95,0.15);
-      --yellow: #f5c518;
-      --yellow-glow: rgba(245,197,24,0.15);
-      --blue: #60a5fa;
-      --purple: #a78bfa;
-      --orange: #fb923c;
+      --bg: oklch(0.10 0.015 260);
+      --bg2: oklch(0.11 0.015 260);
+      --card: oklch(0.13 0.018 265);
+      --card-hover: oklch(0.16 0.022 265);
+      --border: oklch(0.19 0.015 265);
+      --border-light: oklch(0.22 0.018 265);
+      --text: oklch(0.87 0.010 265);
+      --text-dim: oklch(0.50 0.015 265);
+      --text-mid: oklch(0.68 0.012 265);
+      --green: oklch(0.72 0.19 155);
+      --green-glow: oklch(0.72 0.19 155 / 0.15);
+      --red: oklch(0.65 0.22 25);
+      --red-glow: oklch(0.65 0.22 25 / 0.15);
+      --yellow: oklch(0.80 0.16 90);
+      --yellow-glow: oklch(0.80 0.16 90 / 0.15);
+      --blue: oklch(0.70 0.16 255);
+      --purple: oklch(0.72 0.16 285);
+      --orange: oklch(0.75 0.16 50);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
       background: var(--bg);
       background-image:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(88,100,255,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(167,139,250,0.05) 0%, transparent 50%);
+        radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.20 0.05 265 / 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, oklch(0.18 0.05 285 / 0.05) 0%, transparent 50%);
       color: var(--text);
       min-height: 100vh;
       padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     .container {
       max-width: 1200px;
@@ -57,8 +62,8 @@
     .header h1 {
       font-size: 26px;
       font-weight: 700;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+      letter-spacing: -0.6px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--text-mid) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -66,7 +71,8 @@
     .header-sub {
       font-size: 12px;
       color: var(--text-dim);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
+      font-weight: 500;
     }
     .header-right {
       display: flex;
@@ -77,6 +83,7 @@
       font-size: 12px;
       color: var(--text-dim);
       font-variant-numeric: tabular-nums;
+      letter-spacing: 0.3px;
     }
     .refresh-btn {
       display: flex;
@@ -89,14 +96,20 @@
       color: var(--text-mid);
       font-size: 13px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       letter-spacing: 0.2px;
+      font-family: inherit;
     }
     .refresh-btn:hover {
       background: var(--card-hover);
       border-color: var(--blue);
       color: var(--text);
-      box-shadow: 0 0 16px rgba(96,165,250,0.12);
+      box-shadow: 0 0 20px oklch(0.70 0.16 255 / 0.15);
+      transform: translateY(-1px);
+    }
+    .refresh-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
     }
     .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .refresh-btn .icon { font-size: 15px; }
@@ -150,11 +163,11 @@
     .card:hover {
       transform: translateY(-2px);
       border-color: var(--border-light);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      box-shadow: 0 12px 40px oklch(0 0 0 / 0.35), 0 4px 12px oklch(0 0 0 / 0.25);
     }
-    .card-pending:hover { box-shadow: 0 8px 32px var(--yellow-glow), 0 0 0 1px rgba(245,197,24,0.1); }
-    .card-buy:hover { box-shadow: 0 8px 32px var(--green-glow), 0 0 0 1px rgba(52,214,138,0.1); }
-    .card-sell:hover { box-shadow: 0 8px 32px var(--red-glow), 0 0 0 1px rgba(255,95,95,0.1); }
+    .card-pending:hover { box-shadow: 0 8px 32px var(--yellow-glow), 0 0 0 1px oklch(0.80 0.16 90 / 0.2); }
+    .card-buy:hover { box-shadow: 0 8px 32px var(--green-glow), 0 0 0 1px oklch(0.72 0.19 155 / 0.2); }
+    .card-sell:hover { box-shadow: 0 8px 32px var(--red-glow), 0 0 0 1px oklch(0.65 0.22 25 / 0.2); }
 
     .card-header {
       display: flex;
@@ -163,10 +176,11 @@
       margin-bottom: 14px;
     }
     .card-label {
-      font-size: 15px;
-      color: var(--text);
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
     }
     .card-value {
       font-size: 30px;
@@ -276,26 +290,33 @@
     /* ===== 图表卡片 ===== */
     .chart-card {
       background: var(--card);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 16px;
       padding: 24px;
       margin-bottom: 20px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .chart-card:hover {
+      border-color: oklch(0.30 0.018 265);
+      box-shadow: 0 8px 32px oklch(0 0 0 / 0.25);
     }
     .chart-card h3 {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       margin-bottom: 20px;
       color: var(--text-dim);
       display: flex;
       align-items: center;
       gap: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
     .chart-card h3::before {
       content: '';
       width: 3px;
       height: 14px;
       border-radius: 2px;
-      background: var(--blue);
+      background: linear-gradient(180deg, var(--blue), var(--purple));
     }
     .charts-row {
       display: grid;
@@ -347,30 +368,36 @@
     .chart-legend {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
       margin-top: 10px;
       width: 100%;
     }
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       font-size: 12px;
       color: var(--text-mid);
+      padding: 3px 6px;
+      border-radius: 6px;
+      transition: background 0.15s;
+      margin: 0 -2px;
     }
+    .legend-item:hover { background: oklch(0 0 0 / 0.08); }
     .legend-swatch {
       width: 10px;
       height: 10px;
-      border-radius: 2px;
+      border-radius: 3px;
       flex-shrink: 0;
     }
     .legend-label {
       flex: 1;
     }
     .legend-pct {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text);
       font-variant-numeric: tabular-nums;
+      font-size: 12px;
     }
 
     /* 上证指数 */
@@ -421,18 +448,32 @@
     /* ===== 风险红绿灯 ===== */
     .risk-card {
       background: var(--card);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-light);
       border-radius: 16px;
       padding: 24px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .risk-card:hover {
+      border-color: oklch(0.30 0.018 265);
+      box-shadow: 0 8px 32px oklch(0 0 0 / 0.25);
     }
     .risk-card h3 {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       margin-bottom: 20px;
       color: var(--text-dim);
       display: flex;
       align-items: center;
       gap: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .risk-card h3::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, var(--orange), var(--yellow));
     }
     .risk-item {
       display: flex;
@@ -440,12 +481,18 @@
       align-items: center;
       padding: 10px 0;
       border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      border-radius: 6px;
+      margin: 0 -4px;
+      padding-left: 4px;
+      padding-right: 4px;
     }
     .risk-item:last-child { border-bottom: none; }
+    .risk-item:hover { background: oklch(0 0 0 / 0.1); }
     .risk-name { font-size: 13px; color: var(--text); font-weight: 500; }
     .risk-params { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
     .risk-value { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-    .risk-val-num { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+    .risk-val-num { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); letter-spacing: 0.3px; }
     .risk-val-cond { font-size: 11px; color: var(--text-dim); }
     .risk-light {
       width: 10px;
@@ -454,17 +501,17 @@
       flex-shrink: 0;
       margin-left: 10px;
     }
-    .risk-light.green { background: #4ade80; box-shadow: 0 0 6px #4ade8080; }
-    .risk-light.yellow { background: #facc15; box-shadow: 0 0 6px #facc1580; }
-    .risk-light.red { background: #f87171; box-shadow: 0 0 6px #f8717180; }
+    .risk-light.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .risk-light.yellow { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+    .risk-light.red { background: var(--red); box-shadow: 0 0 8px var(--red); }
     .risk-row { display: flex; align-items: center; gap: 8px; }
     .risk-label { font-size: 12px; color: var(--text-mid); flex: 1; }
     .risk-light-inline {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
-    .risk-light-inline.green { background: #4ade80; }
-    .risk-light-inline.yellow { background: #facc15; }
-    .risk-light-inline.red { background: #f87171; }
+    .risk-light-inline.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .risk-light-inline.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .risk-light-inline.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
     /* ===== Toast ===== */
     .toast {
       position: fixed;
@@ -476,16 +523,16 @@
       padding: 13px 20px;
       font-size: 13px;
       color: var(--text);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 32px oklch(0 0 0 / 0.4), 0 2px 8px oklch(0 0 0 / 0.3);
       transform: translateY(100px);
       opacity: 0;
       transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 100;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
     }
     .toast.show { transform: none; opacity: 1; }
-    .toast.success { border-left: 3px solid var(--green); }
-    .toast.error { border-left: 3px solid var(--red); }
+    .toast.success { border-left: 3px solid var(--green); box-shadow: 0 8px 32px oklch(0 0 0 / 0.4), 0 0 20px var(--green-glow); }
+    .toast.error { border-left: 3px solid var(--red); box-shadow: 0 8px 32px oklch(0 0 0 / 0.4), 0 0 20px var(--red-glow); }
 
     /* ===== 辅助 ===== */
     .change-up { color: var(--red); }

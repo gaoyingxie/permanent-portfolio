@@ -1101,8 +1101,10 @@ const CHART_COLORS = ['#ff6b6b', '#3dd68c', '#f9ca24', '#60a5fa', '#a78bfa', '#3
 function renderPosChart(data) {
   const ctx = document.getElementById('posChart').getContext('2d');
   if (posChart) posChart.destroy();
-  // 按标签顺序从 ASSET_COLORS 取颜色，不存在的用备用色
   const posColors = data.labels.map((label, i) => ASSET_COLORS[label] || CHART_COLORS[i % CHART_COLORS.length]);
+  // 计算各持仓金额占比（百分比）
+  const total = data.values.reduce((s, v) => s + v, 0);
+  const pctValues = data.values.map(v => total > 0 ? Math.round(v / total * 100) : 0);
   posChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -1117,10 +1119,7 @@ function renderPosChart(data) {
     options: {
       cutout: '65%',
       plugins: {
-        legend: {
-          position: 'right',
-          labels: { color: '#8891a8', font: { size: 11 }, padding: 8, boxWidth: 10 }
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             label: ctx => ` ${ctx.label}: ${ctx.raw}万`
@@ -1128,6 +1127,17 @@ function renderPosChart(data) {
         }
       }
     }
+  });
+  // 自定义图例：颜色块 + 名称 + 百分比
+  const legendEl = document.getElementById('pos-legend');
+  legendEl.innerHTML = '';
+  data.labels.forEach((label, i) => {
+    const pct = pctValues[i];
+    if (!pct) return;
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-swatch" style="background:${posColors[i]}"></span><span class="legend-label">${label}</span><span class="legend-pct">${pct}%</span>`;
+    legendEl.appendChild(item);
   });
 }
 

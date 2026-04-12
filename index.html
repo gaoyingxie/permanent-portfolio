@@ -941,7 +941,8 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
-<div class="risk-modal" id="riskModal">
+<div class="risk-modal" id="riskModal"></div>
+<div class="risk-modal asset-modal" id="assetModal"></div>
   <div class="risk-modal-content">
     <div class="risk-modal-header">
       <span id="modalTitle">指标名称</span>
@@ -1458,7 +1459,7 @@ const ASSET_DETAILS = {
 function openAssetModal(key) {
   const info = ASSET_DETAILS[key];
   if (!info) return;
-  const modal = document.getElementById('riskModal');
+  const modal = document.getElementById('assetModal');
   // 从DOM读取当前显示值（最可靠）
   const domMap = {
     '159222':  { price: 'price-159222',   change: 'change-159222',   icon: '\u2606' },
@@ -1504,13 +1505,16 @@ function openAssetModal(key) {
       '</div>' +
     '</div>';
   modal.className = 'risk-modal asset-modal show';
-  modal.onclick = (e) => { if (e.target === modal) closeRiskModal(); };
+  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 }
 
-function closeRiskModal() {
+function closeModal() {
   document.getElementById('riskModal').classList.remove('show');
+  document.getElementById('assetModal').classList.remove('show');
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRiskModal(); });
+
+function closeRiskModal() { closeModal(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 (function initAssetLabels() {
   document.getElementById('card-159222')?.addEventListener('click', () => openAssetModal('159222'));
   document.getElementById('card-563020')?.addEventListener('click', () => openAssetModal('563020'));

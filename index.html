@@ -1148,7 +1148,7 @@ function renderData(data) {
       sa(premEl, '--');
     }
     ss('dividend-spx', fspx.dividend != null ? fspx.dividend.toFixed(2) + '%' : '--');
-    ss('pe-spx', fspx.pe != null ? fspx.pe.toFixed(1) : '--');
+    ss('pe-spx', (fspx.pe ?? null) !== null ? fspx.pe.toFixed(1) : '--');
     ss('pe_pct-spx', fspx.pe_percent != null ? fspx.pe_percent.toFixed(1) + '%' : '--');
     ss('dev-spx', fspx.dev != null ? fspx.dev.toFixed(2) + '%' : '--');
     ss('rsi-spx', fspx.rsi != null ? fspx.rsi.toFixed(1) : '--');

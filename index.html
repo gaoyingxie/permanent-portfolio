@@ -1072,7 +1072,7 @@ async function loadData() {
     renderData(data);
     showToast('数据已更新', 'success');
   } catch (e) {
-    console.warn('加载实时数据失败，使用静态数据:', e.message, 'stack:', e.stack);
+    console.warn('加载实时数据失败，使用静态数据:', e.message, '\nSTACK:', (e.stack || '').split('\n').slice(0,5).join('\n'));
     renderData(STATIC_DATA);
   }
 }

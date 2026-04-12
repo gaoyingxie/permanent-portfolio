@@ -1283,6 +1283,7 @@ function openRiskModal(ind) {
   document.getElementById('modalRisk').textContent = light === 'red' ? ind.detail.risk_high : light === 'green' ? ind.detail.risk_low : ind.detail.risk_high;
   document.getElementById('modalCurrent').textContent = ind.detail.current;
   modal.classList.add('show');
+  modal.onclick = (e) => { if (e.target === modal) closeRiskModal(); };
 }
 
 function closeRiskModal() {

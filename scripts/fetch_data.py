@@ -69,6 +69,49 @@ def fetch_fund_nav(code: str) -> dict:
         print(f"  [FAIL] nav {code}: {e}")
         return None
 
+def fetch_fund_indicators(code: str) -> dict:
+    """Fetch PE and dividend yield for indoor funds from Tencent API.
+    Returns {pe: float, dividend: float} or None.
+    """
+    # Tencent fund format: sz + code for Shenzhen, sh + code for Shanghai
+    prefix = "sz" if code == "159222" else "sh"
+    url = f"https://qt.gtimg.cn/q={prefix}{code}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            text = resp.read().decode("utf-8", errors="ignore")
+        m = re.search(r'"([^"]+)"', text)
+        if not m:
+            return None
+        fields = m.group(1).split("~")
+        if len(fields) < 80:
+            return None
+        # f74 = PE (滚动市盈率), f79 = 股息率(%)
+        # Note: values are for the underlying index, not the fund itself
+        f74 = fields[74] if len(fields) > 74 else None
+        f79 = fields[79] if len(fields) > 79 else None
+        result = {}
+        if f74:
+            try:
+                pe = float(f74)
+                if 1 < pe < 200:
+                    result["pe"] = round(pe, 1)
+            except (ValueError, TypeError):
+                pass
+        if f79:
+            try:
+                div = float(f79)
+                if 0 < div < 50:
+                    result["dividend"] = round(div, 2)
+            except (ValueError, TypeError):
+                pass
+        if result:
+            print(f"  [OK] {code} indicators: {result}")
+        return result if result else None
+    except Exception as e:
+        print(f"  [FAIL] fund indicators {code}: {e}")
+        return None
+
 def fetch_index(code: str, name: str) -> dict:
     url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170"
     try:
@@ -206,9 +249,49 @@ def fetch_fx_usdcny() -> dict:
     return None
 
 def fetch_bond_yield() -> float:
-    """10-Year China Government Bond Yield"""
+    """10-Year China Government Bond Yield - multiple sources"""
     import subprocess
-    # Primary: try macroview.club via curl (bypasses urllib DNS issues)
+    # Source 1: Trading Economics (web scraping)
+    try:
+        result = subprocess.run(
+            ['curl', '-s', '--max-time', '8', '-A', 'Mozilla/5.0',
+             'https://zh.tradingeconomics.com/china/government-bond-yield'],
+            capture_output=True, text=True, timeout=12
+        )
+        text = result.stdout
+        if text and len(text) > 500:
+            matches = re.findall(r'(\d+\.\d+)%', text)
+            for m in matches:
+                val = float(m)
+                if 1.0 < val < 5.0:
+                    print(f"  [OK] 10年国债收益率(tradingeconomics): {val}%")
+                    return round(val, 2)
+    except Exception as e:
+        print(f"  [FAIL] 10年国债收益率(tradingeconomics): {e}")
+
+    # Source 2: Sina CN10YT bond yield
+    try:
+        url = "https://hq.sinajs.cn/list=cn10yt"
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://finance.sina.com.cn/"
+        })
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            text = resp.read().decode("utf-8", errors="ignore")
+        m = re.search(r'"([^"]+)"', text)
+        if m:
+            fields = m.group(1).split(',')
+            if len(fields) > 1:
+                val_str = fields[1].strip()
+                if val_str.replace('.', '').isdigit():
+                    val = float(val_str)
+                    if 1.0 < val < 5.0:
+                        print(f"  [OK] 10年国债收益率(sina cn10yt): {val}%")
+                        return round(val, 2)
+    except Exception as e:
+        print(f"  [FAIL] 10年国债收益率(sina): {e}")
+
+    # Source 3: macroview.club via curl
     try:
         result = subprocess.run(
             ['curl', '-s', '--max-time', '8', '-A', 'Mozilla/5.0',
@@ -225,30 +308,8 @@ def fetch_bond_yield() -> float:
                     print(f"  [OK] 10年国债收益率(macroview): {val}%")
                     return round(val, 4)
     except Exception as e:
-        print(f"  [FAIL] 10年国债收益率(curl): {e}")
+        print(f"  [FAIL] 10年国债收益率(macroview): {e}")
 
-    # Fallback: Eastmoney bond price (7Y gov bond as proxy, subtract premium as approx yield)
-    codes = ["019547", "019650", "019453"]
-    for secid in codes:
-        url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{secid}&fields=f43,f170,f171"
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-            fields = data.get("data", {})
-            if not fields:
-                continue
-            f171 = fields.get("f171", 0)
-            if f171 and isinstance(f171, (int, float)) and 0.5 < float(f171) < 6:
-                val = float(f171)
-                return round(val / 100 if val > 10 else val, 4)
-            f43 = fields.get("f43", 0)
-            if f43 and isinstance(f43, (int, float)):
-                price = float(f43)
-                if 90 < price < 120:
-                    return round(100 - price, 4)
-        except Exception:
-            pass
     return None
 
 def fetch_563020_dividend() -> float:
@@ -321,7 +382,17 @@ def main():
 
     # Note: 腾讯 indoor 接口 (secid 1.xxx) 单位与 fundgz 不一致，会导致价格错误，
     # 故 indoor 基金改价直接用 fundgz 数据，不再用腾讯接口覆盖。
-    # 如需 PE/股息率等指标，改为单独调用 fetch_fund_indicators() 接口。
+    # PE/股息率改为单独从腾讯基金接口获取。
+
+    # Fetch PE and dividend for each fund
+    print(f"\n  -- Fetching fund indicators (PE/dividend)...")
+    for code in FUNDS:
+        ind = fetch_fund_indicators(code)
+        if ind:
+            market["funds"][code].update(ind)
+            pe_str = f"{ind['pe']:.1f}" if 'pe' in ind else 'N/A'
+            div_str = f"{ind['dividend']:.2f}%" if 'dividend' in ind else 'N/A'
+            print(f"  [OK] {code}: PE={pe_str}, 股息率={div_str}")
 
     # 563020 annual deviation
     print(f"\n  -- Calculating 563020 annual deviation...")

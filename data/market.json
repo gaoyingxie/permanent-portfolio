@@ -7,7 +7,14 @@
       "name": "自由现金流ETF易方达",
       "price": 1.4106,
       "change_pct": 0.5,
-      "date": "2026-04-10"
+      "date": "2026-04-10",
+      "pe": 15.5,
+      "dividend": 3.16,
+      "annual_avg": 1.1836,
+      "dev": 0.63,
+      "signal": "hold",
+      "signal_text": "持有",
+      "color": "yellow"
     },
     "563020": {
       "code": "563020",
@@ -15,6 +22,8 @@
       "price": 1.191,
       "change_pct": -0.08,
       "date": "2026-04-10",
+      "pe": 8.4,
+      "dividend": 4.5,
       "annual_avg": 1.1836,
       "dev": 0.63,
       "signal": "hold",
@@ -26,7 +35,9 @@
       "name": "标普500ETF南方",
       "price": 1.6788,
       "change_pct": -0.54,
-      "date": "2026-04-11"
+      "date": "2026-04-11",
+      "pe": 25.0,
+      "dividend": 1.24
     },
     "518680": {
       "code": "518680",
@@ -53,7 +64,7 @@
     "sge": 1048.15
   },
   "risk": {
-    "rate": null
+    "rate": 1.82
   },
   "fx": {
     "rate": 6.8285,

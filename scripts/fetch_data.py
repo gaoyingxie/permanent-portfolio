@@ -207,6 +207,27 @@ def fetch_fx_usdcny() -> dict:
 
 def fetch_bond_yield() -> float:
     """10-Year China Government Bond Yield"""
+    import subprocess
+    # Primary: try macroview.club via curl (bypasses urllib DNS issues)
+    try:
+        result = subprocess.run(
+            ['curl', '-s', '--max-time', '8', '-A', 'Mozilla/5.0',
+             '-H', 'Referer: https://www.macroview.club/',
+             'https://www.macroview.club/data?code=cn_bond_tenyear'],
+            capture_output=True, text=True, timeout=10
+        )
+        text = result.stdout
+        if text and '登录' not in text and len(text) > 1000:
+            matches = re.findall(r'<em>\s*([\d.]+)\s*</em>', text)
+            if len(matches) >= 2:
+                val = float(matches[1])
+                if 0.5 < val < 10:
+                    print(f"  [OK] 10年国债收益率(macroview): {val}%")
+                    return round(val, 4)
+    except Exception as e:
+        print(f"  [FAIL] 10年国债收益率(curl): {e}")
+
+    # Fallback: Eastmoney bond price (7Y gov bond as proxy, subtract premium as approx yield)
     codes = ["019547", "019650", "019453"]
     for secid in codes:
         url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{secid}&fields=f43,f170,f171"

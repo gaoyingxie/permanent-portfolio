@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-12 09:39:44",
+  "updated": "2026-04-12 12:45:00",
   "updated_date": "2026-04-12",
   "funds": {
     "159222": {
@@ -15,8 +15,8 @@
       "price": 1.191,
       "change_pct": -0.08,
       "date": "2026-04-10",
-      "annual_avg": 1.184,
-      "dev": 0.62,
+      "annual_avg": 1.1836,
+      "dev": 0.63,
       "signal": "hold",
       "signal_text": "持有",
       "color": "yellow"
@@ -24,20 +24,22 @@
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 17.27,
-      "change_pct": 0.88,
+      "price": 1.6788,
+      "change_pct": -0.54,
       "date": "2026-04-11"
     },
     "518680": {
       "code": "518680",
       "name": "金ETF富国",
-      "price": 104.29,
-      "change_pct": 0.63,
+      "price": 10.3603,
+      "change_pct": 0.0,
       "date": "2026-04-10"
     }
   },
   "index": {
     "sh000001": {
+      "code": "000001",
+      "name": "上证指数",
       "price": 3986.22,
       "change_pct": 0.51
     },

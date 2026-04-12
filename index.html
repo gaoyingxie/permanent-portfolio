@@ -1109,10 +1109,8 @@ function renderRiskItems(risk) {
     const val = risk ? risk[ind.key] : null;
     const displayVal = ind.getValue(risk || {});
     const light = ind.getLight(val);
-    const glowMap = { green: 'rgba(52,214,138,0.4)', yellow: 'rgba(245,197,24,0.4)', red: 'rgba(255,95,95,0.4)' };
-    const colorMap = { green: '#34d68a', yellow: '#f5c518', red: '#ff5f5f' };
-    const bg = colorMap[light] || '#888';
-    const glow = glowMap[light] || 'rgba(136,136,136,0.4)';
+    const icon = light === 'red' ? '\u25CF' : light === 'green' ? '\u25CF' : '\u25CF';
+    const colorStyle = light === 'red' ? 'color:#ff5f5f' : light === 'green' ? 'color:#34d68a' : 'color:#f5c518';
 
     const item = document.createElement('div');
     item.className = 'risk-item';
@@ -1120,7 +1118,7 @@ function renderRiskItems(risk) {
       <span class="risk-label">${ind.name}</span>
       <div class="risk-indicator-wrap">
         <span class="risk-val-num" style="font-size:14px;font-weight:600">${displayVal || '--'}</span>
-        <span class="risk-light-inline" style="background:${bg};box-shadow:0 0 8px ${glow};"></span>
+        <span style="font-size:16px;${colorStyle};line-height:1">${icon}</span>
       </div>
     `;
     container.appendChild(item);

@@ -467,11 +467,11 @@
     .risk-row { display: flex; align-items: center; gap: 8px; }
     .risk-label { font-size: 12px; color: var(--text-mid); flex: 1; }
     .risk-light-inline {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
     }
-    .risk-light-inline.green { background: #4ade80; }
-    .risk-light-inline.yellow { background: #facc15; }
-    .risk-light-inline.red { background: #f87171; }
+    .risk-light-inline.green { background: var(--green); box-shadow: 0 0 6px var(--green-glow); }
+    .risk-light-inline.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow-glow); }
+    .risk-light-inline.red { background: var(--red); box-shadow: 0 0 6px var(--red-glow); }
     /* ===== Toast ===== */
     .toast {
       position: fixed;

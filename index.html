@@ -1182,11 +1182,11 @@ function renderRiskItems(risk) {
       getValue: r => r.erp != null ? r.erp.toFixed(2) + '%' : null,
       getLight: v => v == null ? 'green' : v < cfg.erp_min ? 'red' : v > cfg.erp_max ? 'green' : 'yellow',
       detail: {
-        desc: '股票收益率超过无风险国债收益率的部分，反映持有股票相对于债券的超额回报。',
+        desc: '股市整体市盈率（沪深300）的倒数（E/P），减去中国10年国债收益率。衡量持有股票相比无风险国债能多获得多少回报。',
         normal: 'ERP > 2.5% 为股票低估（绿），1-2.5% 为正常（黄），< 1% 为股票高估（红）。',
-        risk_high: 'ERP高说明股票相对国债很有吸引力，持有股票预期回报高。',
-        risk_low: 'ERP低说明债券收益率接近股票收益率，股票性价比低，风险大。',
-        current: 'ERP越低，股票相对债券越贵。',
+        risk_high: 'ERP高说明此时买股票能获得的收益远超国债，性价比较高，适合布局。',
+        risk_low: 'ERP低说明国债收益率接近甚至超过股市收益率，股票估值偏贵，超额收益有限。',
+        current: 'ERP越低，股票相对国债越贵，承担的风险补偿越少。',
       },
     },
     {

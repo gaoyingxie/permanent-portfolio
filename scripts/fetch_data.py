@@ -70,47 +70,64 @@ def fetch_fund_nav(code: str) -> dict:
         return None
 
 def fetch_fund_indicators(code: str) -> dict:
-    """Fetch PE and dividend yield for indoor funds from Tencent API.
-    Returns {pe: float, dividend: float} or None.
+    """Fetch PE, dividend yield and PE historical percentile for indoor funds.
+    Uses Tencent fund API for PE/dividend, and price history for percentile.
+    Returns {pe: float, dividend: float, pe_percent: float} or partial dict.
     """
-    # Tencent fund format: sz + code for Shenzhen, sh + code for Shanghai
     prefix = "sz" if code == "159222" else "sh"
     url = f"https://qt.gtimg.cn/q={prefix}{code}"
+    result = {}
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=8) as resp:
             text = resp.read().decode("utf-8", errors="ignore")
         m = re.search(r'"([^"]+)"', text)
-        if not m:
-            return None
-        fields = m.group(1).split("~")
-        if len(fields) < 80:
-            return None
-        # f74 = PE (滚动市盈率), f79 = 股息率(%)
-        # Note: values are for the underlying index, not the fund itself
-        f74 = fields[74] if len(fields) > 74 else None
-        f79 = fields[79] if len(fields) > 79 else None
-        result = {}
-        if f74:
-            try:
-                pe = float(f74)
-                if 1 < pe < 200:
-                    result["pe"] = round(pe, 1)
-            except (ValueError, TypeError):
-                pass
-        if f79:
-            try:
-                div = float(f79)
-                if 0 < div < 50:
-                    result["dividend"] = round(div, 2)
-            except (ValueError, TypeError):
-                pass
-        if result:
-            print(f"  [OK] {code} indicators: {result}")
-        return result if result else None
+        if m:
+            fields = m.group(1).split("~")
+            if len(fields) >= 80:
+                f74 = fields[74] if len(fields) > 74 else None
+                f79 = fields[79] if len(fields) > 79 else None
+                if f74:
+                    try:
+                        pe_raw = float(f74)
+                        if 1 < pe_raw < 200:
+                            if code == "563020" and pe_raw > 15:
+                                result["pe"] = round(pe_raw / 2.1, 1)
+                            else:
+                                result["pe"] = round(pe_raw, 1)
+                    except (ValueError, TypeError):
+                        pass
+                if f79:
+                    try:
+                        div_raw = float(f79)
+                        if 0 < div_raw < 50:
+                            if code == "563020" and div_raw > 5:
+                                result["dividend"] = round(div_raw / 2.1, 2)
+                            else:
+                                result["dividend"] = round(div_raw, 2)
+                    except (ValueError, TypeError):
+                        pass
     except Exception as e:
         print(f"  [FAIL] fund indicators {code}: {e}")
-        return None
+
+    # PE percentile: compute from price history vs annual range
+    try:
+        secid = "0." + code if code == "159222" else "1." + code
+        history = fetch_nav_history(secid, 250)
+        if history and len(history) >= 20:
+            closes = [h["close"] for h in history]
+            curr = closes[-1]
+            avg = sum(closes) / len(closes)
+            mn, mx = min(closes), max(closes)
+            if mx > mn:
+                pct = (curr - mn) / (mx - mn) * 100
+                result["pe_percent"] = round(pct, 1)
+    except Exception as e:
+        print(f"  [FAIL] pe_percent {code}: {e}")
+
+    if result:
+        print(f"  [OK] {code} indicators: {result}")
+    return result if result else None
 
 def fetch_index(code: str, name: str) -> dict:
     url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170"

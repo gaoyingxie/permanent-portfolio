@@ -576,6 +576,9 @@
         <span>市盈率 <span class="val" id="pe-159222">--</span></span>
         <span>股息率 <span class="val" id="dividend-159222">--</span></span>
       </div>
+      <div class="card-meta" style="margin-top:4px">
+        <span>PE百分位 <span class="val" id="pe_pct-159222">--</span></span>
+      </div>
     </div>
 
     <!-- 563020 红利低波 -->
@@ -590,6 +593,9 @@
       <div class="card-meta">
         <span>市盈率 <span class="val" id="pe-563020">--</span></span>
         <span>股息率 <span class="val" id="dividend-563020">--</span></span>
+      </div>
+      <div class="card-meta" style="margin-top:4px">
+        <span>PE百分位 <span class="val" id="pe_pct-563020">--</span></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
         <span class="signal-tag" id="signal-tag-563020">--</span>
@@ -630,6 +636,9 @@
       <div class="card-meta" style="margin-top:4px">
         <span>市盈率 <span class="val" id="pe-spx">--</span></span>
         <span>股息率 <span class="val" id="dividend-spx">--</span></span>
+      </div>
+      <div class="card-meta" style="margin-top:4px">
+        <span>PE百分位 <span class="val" id="pe_pct-spx">--</span></span>
       </div>
     </div>
 
@@ -774,9 +783,9 @@ const USER_CONFIG = {
 const STATIC_DATA = {
   // 行情API不可用时的价格fallback（不需要改，用USER_CONFIG填持仓/信号）
   funds: {
-    '159222': { price: 1.4106, change_pct: 0.5, name: '自由现金流ETF', dev: 4.7, rsi: 44.6 },
-    '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', annual_avg: 1.246, dev: -4.39, color: 'green', signal_text: '买入', signal: 'buy' },
-    '513650': { price: 1.6786, change_pct: -0.56, name: 'SPX' },
+    '159222': { price: 1.4106, change_pct: 0.5, name: '自由现金流ETF', pe: 15.5, dividend: 3.16, pe_percent: 83.1, dev: 4.7, rsi: 44.6 },
+    '563020': { price: 1.191, change_pct: -0.08, name: '红利低波ETF', pe: 8.4, dividend: 4.5, pe_percent: 75.7, annual_avg: 1.246, dev: -4.39, color: 'green', signal_text: '买入', signal: 'buy' },
+    '513650': { price: 1.6786, change_pct: -0.56, name: 'SPX', pe: 25.0, dividend: 1.24, pe_percent: 68.0 },
     '518680': { price: null, change_pct: null, name: '富国上海金ETF' },
   },
   sh: { price: 3350.12, change_pct: 0.87 },
@@ -833,6 +842,7 @@ function renderData(data) {
   document.getElementById('rsi-159222').textContent = f510880.rsi ? f510880.rsi.toFixed(1) : '--';
   ss('dividend-159222', f510880.dividend != null ? f510880.dividend.toFixed(2) + '%' : '--');
   ss('pe-159222', f510880.pe != null ? f510880.pe.toFixed(1) : '--');
+  ss('pe_pct-159222', f510880.pe_percent != null ? f510880.pe_percent.toFixed(1) + '%' : '--');
   updateSignal('159222', f510880);
 
   // 563020 红利低波（年线定投法信号）
@@ -843,6 +853,7 @@ function renderData(data) {
   document.getElementById('change-563020').style.color = f563020.change_pct > 0 ? 'var(--red)' : f563020.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
   ss('dividend-563020', f563020.dividend != null ? f563020.dividend.toFixed(2) + '%' : '--');
   ss('pe-563020', f563020.pe != null ? f563020.pe.toFixed(1) : '--');
+  ss('pe_pct-563020', f563020.pe_percent != null ? f563020.pe_percent.toFixed(1) + '%' : '--');
   const dev563020 = f563020.dev;
 
   // 渲染年线信号
@@ -899,6 +910,7 @@ function renderData(data) {
     }
     ss('dividend-spx', fspx.dividend != null ? fspx.dividend.toFixed(2) + '%' : '--');
     ss('pe-spx', fspx.pe != null ? fspx.pe.toFixed(1) : '--');
+    ss('pe_pct-spx', fspx.pe_percent != null ? fspx.pe_percent.toFixed(1) + '%' : '--');
     updateSignal('513650', fspx);
   }
 

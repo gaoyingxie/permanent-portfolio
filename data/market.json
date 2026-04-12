@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-12 12:45:00",
+  "updated": "2026-04-12 13:10:00",
   "updated_date": "2026-04-12",
   "funds": {
     "159222": {
@@ -10,6 +10,7 @@
       "date": "2026-04-10",
       "pe": 15.5,
       "dividend": 3.16,
+      "pe_percent": 83.1,
       "annual_avg": 1.1836,
       "dev": 0.63,
       "signal": "hold",
@@ -24,6 +25,7 @@
       "date": "2026-04-10",
       "pe": 8.4,
       "dividend": 4.5,
+      "pe_percent": 75.7,
       "annual_avg": 1.1836,
       "dev": 0.63,
       "signal": "hold",
@@ -37,7 +39,8 @@
       "change_pct": -0.54,
       "date": "2026-04-11",
       "pe": 25.0,
-      "dividend": 1.24
+      "dividend": 1.24,
+      "pe_percent": 68.0
     },
     "518680": {
       "code": "518680",

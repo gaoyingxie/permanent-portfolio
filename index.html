@@ -494,6 +494,81 @@
     .toast.success { border-left: 3px solid var(--green); }
     .toast.error { border-left: 3px solid var(--red); }
 
+    /* ===== 风险指标弹窗 ===== */
+    .risk-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .risk-modal.show { display: flex; }
+    .risk-modal-content {
+      background: var(--card);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 420px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .risk-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .risk-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .risk-modal-close:hover { color: var(--text); }
+    .risk-modal-body { padding: 16px 20px 20px; }
+    .risk-modal-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+    .risk-modal-desc {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.6;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      border-left: 3px solid var(--blue);
+    }
+    .risk-modal-section { margin-bottom: 14px; }
+    .risk-modal-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+    .risk-modal-section-body {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.6;
+    }
+
     /* ===== 辅助 ===== */
     .change-up { color: var(--red); }
     .change-down { color: var(--green); }
@@ -762,6 +837,30 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+<div class="risk-modal" id="riskModal">
+  <div class="risk-modal-content">
+    <div class="risk-modal-header">
+      <span id="modalTitle">指标名称</span>
+      <button class="risk-modal-close" onclick="closeRiskModal()">&times;</button>
+    </div>
+    <div class="risk-modal-body">
+      <div class="risk-modal-value" id="modalValue">--</div>
+      <div class="risk-modal-desc" id="modalDesc"></div>
+      <div class="risk-modal-section">
+        <div class="risk-modal-section-title">指标说明</div>
+        <div class="risk-modal-section-body" id="modalNormal"></div>
+      </div>
+      <div class="risk-modal-section">
+        <div class="risk-modal-section-title">当前风险解读</div>
+        <div class="risk-modal-section-body" id="modalRisk"></div>
+      </div>
+      <div class="risk-modal-section">
+        <div class="risk-modal-section-title">投资提示</div>
+        <div class="risk-modal-section-body" id="modalCurrent"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 // ==================== 配置 ====================
@@ -1055,6 +1154,7 @@ function renderData(data) {
 }
 
 function renderRiskItems(risk) {
+  window.__riskData = risk || {};
   const cfg = USER_CONFIG.risk;
   const container = document.getElementById('risk-items');
   if (!container) return;
@@ -1067,6 +1167,13 @@ function renderRiskItems(risk) {
       unit: '%',
       getValue: r => r.hs300_pe_pct != null ? r.hs300_pe_pct.toFixed(1) + '%' : null,
       getLight: v => v == null ? 'green' : v > cfg.pe_pct_max ? 'red' : v < cfg.pe_pct_min ? 'green' : 'yellow',
+      detail: {
+        desc: '沪深300指数当前市盈率在历史区间的百分位，反映A股整体估值水平。',
+        normal: 'PE分位 < 40% 为低估（绿），40-70% 为正常（黄），> 70% 为高估（红）。',
+        risk_high: '分位过高说明A股整体估值偏贵，后市回调风险大，应减少股票仓位。',
+        risk_low: '分位过低说明A股被低估，长期看上涨潜力大，可考虑加仓。',
+        current: '当前值越高说明市场越贵。',
+      },
     },
     {
       key: 'erp',
@@ -1074,6 +1181,13 @@ function renderRiskItems(risk) {
       unit: '%',
       getValue: r => r.erp != null ? r.erp.toFixed(2) + '%' : null,
       getLight: v => v == null ? 'green' : v < cfg.erp_min ? 'red' : v > cfg.erp_max ? 'green' : 'yellow',
+      detail: {
+        desc: '股票收益率超过无风险国债收益率的部分，反映持有股票相对于债券的超额回报。',
+        normal: 'ERP > 2.5% 为股票低估（绿），1-2.5% 为正常（黄），< 1% 为股票高估（红）。',
+        risk_high: 'ERP高说明股票相对国债很有吸引力，持有股票预期回报高。',
+        risk_low: 'ERP低说明债券收益率接近股票收益率，股票性价比低，风险大。',
+        current: 'ERP越低，股票相对债券越贵。',
+      },
     },
     {
       key: 'cn10y',
@@ -1081,6 +1195,13 @@ function renderRiskItems(risk) {
       unit: '%',
       getValue: r => r.cn10y != null ? r.cn10y.toFixed(2) + '%' : null,
       getLight: v => v == null ? 'green' : v > cfg.cn10y_max ? 'red' : v < cfg.cn10y_min ? 'green' : 'yellow',
+      detail: {
+        desc: '中国10年期国债到期收益率，反映无风险利率水平和市场对未来经济的预期。',
+        normal: '收益率 < 1.5% 为偏低（绿），1.5-2.5% 为正常（黄），> 2.5% 为偏高（红）。',
+        risk_high: '收益率持续上升说明市场担忧通胀或经济过热，股债双杀风险大。',
+        risk_low: '收益率过低说明经济偏弱或资金充裕，对股票估值有一定支撑。',
+        current: '收益率越高，国债价格越低，同时对股票估值压力越大。',
+      },
     },
     {
       key: 'us10y',
@@ -1088,6 +1209,13 @@ function renderRiskItems(risk) {
       unit: '%',
       getValue: r => r.us10y != null ? r.us10y.toFixed(2) + '%' : null,
       getLight: v => v == null ? 'green' : v > cfg.us10y_max ? 'red' : v < cfg.us10y_min ? 'green' : 'yellow',
+      detail: {
+        desc: '美国10年期国债收益率，是全球最重要的无风险利率，影响全球资产定价。',
+        normal: '收益率 < 3.5% 为偏低（绿），3.5-4.5% 为正常（黄），> 4.5% 为偏高（红）。',
+        risk_high: '美债收益率过高会导致全球资金流向美元资产，新兴市场股市承压。',
+        risk_low: '美债收益率过低反映全球经济偏弱或美联储宽松预期。',
+        current: '美债收益率是全球资产定价之锚，需持续关注。',
+      },
     },
     {
       key: 'dxy',
@@ -1095,6 +1223,13 @@ function renderRiskItems(risk) {
       unit: '',
       getValue: r => r.dxy != null ? r.dxy.toFixed(2) : null,
       getLight: v => v == null ? 'green' : v > cfg.dxy_max ? 'red' : v < cfg.dxy_min ? 'green' : 'yellow',
+      detail: {
+        desc: '美元相对一篮子主要货币的汇率指数，反映美元整体强弱程度。',
+        normal: 'DXY < 95 为美元偏弱（绿），95-105 为正常（黄），> 105 为美元偏强（红）。',
+        risk_high: '美元过强会导致全球资本回流美国，新兴市场货币和股市承压。',
+        risk_low: '美元走弱有利于全球风险资产上涨，新兴市场股市通常表现较好。',
+        current: '美元强弱直接影响大宗商品价格和全球资金流向。',
+      },
     },
     {
       key: 'fear_greed',
@@ -1102,6 +1237,13 @@ function renderRiskItems(risk) {
       unit: '',
       getValue: r => r.fear_greed != null ? r.fear_greed.toFixed(0) : null,
       getLight: v => v == null ? 'green' : v > cfg.fg_max ? 'red' : v < cfg.fg_min ? 'green' : 'yellow',
+      detail: {
+        desc: '综合反映市场情绪的指标，0-30为恐慌，70-100为贪婪。',
+        normal: '指数 < 30 为极度恐慌（绿），30-70 为中性（黄），> 70 为极度贪婪（红）。',
+        risk_high: '极度贪婪往往是市场顶部信号，此时追高容易被套。',
+        risk_low: '极度恐慌往往是市场底部信号，此时逆向布局胜率较高。',
+        current: '结合其他指标综合判断，不作为唯一操作依据。',
+      },
     },
   ];
 
@@ -1121,9 +1263,32 @@ function renderRiskItems(risk) {
         <span style="font-size:16px;${colorStyle};line-height:1">${icon}</span>
       </div>
     `;
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', () => openRiskModal(ind));
     container.appendChild(item);
   });
 }
+
+function openRiskModal(ind) {
+  const modal = document.getElementById('riskModal');
+  const risk = window.__riskData || {};
+  const val = ind.getValue(risk);
+  const light = ind.getLight(ind.getValue(risk));
+  const colorMap = { green: '#34d68a', yellow: '#f5c518', red: '#ff5f5f' };
+  const icon = '\u25CF';
+  document.getElementById('modalTitle').textContent = ind.name;
+  document.getElementById('modalValue').innerHTML = (val || '--') + ' <span style="font-size:20px;' + (colorMap[light] ? 'color:' + colorMap[light] : '') + '">' + icon + '</span>';
+  document.getElementById('modalDesc').textContent = ind.detail.desc;
+  document.getElementById('modalNormal').textContent = ind.detail.normal;
+  document.getElementById('modalRisk').textContent = light === 'red' ? ind.detail.risk_high : light === 'green' ? ind.detail.risk_low : ind.detail.risk_high;
+  document.getElementById('modalCurrent').textContent = ind.detail.current;
+  modal.classList.add('show');
+}
+
+function closeRiskModal() {
+  document.getElementById('riskModal').classList.remove('show');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRiskModal(); });
 function setPriceColor(id, change) {
   const el = document.getElementById(id);
   el.classList.remove('change-up', 'change-down', 'change-flat');

@@ -1291,7 +1291,7 @@ function openRiskModal(ind) {
   const modal = document.getElementById('riskModal');
   const risk = window.__riskData || {};
   const val = ind.getValue(risk);
-  const light = ind.getLight(ind.getValue(risk));
+  const light = ind.getLight(risk[ind.key]);
   const colorMap = { green: '#34d68a', yellow: '#f5c518', red: '#ff5f5f' };
   const icon = '\u25CF';
   document.getElementById('modalTitle').textContent = ind.name;

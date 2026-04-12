@@ -40,14 +40,16 @@
       "date": "2026-04-11",
       "pe": 25.0,
       "dividend": 1.24,
-      "pe_percent": 77.7
+      "pe_percent": 77.7,
+      "premium": -0.55
     },
     "518680": {
       "code": "518680",
       "name": "金ETF富国",
       "price": 10.3603,
       "change_pct": 0.0,
-      "date": "2026-04-10"
+      "date": "2026-04-10",
+      "premium": 0.0
     }
   },
   "index": {

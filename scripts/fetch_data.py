@@ -30,13 +30,18 @@ def fetch_fund_data(code: str) -> dict:
             text = resp.read().decode("utf-8")
         text = text.replace("jsonpgz(", "").rstrip(");")
         data = json.loads(text)
-        return {
+        price = float(data.get("gsz", 0))
+        nav = float(data.get("dwjz", 0))
+        result = {
             "code": data.get("fundcode"),
             "name": data.get("name"),
-            "price": float(data.get("gsz", 0)),
+            "price": price,
             "change_pct": float(data.get("gszzl", 0)),
             "date": data.get("gztime", "")[:10],
         }
+        if nav and nav > 0:
+            result["premium"] = round((price - nav) / nav * 100, 2)
+        return result
     except Exception as e:
         print(f"  [FAIL] fund {code}: {e}")
         return None
@@ -73,7 +78,10 @@ def fetch_fund_indicators(code: str) -> dict:
     """Fetch PE, dividend yield and PE historical percentile for indoor funds.
     Uses Tencent fund API for PE/dividend, and price history for percentile.
     Returns {pe: float, dividend: float, pe_percent: float} or partial dict.
+    Note: Skips gold ETF (518680) as Tencent API returns unreliable data for it.
     """
+    if code == "518680":
+        return None
     prefix = "sz" if code == "159222" else "sh"
     url = f"https://qt.gtimg.cn/q={prefix}{code}"
     result = {}
@@ -401,9 +409,11 @@ def main():
     # 故 indoor 基金改价直接用 fundgz 数据，不再用腾讯接口覆盖。
     # PE/股息率改为单独从腾讯基金接口获取。
 
-    # Fetch PE and dividend for each fund
+    # Fetch PE and dividend for equity funds (skip gold ETF)
     print(f"\n  -- Fetching fund indicators (PE/dividend)...")
     for code in FUNDS:
+        if code == "518680":
+            continue
         ind = fetch_fund_indicators(code)
         if ind:
             market["funds"][code].update(ind)

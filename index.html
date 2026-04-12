@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>永久组合 Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -32,7 +29,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
       background: var(--bg);
       background-image:
         radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.20 0.05 265 / 0.08) 0%, transparent 60%),
@@ -163,7 +160,7 @@
     .card:hover {
       transform: translateY(-2px);
       border-color: var(--border-light);
-      box-shadow: 0 12px 40px oklch(0 0 0 / 0.35), 0 4px 12px oklch(0 0 0 / 0.25);
+      box-shadow: 0 12px 40px oklch(0% 0 0 / 0.35), 0 4px 12px oklch(0% 0 0 / 0.25);
     }
     .card-pending:hover { box-shadow: 0 8px 32px var(--yellow-glow), 0 0 0 1px oklch(0.80 0.16 90 / 0.2); }
     .card-buy:hover { box-shadow: 0 8px 32px var(--green-glow), 0 0 0 1px oklch(0.72 0.19 155 / 0.2); }
@@ -180,7 +177,6 @@
       color: var(--text-dim);
       font-weight: 600;
       letter-spacing: 0.8px;
-      text-transform: uppercase;
     }
     .card-value {
       font-size: 30px;
@@ -298,7 +294,7 @@
     }
     .chart-card:hover {
       border-color: oklch(0.30 0.018 265);
-      box-shadow: 0 8px 32px oklch(0 0 0 / 0.25);
+      box-shadow: 0 8px 32px oklch(0% 0 0 / 0.25);
     }
     .chart-card h3 {
       font-size: 12px;
@@ -309,7 +305,6 @@
       align-items: center;
       gap: 8px;
       letter-spacing: 0.5px;
-      text-transform: uppercase;
     }
     .chart-card h3::before {
       content: '';
@@ -383,7 +378,7 @@
       transition: background 0.15s;
       margin: 0 -2px;
     }
-    .legend-item:hover { background: oklch(0 0 0 / 0.08); }
+    .legend-item:hover { background: oklch(0% 0 0 / 0.08); }
     .legend-swatch {
       width: 10px;
       height: 10px;
@@ -455,7 +450,7 @@
     }
     .risk-card:hover {
       border-color: oklch(0.30 0.018 265);
-      box-shadow: 0 8px 32px oklch(0 0 0 / 0.25);
+      box-shadow: 0 8px 32px oklch(0% 0 0 / 0.25);
     }
     .risk-card h3 {
       font-size: 12px;
@@ -466,7 +461,6 @@
       align-items: center;
       gap: 8px;
       letter-spacing: 0.5px;
-      text-transform: uppercase;
     }
     .risk-card h3::before {
       content: '';
@@ -488,7 +482,7 @@
       padding-right: 4px;
     }
     .risk-item:last-child { border-bottom: none; }
-    .risk-item:hover { background: oklch(0 0 0 / 0.1); }
+    .risk-item:hover { background: oklch(0% 0 0 / 0.1); }
     .risk-name { font-size: 13px; color: var(--text); font-weight: 500; }
     .risk-params { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
     .risk-value { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
@@ -523,7 +517,7 @@
       padding: 13px 20px;
       font-size: 13px;
       color: var(--text);
-      box-shadow: 0 8px 32px oklch(0 0 0 / 0.4), 0 2px 8px oklch(0 0 0 / 0.3);
+      box-shadow: 0 8px 32px oklch(0% 0 0 / 0.4), 0 2px 8px oklch(0% 0 0 / 0.3);
       transform: translateY(100px);
       opacity: 0;
       transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -531,8 +525,8 @@
       backdrop-filter: blur(12px);
     }
     .toast.show { transform: none; opacity: 1; }
-    .toast.success { border-left: 3px solid var(--green); box-shadow: 0 8px 32px oklch(0 0 0 / 0.4), 0 0 20px var(--green-glow); }
-    .toast.error { border-left: 3px solid var(--red); box-shadow: 0 8px 32px oklch(0 0 0 / 0.4), 0 0 20px var(--red-glow); }
+    .toast.success { border-left: 3px solid var(--green); box-shadow: 0 8px 32px oklch(0% 0 0 / 0.4), 0 0 20px var(--green-glow); }
+    .toast.error { border-left: 3px solid var(--red); box-shadow: 0 8px 32px oklch(0% 0 0 / 0.4), 0 0 20px var(--red-glow); }
 
     /* ===== 辅助 ===== */
     .change-up { color: var(--red); }

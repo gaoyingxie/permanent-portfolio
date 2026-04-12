@@ -438,44 +438,33 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 0;
+      padding: 10px 0;
       border-bottom: 1px solid var(--border);
     }
     .risk-item:last-child { border-bottom: none; }
     .risk-name { font-size: 13px; color: var(--text); font-weight: 500; }
     .risk-params { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
-    .risk-value { text-align: right; }
-    .risk-val-num { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .risk-val-cond { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+    .risk-value { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .risk-val-num { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+    .risk-val-cond { font-size: 11px; color: var(--text-dim); }
     .risk-light {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       flex-shrink: 0;
+      margin-left: 10px;
     }
-    .risk-light.green {
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green), 0 0 16px rgba(52,214,138,0.25);
-      animation: glow-green 3s ease-in-out infinite;
+    .risk-light.green { background: #4ade80; box-shadow: 0 0 6px #4ade8080; }
+    .risk-light.yellow { background: #facc15; box-shadow: 0 0 6px #facc1580; }
+    .risk-light.red { background: #f87171; box-shadow: 0 0 6px #f8717180; }
+    .risk-row { display: flex; align-items: center; gap: 8px; }
+    .risk-label { font-size: 12px; color: var(--text-mid); flex: 1; }
+    .risk-light-inline {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
-    .risk-light.yellow {
-      background: var(--yellow);
-      box-shadow: 0 0 8px var(--yellow);
-    }
-    .risk-light.red {
-      background: var(--red);
-      box-shadow: 0 0 8px var(--red), 0 0 16px rgba(255,95,95,0.25);
-      animation: glow-red 2s ease-in-out infinite;
-    }
-    @keyframes glow-green {
-      0%, 100% { box-shadow: 0 0 8px var(--green), 0 0 16px rgba(52,214,138,0.2); }
-      50% { box-shadow: 0 0 12px var(--green), 0 0 24px rgba(52,214,138,0.35); }
-    }
-    @keyframes glow-red {
-      0%, 100% { box-shadow: 0 0 8px var(--red), 0 0 16px rgba(255,95,95,0.2); }
-      50% { box-shadow: 0 0 12px var(--red), 0 0 24px rgba(255,95,95,0.4); }
-    }
-
+    .risk-light-inline.green { background: #4ade80; }
+    .risk-light-inline.yellow { background: #facc15; }
+    .risk-light-inline.red { background: #f87171; }
     /* ===== Toast ===== */
     .toast {
       position: fixed;
@@ -740,17 +729,7 @@
   <!-- 右列：风险红绿灯 -->
   <div class="risk-card">
     <h3>风险红绿灯</h3>
-    <div class="risk-item">
-      <div>
-        <div class="risk-name">10年国债收益率</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="risk-value">
-          <div class="risk-val-num" id="risk-rate">--</div>
-        </div>
-        <div class="risk-light green" id="light-rate"></div>
-      </div>
-    </div>
+    <div id="risk-items"></div>
   </div>
 </div>
 
@@ -819,9 +798,18 @@ const USER_CONFIG = {
   },
   // 风险灯阈值
   risk: {
-    rate_max: 3.5,
-    rate_min: 0.5,
-    volatility_min: 10,
+    // 中国10年国债: green<1.5, yellow<2.5, else red
+    cn10y_max: 2.5, cn10y_min: 1.5,
+    // 美债10年: green<3.5, yellow<4.5, else red
+    us10y_max: 4.5, us10y_min: 3.5,
+    // 沪深300 PE分位: green<40, yellow<70, else red
+    pe_pct_max: 70, pe_pct_min: 40,
+    // DXY: green<95, yellow<105, else red
+    dxy_max: 105, dxy_min: 95,
+    // ERP(股权风险溢价): green>2.5, yellow>1, else red (逆色)
+    erp_min: 1.0, erp_max: 2.5,
+    // 恐慌贪婪: green<30, yellow<70, else red
+    fg_max: 70, fg_min: 30,
   },
   // 目标配置比例（%）
   targets: [10, 10, 15, 20, 10, 15, 20],  // 现金10% / 债券10% / 自由现金流15% / 红利低波20% / 黄金10% / SPX15% / 自由仓位20%
@@ -846,9 +834,13 @@ const STATIC_DATA = {
     spx: { price: 6816.89, change_pct: -0.11, name: 'S&P 500' },
   },
   risk: {
-    rate: 1.8,
-
-    volatility: 10.6,
+    cn10y: 1.82,
+    hs300_pe: 15.49,
+    hs300_pe_pct: 87.2,
+    erp: 2.12,
+    us10y: 4.34,
+    dxy: 98.65,
+    fear_greed: 68.0,
   }
 };
 
@@ -1055,18 +1047,77 @@ function renderData(data) {
   renderTargetChart({ labels: USER_CONFIG.target_labels, values: USER_CONFIG.targets });
 
   // 风险灯（实时真实数据）
-  if (data.risk) {
-    if (data.risk.rate != null) {
-      document.getElementById('risk-rate').textContent = data.risk.rate.toFixed(2) + '%';
-      updateRiskLight('rate', data.risk.rate, USER_CONFIG.risk.rate_min, USER_CONFIG.risk.rate_max);
-    } else {
-      document.getElementById('risk-rate').textContent = '未获取';
-    }
-
-  }
+  renderRiskItems(data.risk);
 }
 
-function setPriceColor(id, change) {
+function renderRiskItems(risk) {
+  const cfg = USER_CONFIG.risk;
+  const container = document.getElementById('risk-items');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const indicators = [
+    {
+      key: 'hs300_pe_pct',
+      name: '沪深300 PE分位',
+      unit: '%',
+      getValue: r => r.hs300_pe_pct != null ? r.hs300_pe_pct.toFixed(1) + '%' : null,
+      getLight: v => v == null ? 'green' : v > cfg.pe_pct_max ? 'red' : v < cfg.pe_pct_min ? 'green' : 'yellow',
+    },
+    {
+      key: 'erp',
+      name: '股权风险溢价',
+      unit: '%',
+      getValue: r => r.erp != null ? r.erp.toFixed(2) + '%' : null,
+      getLight: v => v == null ? 'green' : v < cfg.erp_min ? 'red' : v > cfg.erp_max ? 'green' : 'yellow',
+    },
+    {
+      key: 'cn10y',
+      name: '中国10年国债',
+      unit: '%',
+      getValue: r => r.cn10y != null ? r.cn10y.toFixed(2) + '%' : null,
+      getLight: v => v == null ? 'green' : v > cfg.cn10y_max ? 'red' : v < cfg.cn10y_min ? 'green' : 'yellow',
+    },
+    {
+      key: 'us10y',
+      name: '美债10年',
+      unit: '%',
+      getValue: r => r.us10y != null ? r.us10y.toFixed(2) + '%' : null,
+      getLight: v => v == null ? 'green' : v > cfg.us10y_max ? 'red' : v < cfg.us10y_min ? 'green' : 'yellow',
+    },
+    {
+      key: 'dxy',
+      name: '美元指数 DXY',
+      unit: '',
+      getValue: r => r.dxy != null ? r.dxy.toFixed(2) : null,
+      getLight: v => v == null ? 'green' : v > cfg.dxy_max ? 'red' : v < cfg.dxy_min ? 'green' : 'yellow',
+    },
+    {
+      key: 'fear_greed',
+      name: '恐慌贪婪指数',
+      unit: '',
+      getValue: r => r.fear_greed != null ? r.fear_greed.toFixed(0) : null,
+      getLight: v => v == null ? 'green' : v > cfg.fg_max ? 'red' : v < cfg.fg_min ? 'green' : 'yellow',
+    },
+  ];
+
+  indicators.forEach(ind => {
+    const val = risk ? risk[ind.key] : null;
+    const displayVal = ind.getValue(risk || {});
+    const light = ind.getLight(val);
+
+    const item = document.createElement('div');
+    item.className = 'risk-item';
+    item.innerHTML = `
+      <span class="risk-label">${ind.name}</span>
+      <div class="risk-indicator-wrap">
+        <span class="risk-val-num" style="font-size:14px;font-weight:600">${displayVal || '--'}</span>
+        <span class="risk-light-inline ${light}"></span>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
   const el = document.getElementById(id);
   el.classList.remove('change-up', 'change-down', 'change-flat');
   if (change > 0) el.classList.add('change-up');
@@ -1081,18 +1132,6 @@ function updateSignal(code, fund) {
     cardEl.className = cardEl.className.replace(/card-\w+/, 'card-pending');
   } else if (fund.signal === 'buy' || fund.signal === 'invest') {
     cardEl.className = cardEl.className.replace(/card-\w+/, 'card-buy');
-  }
-}
-
-function updateRiskLight(type, value, lowThreshold, highThreshold, lowDanger=false) {
-  const light = document.getElementById('light-' + type);
-  light.classList.remove('green', 'yellow', 'red');
-  if (lowDanger) {
-    if (value < lowThreshold) light.classList.add('red');
-    else light.classList.add('green');
-  } else {
-    if (value < lowThreshold || value > highThreshold) light.classList.add('red');
-    else light.classList.add('green');
   }
 }
 

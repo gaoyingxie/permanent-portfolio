@@ -47,7 +47,8 @@ def fetch_fund_data(code: str) -> dict:
         return None
 
 def fetch_fund_nav(code: str) -> dict:
-    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170,f116,f162"
+    fields_str = "f43,f170,f116,f162" if code != "513650" else "f43,f85,f170,f116,f162"
+    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields={fields_str}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -59,8 +60,11 @@ def fetch_fund_nav(code: str) -> dict:
         f170 = fields.get("f170")
         if not isinstance(f43, (int, float)) or not isinstance(f170, (int, float)):
             return None
+        price = round(float(f43) / 100, 4)
+        if code == "513650" and fields.get("f85"):
+            price = round(float(fields["f85"]), 4)
         result = {
-            "price": round(float(f43) / 100, 4),
+            "price": price,
             "change_pct": round(float(f170) / 100, 2),
         }
         f116 = fields.get("f116")
@@ -94,7 +98,9 @@ def fetch_fund_indicators(code: str) -> dict:
             fields = m.group(1).split("~")
             if len(fields) >= 80:
                 f74 = fields[74] if len(fields) > 74 else None
+                f75 = fields[75] if len(fields) > 75 else None
                 f79 = fields[79] if len(fields) > 79 else None
+                f85 = fields[85] if len(fields) > 85 else None
                 if f74:
                     try:
                         pe_raw = float(f74)
@@ -105,13 +111,28 @@ def fetch_fund_indicators(code: str) -> dict:
                                 result["pe"] = round(pe_raw, 1)
                     except (ValueError, TypeError):
                         pass
+                if f75:
+                    try:
+                        pe_raw = float(f75)
+                        if 1 < pe_raw < 200 and "pe" not in result:
+                            result["pe"] = round(pe_raw, 1)
+                    except (ValueError, TypeError):
+                        pass
                 if f79:
                     try:
                         div_raw = float(f79)
-                        if 0 < div_raw < 50:
-                            if code == "563020" and div_raw > 5:
+                        if 0 < div_raw < 5000:
+                            if code == "513650" and f85:
+                                # f79是原始股息（分），需除以价格（f85，人民币元）再乘100换算为百分比
+                                try:
+                                    price_raw = float(f85)
+                                    if price_raw > 0:
+                                        result["dividend"] = round(div_raw / 100 / price_raw * 100, 2)
+                                except (ValueError, TypeError):
+                                    pass
+                            elif code == "563020" and div_raw > 5:
                                 result["dividend"] = round(div_raw / 2.1, 2)
-                            else:
+                            elif div_raw < 50:
                                 result["dividend"] = round(div_raw, 2)
                     except (ValueError, TypeError):
                         pass

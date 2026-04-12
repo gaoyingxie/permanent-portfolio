@@ -1370,14 +1370,14 @@ function closeRiskModal() {
   document.getElementById('riskModal').classList.remove('show');
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRiskModal(); });
-document.addEventListener('DOMContentLoaded', () => {
+(function initAssetLabels() {
   document.getElementById('label-159222')?.addEventListener('click', () => openAssetModal('159222'));
   document.getElementById('label-563020')?.addEventListener('click', () => openAssetModal('563020'));
   document.getElementById('label-513650')?.addEventListener('click', () => openAssetModal('513650'));
   document.getElementById('label-gold')?.addEventListener('click', () => openAssetModal('gold'));
   document.getElementById('label-sh')?.addEventListener('click', () => openAssetModal('sh'));
   document.getElementById('label-fx')?.addEventListener('click', () => openAssetModal('fx'));
-});
+})();
 function setPriceColor(id, change) {
   const el = document.getElementById(id);
   el.classList.remove('change-up', 'change-down', 'change-flat');

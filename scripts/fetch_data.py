@@ -25,27 +25,31 @@ FUNDS = {
 
 def fetch_fund_data(code: str) -> dict:
     url = f"https://fundgz.1234567.com.cn/js/{code}.js"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            text = resp.read().decode("utf-8")
-        text = text.replace("jsonpgz(", "").rstrip(");")
-        data = json.loads(text)
-        price = float(data.get("gsz", 0))
-        nav = float(data.get("dwjz", 0))
-        result = {
-            "code": data.get("fundcode"),
-            "name": data.get("name"),
-            "price": price,
-            "change_pct": float(data.get("gszzl", 0)),
-            "date": data.get("gztime", "")[:10],
-        }
-        if nav and nav > 0:
-            result["premium"] = round((price - nav) / nav * 100, 2)
-        return result
-    except Exception as e:
-        print(f"  [FAIL] fund {code}: {e}")
-        return None
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                text = resp.read().decode("utf-8")
+            text = text.replace("jsonpgz(", "").rstrip(");")
+            data = json.loads(text)
+            price = float(data.get("gsz", 0))
+            nav = float(data.get("dwjz", 0))
+            result = {
+                "code": data.get("fundcode"),
+                "name": data.get("name"),
+                "price": price,
+                "change_pct": float(data.get("gszzl", 0)),
+                "date": data.get("gztime", "")[:10],
+            }
+            if nav and nav > 0:
+                result["premium"] = round((price - nav) / nav * 100, 2)
+            return result
+        except Exception as e:
+            if attempt < 2:
+                print(f"  [RETRY] fund {code}: {e}")
+            else:
+                print(f"  [FAIL] fund {code}: {e}")
+            return None
 
 def fetch_fund_nav(code: str) -> dict:
     fields_str = "f43,f170,f116,f162" if code != "513650" else "f43,f85,f170,f116,f162"
@@ -539,6 +543,13 @@ def main():
         if fund:
             market["funds"][code] = fund
             print(f"  [OK] {info['name']}({code}): {fund['price']} ({fund['change_pct']:+.2f}%)")
+    # Save after funds (in case later steps fail)
+    with open("data/market.json", "w", encoding="utf-8") as f:
+        json.dump(market, f, ensure_ascii=False, indent=2)
+
+    # Save after funds (in case later steps fail)
+    with open("data/market.json", "w", encoding="utf-8") as f:
+        json.dump(market, f, ensure_ascii=False, indent=2)
 
     # Note: 腾讯 indoor 接口 (secid 1.xxx) 单位与 fundgz 不一致，会导致价格错误，
     # 故 indoor 基金改价直接用 fundgz 数据，不再用腾讯接口覆盖。
@@ -578,6 +589,9 @@ def main():
             print(f"  [OK] SGE Au99.99: {gold['sge']} CNY/g")
     else:
         market["gold"] = None
+    # Save after gold (critical data, save early)
+    with open("data/market.json", "w", encoding="utf-8") as f:
+        json.dump(market, f, ensure_ascii=False, indent=2)
 
     # Bond yield + risk indicators
     print(f"\n  -- Fetching risk indicators...")
@@ -654,7 +668,7 @@ def main():
         market["index"]["spx"] = spx
         print(f"  [OK] S&P 500: {spx['price']} ({spx['change_pct']:+.2f}%)")
 
-    # Save
+    # Save final
     with open("data/market.json", "w", encoding="utf-8") as f:
         json.dump(market, f, ensure_ascii=False, indent=2)
     print(f"\n  [DONE] data/market.json saved")

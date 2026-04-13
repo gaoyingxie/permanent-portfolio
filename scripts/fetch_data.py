@@ -109,7 +109,9 @@ def fetch_fund_indicators(code: str) -> dict:
                 if f74:
                     try:
                         pe_raw = float(f74)
-                        if 1 < pe_raw < 200:
+                        # 513650 (SPX ETF): f74/f75 为腾讯对美股 ETF 的估值，与实际 PE 偏差大，
+                        # 应使用东财 fetch_fund_nav 的 f116 值（27.9），此处跳过 PE 让主流程保留
+                        if 1 < pe_raw < 200 and code != "513650":
                             if code == "563020" and pe_raw > 15:
                                 result["pe"] = round(pe_raw / 2.1, 1)
                             else:
@@ -119,7 +121,8 @@ def fetch_fund_indicators(code: str) -> dict:
                 if f75:
                     try:
                         pe_raw = float(f75)
-                        if 1 < pe_raw < 200 and "pe" not in result:
+                        # 513650 (SPX ETF): f75 同样不可靠，跳过，由主流程保留东财数据或显示--
+                        if 1 < pe_raw < 200 and "pe" not in result and code != "513650":
                             result["pe"] = round(pe_raw, 1)
                     except (ValueError, TypeError):
                         pass
@@ -129,7 +132,9 @@ def fetch_fund_indicators(code: str) -> dict:
                         if 0 < div_raw < 5000:
                             if code == "563020" and div_raw > 5:
                                 result["dividend"] = round(div_raw / 2.1, 2)
-                            elif div_raw < 50:
+                            elif div_raw < 50 and code != "513650":
+                                # 513650 (SPX ETF) 的 f79 字段为美股 ETF 原始每股分红，
+                                # 非标准百分比，国内 API 无法正确换算，暂不显示股息率
                                 result["dividend"] = round(div_raw, 2)
                     except (ValueError, TypeError):
                         pass

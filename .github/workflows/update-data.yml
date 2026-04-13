@@ -45,7 +45,8 @@ jobs:
           git config credential.helper '!echo password=${GH_TOKEN}'
           git remote set-url origin https://github.com/gaoyingxie/permanent-portfolio.git
           git fetch origin
-          git pull --rebase origin main
+          git reset --hard origin/main
+          python scripts/fetch_data.py
           git add data/market.json
           git diff --staged --quiet || git commit -m "auto: 更新行情数据 $(date '+%Y-%m-%d %H:%M')"
           git push --force-with-lease origin main

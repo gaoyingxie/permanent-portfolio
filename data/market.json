@@ -1,82 +1,70 @@
 {
-  "updated": "2026-04-12 17:27:57",
-  "updated_date": "2026-04-12",
+  "updated": "2026-04-13 13:16:37",
+  "updated_date": "2026-04-13",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.412,
-      "change_pct": 0.5,
-      "date": "2026-04-10",
-      "premium": 0.51,
-      "pe": 20.2,
-      "dividend": 40.92,
-      "pe_percent": 83.1,
-      "annual_avg": 1.219,
-      "dev": 15.88,
-      "rsi": 53.1,
-      "signal": "sell",
-      "signal_text": "卖出",
-      "color": "red"
+      "price": 1.4031,
+      "change_pct": -0.57,
+      "date": "2026-04-13",
+      "premium": -0.57,
+      "pe": 5.0,
+      "dividend": 39.92
     },
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.191,
-      "change_pct": -0.08,
-      "date": "2026-04-10",
-      "premium": -0.08,
-      "pe": 8.4,
-      "dividend": 4.46,
-      "pe_percent": 66.5,
-      "annual_avg": 1.184,
-      "dev": 0.62,
-      "rsi": 44.6,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
+      "price": 1.1856,
+      "change_pct": -0.46,
+      "date": "2026-04-13",
+      "premium": -0.46,
+      "pe": 14.2,
+      "dividend": 4.39
     },
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.727,
+      "price": 1.6788,
       "change_pct": -0.54,
       "date": "2026-04-11",
       "premium": -0.55,
-      "dividend": 20.52,
-      "pe_percent": 77.7,
-      "annual_avg": 1.673,
-      "dev": 3.25,
-      "rsi": 56.0,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
+      "pe": 13.8,
+      "dividend": 22.06
     },
     "518680": {
       "code": "518680",
       "name": "金ETF富国",
-      "price": 10.3603,
-      "change_pct": 0.0,
-      "date": "2026-04-10",
-      "premium": 0.0
+      "price": 10.3795,
+      "change_pct": -0.5,
+      "date": "2026-04-13",
+      "premium": -0.5
     }
   },
-  "index": {},
+  "index": {
+    "sh000001": {
+      "price": 3977.61,
+      "change_pct": -0.22
+    },
+    "spx": {
+      "price": 6816.89,
+      "change_pct": -0.11
+    }
+  },
   "gold": {
-    "global": 4768.99,
-    "sge": 1048.15
+    "global": 4741.68
   },
   "risk": {
     "cn10y": 1.82,
     "us10y": 4.34,
-    "dxy": 98.65,
-    "hs300_pe": 15.49,
-    "hs300_pe_pct": 87.2,
-    "erp": 4.64,
-    "fear_greed": 54.8
+    "dxy": 99.0258,
+    "hs300_pe": 15.25,
+    "hs300_pe_pct": null,
+    "erp": 4.74,
+    "fear_greed": null
   },
   "fx": {
-    "rate": 6.8285,
-    "change_pct": -0.02
+    "rate": 6.8322,
+    "change_pct": -0.01
   }
 }

@@ -239,7 +239,7 @@ def calc_annual_deviation(code: str) -> dict:
     return result
 
 def fetch_gold() -> dict:
-    """Get both international (COMEX USD/oz) and domestic (SGE CNY/g) gold prices"""
+    """Get international gold price (COMEX USD/oz). SGE domestic price is unavailable via HTTP scrape."""
     result = {}
     # COMEX international gold (USD/oz)
     try:
@@ -253,35 +253,9 @@ def fetch_gold() -> dict:
         m = re.search(r'"([^"]+)"', text)
         if m:
             result["global"] = round(float(m.group(1).split(",")[0]), 2)
+            print(f"  [OK] COMEX: {result['global']} USD/oz")
     except Exception as e:
         print(f"  [FAIL] COMEX gold: {e}")
-    # SGE Au99.99 domestic price (CNY/g) - fetch last 3 days to handle weekends
-    try:
-        today = datetime.now(_tz)
-        # Try last 3 days (handles weekends)
-        for days_ago in range(3):
-            dt = today - timedelta(days=days_ago)
-            date_str = dt.strftime("%Y-%m-%d")
-            url_sge = (f"https://www.sge.com.cn/sjzx/quotation_daily_new"
-                       f"?start_date={date_str}&end_date={date_str}&product=Au99.99")
-            req_sge = urllib.request.Request(url_sge, headers={
-                "User-Agent": "Mozilla/5.0",
-                "Referer": "https://www.sge.com.cn/"
-            })
-            with urllib.request.urlopen(req_sge, timeout=10) as resp:
-                html = resp.read().decode("utf-8", errors="ignore")
-            rows = re.findall(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
-            for row in rows:
-                if "iAu99.99" in row:  # 国际板 AU9999
-                    cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.DOTALL)
-                    clean = [re.sub(r"<[^>]+>", "", c).strip() for c in cells]
-                    if len(clean) > 5 and clean[3]:
-                        result["sge"] = round(float(clean[3]), 2)
-                        break
-            if "sge" in result:
-                break
-    except Exception as e:
-        print(f"  [FAIL] SGE gold: {e}")
     return result if result else None
 
 def fetch_fx_usdcny() -> dict:

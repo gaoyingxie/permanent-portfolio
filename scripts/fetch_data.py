@@ -243,9 +243,10 @@ def calc_annual_deviation(code: str) -> dict:
     return result
 
 def fetch_gold() -> dict:
-    """Get international gold price (COMEX USD/oz). SGE domestic price is unavailable via HTTP scrape."""
+    """Get international gold price (COMEX USD/oz) and domestic SGE Au99.99 CNY/g.
+    Falls back to COMEX*FX/31.1035 if SGE is unavailable (weekends/network)."""
     result = {}
-    # COMEX international gold (USD/oz)
+    # COMEX international gold (USD/oz) - most reliable source
     try:
         url_g = "https://hq.sinajs.cn/list=hf_GC"
         req_g = urllib.request.Request(url_g, headers={
@@ -260,6 +261,68 @@ def fetch_gold() -> dict:
             print(f"  [OK] COMEX: {result['global']} USD/oz")
     except Exception as e:
         print(f"  [FAIL] COMEX gold: {e}")
+        return result if result else None
+
+    # SGE Au99.99 domestic price (CNY/g) - fetch last 5 business days
+    # Note: SGE is closed on weekends and holidays
+    for days_ago in range(1, 8):
+        dt = datetime.now(_tz) - timedelta(days=days_ago)
+        # Skip weekends
+        if dt.weekday() >= 5:
+            continue
+        date_str = dt.strftime("%Y-%m-%d")
+        url_sge = ("https://www.sge.com.cn/sjzx/quotation_daily_new"
+                   f"?start_date={date_str}&end_date={date_str}&product=Au99.99")
+        try:
+            req_sge = urllib.request.Request(url_sge, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "Referer": "https://www.sge.com.cn/",
+                "Accept-Language": "zh-CN,zh;q=0.9"
+            })
+            with urllib.request.urlopen(req_sge, timeout=10) as resp:
+                html = resp.read().decode("utf-8", errors="ignore")
+            rows = re.findall(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
+            for row in rows:
+                # Match both Au99.99 and iAu99.99 contract names
+                if re.search(r"Au99\.99", row):
+                    cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.DOTALL)
+                    clean = [re.sub(r"<[^>]+>", "", c).strip() for c in cells]
+                    # Price is typically in column 3 or 4
+                    for val in clean[2:7]:
+                        try:
+                            price = float(val)
+                            if 500 < price < 2000:  # Reasonable CNY/g range
+                                result["sge"] = round(price, 2)
+                                print(f"  [OK] SGE Au99.99: {result['sge']} CNY/g ({date_str})")
+                                break
+                        except ValueError:
+                            continue
+                    if "sge" in result:
+                        break
+        except Exception as e:
+            print(f"  [FAIL] SGE Au99.99 ({date_str}): {e}")
+        if "sge" in result:
+            break
+
+    # If SGE still missing (weekend or network), compute from COMEX * FX / oz_conversion
+    if "sge" not in result:
+        try:
+            fx_url = "https://hq.sinajs.cn/list=fx_susdcny"
+            req_fx = urllib.request.Request(fx_url, headers={
+                "User-Agent": "Mozilla/5.0",
+                "Referer": "https://finance.sina.com.cn/"
+            })
+            with urllib.request.urlopen(req_fx, timeout=8) as resp:
+                text_fx = resp.read().decode("gbk", errors="ignore")
+            m_fx = re.search(r'"([^"]+)"', text_fx)
+            if m_fx:
+                fx = float(m_fx.group(1).split(",")[1])
+                sge_est = round(result["global"] * fx / 31.1035, 2)
+                result["sge"] = sge_est
+                print(f"  [OK] SGE (computed from COMEX*FX): {sge_est} CNY/g (FX={fx})")
+        except Exception as e:
+            print(f"  [WARN] SGE fallback compute failed: {e}")
+
     return result if result else None
 
 def fetch_fx_usdcny() -> dict:

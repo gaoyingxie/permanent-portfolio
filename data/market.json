@@ -1,15 +1,15 @@
 {
-  "updated": "2026-04-13 13:57:11",
+  "updated": "2026-04-13 14:22:12",
   "updated_date": "2026-04-13",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
       "price": 1.404,
-      "change_pct": -0.38,
+      "change_pct": -0.43,
       "date": "2026-04-13",
-      "premium": -0.38,
-      "pe": 36.6,
+      "premium": -0.43,
+      "pe": 45.4,
       "dividend": 40.12,
       "pe_percent": 81.5,
       "annual_avg": 1.219,
@@ -22,16 +22,16 @@
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.187,
-      "change_pct": -0.43,
+      "price": 1.186,
+      "change_pct": -0.39,
       "date": "2026-04-13",
-      "premium": -0.43,
-      "pe": 17.0,
+      "premium": -0.39,
+      "pe": 11.7,
       "dividend": 4.43,
       "pe_percent": 64.3,
       "annual_avg": 1.184,
-      "dev": 0.26,
-      "rsi": 61.1,
+      "dev": 0.18,
+      "rsi": 60.4,
       "signal": "hold",
       "signal_text": "持有",
       "color": "yellow"
@@ -39,16 +39,16 @@
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.714,
+      "price": 1.716,
       "change_pct": -0.54,
       "date": "2026-04-11",
       "premium": -0.55,
-      "pe": 29.9,
-      "dividend": 22.34,
-      "pe_percent": 75.4,
+      "pe": 30.7,
+      "dividend": 22.48,
+      "pe_percent": 75.7,
       "annual_avg": 1.674,
-      "dev": 2.41,
-      "rsi": 66.8,
+      "dev": 2.53,
+      "rsi": 67.3,
       "signal": "hold",
       "signal_text": "持有",
       "color": "yellow"
@@ -64,26 +64,28 @@
   },
   "index": {
     "sh000001": {
-      "price": 3986.73,
-      "change_pct": 0.01
+      "price": 3985.85,
+      "change_pct": -0.01
     },
     "spx": {
       "price": 6816.89,
       "change_pct": -0.11
     }
   },
-  "gold": null,
+  "gold": {
+    "global": 4748.72
+  },
   "risk": {
     "cn10y": 1.82,
     "us10y": 4.34,
-    "dxy": 99.0189,
-    "hs300_pe": 15.69,
-    "hs300_pe_pct": 88.1,
-    "erp": 4.55,
-    "fear_greed": 58.3
+    "dxy": 98.9998,
+    "hs300_pe": 15.59,
+    "hs300_pe_pct": 87.8,
+    "erp": 4.59,
+    "fear_greed": 58.2
   },
   "fx": {
-    "rate": 6.8319,
+    "rate": 6.8317,
     "change_pct": -0.01
   }
 }

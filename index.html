@@ -1337,6 +1337,7 @@ function renderRiskItems(risk) {
 
 function openRiskModal(ind) {
   const modal = document.getElementById('riskModal');
+  if (!modal) return;
   const risk = window.__riskData || {};
   const val = ind.getValue(risk);
   const light = ind.getLight(risk[ind.key]);
@@ -1416,6 +1417,7 @@ function openAssetModal(key) {
   const info = ASSET_DETAILS[key];
   if (!info) return;
   const modal = document.getElementById('assetModal');
+  if (!modal) return;
   // 从DOM读取当前显示值（最可靠）
   const domMap = {
     '159222':  { price: 'price-159222',   change: 'change-159222',   icon: '\u2606' },
@@ -1465,8 +1467,8 @@ function openAssetModal(key) {
 }
 
 function closeModal() {
-  document.getElementById('riskModal').classList.remove('show');
-  document.getElementById('assetModal').classList.remove('show');
+  document.getElementById('riskModal')?.classList.remove('show');
+  document.getElementById('assetModal')?.classList.remove('show');
 }
 
 function closeRiskModal() { closeModal(); }
@@ -1502,7 +1504,10 @@ function updateSignal(code, fund) {
 const CHART_COLORS = ['#ff6b6b', '#3dd68c', '#f9ca24', '#60a5fa', '#a78bfa', '#34d399', '#f472b6'];
 
 function renderPosChart(data) {
-  const ctx = document.getElementById('posChart').getContext('2d');
+  const canvas = document.getElementById('posChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
   if (posChart) posChart.destroy();
   const posColors = data.labels.map((label, i) => ASSET_COLORS[label] || CHART_COLORS[i % CHART_COLORS.length]);
   // 计算各持仓金额占比（百分比）
@@ -1533,7 +1538,7 @@ function renderPosChart(data) {
   });
   // 自定义图例：颜色块 + 名称 + 百分比
   const legendEl = document.getElementById('pos-legend');
-  legendEl.innerHTML = '';
+  if (legendEl) legendEl.innerHTML = '';
   data.labels.forEach((label, i) => {
     const pct = pctValues[i];
     if (!pct) return;
@@ -1545,7 +1550,10 @@ function renderPosChart(data) {
 }
 
 function renderTargetChart(data) {
-  const ctx = document.getElementById('targetChart').getContext('2d');
+  const canvas = document.getElementById('targetChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
   if (targetChart) targetChart.destroy();
   const targetColors = data.labels.map((label, i) => ASSET_COLORS[label] || CHART_COLORS[i % CHART_COLORS.length]);
   targetChart = new Chart(ctx, {
@@ -1573,7 +1581,7 @@ function renderTargetChart(data) {
   });
   // 自定义图例：颜色块 + 名称 + 百分比
   const legendEl = document.getElementById('target-legend');
-  legendEl.innerHTML = '';
+  if (legendEl) legendEl.innerHTML = '';
   data.labels.forEach((label, i) => {
     const pct = data.values[i];
     if (!pct) return;
@@ -1592,6 +1600,7 @@ function triggerRefresh() {
 
 // ==================== Tab切换 ====================
 function switchTab(el) {
+  if (!el) return;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
 }
@@ -1599,9 +1608,10 @@ function switchTab(el) {
 // ==================== Toast ====================
 function showToast(msg, type='success') {
   const toast = document.getElementById('toast');
+  if (!toast) return;
   toast.textContent = msg;
   toast.className = 'toast ' + type + ' show';
-  setTimeout(() => { toast.classList.remove('show'); }, 3500);
+  setTimeout(() => { toast?.classList.remove('show'); }, 3500);
 }
 </script>
 </body>

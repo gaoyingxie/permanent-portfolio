@@ -1481,6 +1481,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 })();
 function setPriceColor(id, change) {
   const el = document.getElementById(id);
+  if (!el) return;
   el.classList.remove('change-up', 'change-down', 'change-flat');
   if (change > 0) el.classList.add('change-up');
   else if (change < 0) el.classList.add('change-down');

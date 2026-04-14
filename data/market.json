@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-14 11:48:28",
+  "updated": "2026-04-14 11:49:38",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -48,6 +48,14 @@
       "signal": "buy",
       "signal_text": "买入",
       "color": "green"
+    },
+    "518680": {
+      "code": "518680",
+      "name": "金ETF富国",
+      "price": 10.457,
+      "change_pct": 0.64,
+      "date": "2026-04-14",
+      "premium": 0.64
     }
   },
   "index": {
@@ -61,7 +69,7 @@
     }
   },
   "gold": {
-    "global": 4793.7,
+    "global": 4793.69,
     "sge": 1048.5
   },
   "risk": {

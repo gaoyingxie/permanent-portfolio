@@ -106,11 +106,20 @@ def fetch_fund_indicators(code: str) -> dict:
                 f75 = fields[75] if len(fields) > 75 else None
                 f79 = fields[79] if len(fields) > 79 else None
                 f85 = fields[85] if len(fields) > 85 else None
-                if f74:
+                f116 = fields[116] if len(fields) > 116 else None
+                f162 = fields[162] if len(fields) > 162 else None
+
+                # PE: 159222 uses f116 (腾讯真实PE); others use f74
+                if code == "159222" and f116:
+                    try:
+                        pe_val = float(f116)
+                        if 1 < pe_val < 200:
+                            result["pe"] = round(pe_val, 1)
+                    except (ValueError, TypeError):
+                        pass
+                elif f74:
                     try:
                         pe_raw = float(f74)
-                        # 513650 (SPX ETF): f74/f75 为腾讯对美股 ETF 的估值，与实际 PE 偏差大，
-                        # 应使用东财 fetch_fund_nav 的 f116 值（27.9），此处跳过 PE 让主流程保留
                         if 1 < pe_raw < 200 and code != "513650":
                             if code == "563020" and pe_raw > 15:
                                 result["pe"] = round(pe_raw / 2.1, 1)
@@ -121,20 +130,34 @@ def fetch_fund_indicators(code: str) -> dict:
                 if f75:
                     try:
                         pe_raw = float(f75)
-                        # 513650 (SPX ETF): f75 同样不可靠，跳过，由主流程保留东财数据或显示--
                         if 1 < pe_raw < 200 and "pe" not in result and code != "513650":
                             result["pe"] = round(pe_raw, 1)
                     except (ValueError, TypeError):
                         pass
-                if f79:
+
+                # Dividend: 159222 uses f162 (真实股息率); 563020 uses f75 with /100
+                if code == "159222" and f162:
+                    try:
+                        div_val = float(f162)
+                        if 0 < div_val < 100:
+                            result["dividend"] = round(div_val, 2)
+                    except (ValueError, TypeError):
+                        pass
+                elif code == "563020" and f75:
+                    try:
+                        div_raw = float(f75)
+                        if 0 < div_raw < 5000:
+                            if div_raw > 5:
+                                result["dividend"] = round(div_raw / 2.1, 2)
+                            elif div_raw < 50:
+                                result["dividend"] = round(div_raw, 2)
+                    except (ValueError, TypeError):
+                        pass
+                elif f79:
                     try:
                         div_raw = float(f79)
-                        if 0 < div_raw < 5000:
-                            if code == "563020" and div_raw > 5:
-                                result["dividend"] = round(div_raw / 2.1, 2)
-                            elif div_raw < 50 and code not in ("513650", "159222"):
-                                # 513650 (SPX ETF) 和 159222 (自由现金流ETF) 的 f79 字段为
-                                # 腾讯返回的特殊格式，非标准股息率百分比，国内 API 无法正确换算，暂不显示
+                        if 0 < div_raw < 5000 and code not in ("513650", "159222"):
+                            if div_raw < 50:
                                 result["dividend"] = round(div_raw, 2)
                     except (ValueError, TypeError):
                         pass
@@ -248,8 +271,9 @@ def calc_annual_deviation(code: str) -> dict:
         sig, txt, color = "hold", "持有", "yellow"
     else:
         sig, txt, color = "sell", "卖出", "red"
+    # Note: price from fundgz (实时估值) is authoritative; K-line close is NOT used
+    # to avoid overwriting with stale NAV data for indoor funds (159222 etc.)
     result = {
-        "price": round(curr, 3),
         "annual_avg": round(avg, 3),
         "dev": round(dev, 2),
         "rsi": rsi,
@@ -548,34 +572,6 @@ def fetch_vix() -> float | None:
         print(f"  [FAIL] VIX (FRED): {e}")
     return None
 
-def calc_fear_greed(pe_pct: float, dev: float, rsi: float, erp: float, vix: float = None) -> float | None:
-    """Simple Fear & Greed index (0-100) from available indicators.
-    When dev/rsi unavailable (nav_history failed), uses VIX as fallback signal."""
-    try:
-        # PE分位 (0-100)
-        pe_score = pe_pct if pe_pct is not None else 50.0
-        # 乖离率
-        dev_score = min(max((dev or 0) / 20 * 50, 0), 50)
-        # RSI
-        rsi_score = rsi if rsi is not None else 50.0
-        # ERP
-        erp_score = min(max(((erp or 0) + 2) / 6 * 50, 0), 50)
-
-        # 有 dev/rsi 时用原始权重，否则用 VIX 兜底
-        if dev is not None and rsi is not None:
-            composite = pe_score * 0.3 + dev_score * 0.2 + rsi_score * 0.3 + erp_score * 0.2
-        elif vix is not None:
-            # VIX -> 恐贪分 (VIX 高=恐慌=低分, VIX 低=贪婪=高分)
-            # 历史中枢约 19-20，极低10以下，极高80以上
-            vix_score = max(0, min(100, (40 - vix) / 30 * 50 + 25))
-            composite = pe_score * 0.4 + erp_score * 0.3 + vix_score * 0.3
-            print(f"  [INFO] 恐贪指数量化（VIX fallback）: pe={pe_score:.1f} erp={erp_score:.1f} vix={vix_score:.1f}")
-        else:
-            return None
-        return round(composite, 1)
-    except Exception:
-        return None
-
 def fetch_563020_dividend() -> float:
     """563020 dividend yield"""
     try:
@@ -700,7 +696,6 @@ def main():
     dxy   = fetch_dxy()                 # 美元指数
     hs300_pe = fetch_hs300_pe()         # 沪深300 PE
     hs300_pe_pct = fetch_hs300_pe_percentile()  # 沪深300 PE分位
-    vix = fetch_vix()                    # VIX (FRED，国际可达）
 
     if cn10y:
         print(f"  [OK] 中国10Y: {cn10y:.2f}%")
@@ -718,26 +713,6 @@ def main():
     if erp is not None:
         print(f"  [OK] 股权风险溢价ERP: {erp:.2f}%")
 
-    # 恐慌/贪婪 (简化版: PE分位*0.3 + RSI*0.3 + ERP标准化*0.2 + 乖离率*0.2)
-    fear_greed = None
-    if hs300_pe_pct is not None and hs300_pe is not None:
-        # 取所有基金的平均RSI和乖离率
-        avg_rsi = None
-        avg_dev = None
-        rsis, devs = [], []
-        for code, fd in market.get("funds", {}).items():
-            if code == "518680":
-                continue
-            if fd.get("rsi") is not None:
-                rsis.append(fd["rsi"])
-            if fd.get("dev") is not None:
-                devs.append(fd["dev"])
-        avg_rsi = sum(rsis) / len(rsis) if rsis else 50.0
-        avg_dev = sum(devs) / len(devs) if devs else 0.0
-        fear_greed = calc_fear_greed(hs300_pe_pct, avg_dev, avg_rsi, erp or 0, vix)
-        if fear_greed is not None:
-            print(f"  [OK] 恐慌贪婪指数: {fear_greed:.1f}")
-
     market["risk"] = {
         "cn10y": cn10y,
         "us10y": us10y,
@@ -745,7 +720,6 @@ def main():
         "hs300_pe": hs300_pe,
         "hs300_pe_pct": hs300_pe_pct,
         "erp": erp,
-        "fear_greed": fear_greed,
     }
 
     # USD/CNY

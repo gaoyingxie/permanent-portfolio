@@ -57,9 +57,14 @@ jobs:
           git config credential.helper '!echo password=${GH_TOKEN}'
           git remote set-url origin https://github.com/gaoyingxie/permanent-portfolio.git
           git fetch origin
-          git add data/market.json
-          git diff --staged --quiet || git commit -m "auto: 更新行情数据 $(date '+%Y-%m-%d %H:%M')"
-          git push --force-with-lease origin main
+
+          # 检查 remote 是否有新的 commit（其他 push），如果有则跳过避免覆盖
+          if git log origin/main..HEAD --oneline | grep -q .; then
+            echo "有本地新 commit，正常推送..."
+            git push origin main
+          else
+            echo "Remote 没有新内容（或已有其他push），跳过 push"
+          fi
 
       - name: 触发 GitHub Pages 部署
         env:

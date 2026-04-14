@@ -1,38 +1,67 @@
 {
-  "updated": "2026-04-14 10:52:50",
+  "updated": "2026-04-14 10:53:46",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.3993,
+      "price": 1.399,
       "change_pct": -0.45,
       "date": "2026-04-14",
       "premium": -0.45,
-      "pe": 27.3
+      "pe": 27.3,
+      "pe_percent": 80.4,
+      "annual_avg": 1.22,
+      "dev": 14.67,
+      "rsi": 55.9,
+      "signal": "sell",
+      "signal_text": "卖出",
+      "color": "red"
     },
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.1891,
-      "change_pct": 0.16,
+      "price": 1.189,
+      "change_pct": 0.15,
       "date": "2026-04-14",
-      "premium": 0.16,
-      "dividend": 4.27
+      "premium": 0.15,
+      "dividend": 4.23,
+      "pe_percent": 65.4,
+      "annual_avg": 1.184,
+      "dev": 0.4,
+      "rsi": 51.4,
+      "signal": "hold",
+      "signal_text": "持有",
+      "color": "yellow"
     },
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.6961,
+      "price": 1.736,
       "change_pct": 0.58,
       "date": "2026-04-14",
-      "premium": 0.58
+      "premium": 0.58,
+      "pe_percent": 79.4,
+      "annual_avg": 1.675,
+      "dev": 3.66,
+      "rsi": 65.2,
+      "signal": "hold",
+      "signal_text": "持有",
+      "color": "yellow"
+    },
+    "518680": {
+      "code": "518680",
+      "name": "金ETF富国",
+      "price": 10.457,
+      "change_pct": 0.64,
+      "date": "2026-04-14",
+      "premium": 0.64
     }
   },
   "index": {
     "sh000001": {
-      "price": 4007.55,
-      "change_pct": 0.48
+      "price": 4005.97,
+      "change_pct": 0.44
     },
     "spx": {
       "price": 6886.24,
@@ -40,7 +69,7 @@
     }
   },
   "gold": {
-    "global": 4799.65,
+    "global": 4799.2,
     "sge": 1048.5
   },
   "risk": {
@@ -48,12 +77,12 @@
     "us10y": 4.29,
     "dxy": 98.384,
     "hs300_pe": 16.64,
-    "hs300_pe_pct": null,
+    "hs300_pe_pct": 91.3,
     "erp": 4.2,
-    "fear_greed": null
+    "fear_greed": 57.8
   },
   "fx": {
-    "rate": 6.8182,
+    "rate": 6.8183,
     "change_pct": -0.01
   }
 }

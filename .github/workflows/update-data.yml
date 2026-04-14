@@ -50,20 +50,20 @@ jobs:
       - name: 提交更新
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config credential.helper '!echo password=${GH_TOKEN}'
-          git remote set-url origin https://github.com/gaoyingxie/permanent-portfolio.git
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/gaoyingxie/permanent-portfolio.git
           git fetch origin
 
-          # 检查 remote 是否有新的 commit（其他 push），如果有则跳过避免覆盖
-          if git log origin/main..HEAD --oneline | grep -q .; then
-            echo "有本地新 commit，正常推送..."
-            git push origin main
+          # 仅当 market.json 有变化时才 commit+push
+          # 不 force-push，避免覆盖其他人的代码提交
+          if git diff --quiet origin/main -- data/market.json; then
+            echo "market.json 无变化，跳过 push"
           else
-            echo "Remote 没有新内容（或已有其他push），跳过 push"
+            git add data/market.json
+            git commit -m "auto: 更新行情数据 $(date '+%Y-%m-%d %H:%M')"
+            git push origin main
           fi
 
       - name: 触发 GitHub Pages 部署

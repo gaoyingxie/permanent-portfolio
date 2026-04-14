@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-14 10:43:30",
+  "updated": "2026-04-14 10:44:05",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -8,8 +8,7 @@
       "price": 1.3991,
       "change_pct": -0.47,
       "date": "2026-04-14",
-      "premium": -0.46,
-      "pe": 27.4
+      "premium": -0.46
     },
     "563020": {
       "code": "563020",
@@ -17,16 +16,7 @@
       "price": 1.1904,
       "change_pct": 0.27,
       "date": "2026-04-14",
-      "premium": 0.27,
-      "dividend": 4.32
-    },
-    "513650": {
-      "code": "513650",
-      "name": "标普500ETF南方",
-      "price": 1.6961,
-      "change_pct": 0.58,
-      "date": "2026-04-14",
-      "premium": 0.58
+      "premium": 0.27
     },
     "518680": {
       "code": "518680",
@@ -37,31 +27,5 @@
       "premium": 0.64
     }
   },
-  "index": {
-    "sh000001": {
-      "price": 4008.15,
-      "change_pct": 0.49
-    },
-    "spx": {
-      "price": 6886.24,
-      "change_pct": 1.02
-    }
-  },
-  "gold": {
-    "global": 4794.89,
-    "sge": 1048.5
-  },
-  "risk": {
-    "cn10y": 1.81,
-    "us10y": 4.29,
-    "dxy": 98.3844,
-    "hs300_pe": 16.61,
-    "hs300_pe_pct": null,
-    "erp": 4.21,
-    "fear_greed": null
-  },
-  "fx": {
-    "rate": 6.8185,
-    "change_pct": -0.03
-  }
+  "index": {}
 }

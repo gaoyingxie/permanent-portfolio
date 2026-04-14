@@ -1,9 +1,5 @@
 {
-<<<<<<< Updated upstream
-  "updated": "2026-04-14 19:51:06",
-=======
-  "updated": "2026-04-14 19:51:47",
->>>>>>> Stashed changes
+  "updated": "2026-04-14 19:52:26",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -81,17 +77,13 @@
     }
   },
   "gold": {
-<<<<<<< Updated upstream
-    "global": 4798.33,
-=======
-    "global": 4798.01,
->>>>>>> Stashed changes
+    "global": 4797.83,
     "sge": 1048.5
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
-    "dxy": 98.0341,
+    "dxy": 98.0525,
     "hs300_pe": 16.97,
     "hs300_pe_pct": 92.6,
     "erp": 4.08

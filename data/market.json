@@ -1,6 +1,7 @@
 {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   "updated": "2026-04-14 23:54:48",
 =======
   "updated": "2026-04-14 23:16:48",
@@ -8,11 +9,20 @@
 =======
   "updated": "2026-04-14 23:55:32",
 >>>>>>> Stashed changes
+=======
+  "updated": "2026-04-14 23:55:54",
+>>>>>>> Stashed changes
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
       "code": "159222",
-      "name": "自由现金流ETF",
+      "name": "自由现金流ETF易方达",
+      "price": 1.4031,
+      "change_pct": -0.18,
+      "date": "2026-04-14",
+      "premium": -0.18,
+      "pe": 17.9,
+      "dividend": 4.54,
       "pe_percent": 81.7,
       "annual_avg": 1.22,
       "dev": 15.16,
@@ -23,7 +33,13 @@
     },
     "563020": {
       "code": "563020",
-      "name": "红利低波ETF",
+      "name": "红利低波ETF易方达",
+      "price": 1.1923,
+      "change_pct": 0.43,
+      "date": "2026-04-14",
+      "premium": 0.43,
+      "pe": 8.8,
+      "dividend": 1.67,
       "pe_percent": 47.5,
       "annual_avg": 1.21,
       "dev": -1.51,
@@ -34,7 +50,13 @@
     },
     "513650": {
       "code": "513650",
-      "name": "SPX ETF",
+      "name": "标普500ETF南方",
+      "price": 1.7101,
+      "change_pct": 0.4,
+      "date": "2026-04-14",
+      "premium": 0.4,
+      "pe": 16.5,
+      "dividend": 4.1,
       "pe_percent": 79.7,
       "annual_avg": 1.675,
       "dev": 3.78,
@@ -45,7 +67,12 @@
     },
     "518680": {
       "code": "518680",
-      "name": "黄金ETF",
+      "name": "金ETF富国",
+      "price": 10.4794,
+      "change_pct": 0.0,
+      "date": "2026-04-14",
+      "premium": 0.0,
+      "pe": 35.1,
       "pe_percent": 64.6,
       "annual_avg": 8.981,
       "dev": 16.6,
@@ -55,8 +82,14 @@
       "color": "red"
     }
   },
-  "index": {},
+  "index": {
+    "sh000001": {
+      "price": 4026.63,
+      "change_pct": 0.95
+    }
+  },
   "gold": {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
     "global": 4835.5,
@@ -66,23 +99,27 @@
 =======
     "global": 4833.35,
 >>>>>>> Stashed changes
+=======
+    "global": 4833.72,
+>>>>>>> Stashed changes
     "sge": 1048.5
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "dxy": 98.1492,
 <<<<<<< Updated upstream
 =======
     "dxy": 98.1399,
 >>>>>>> Stashed changes
-    "hs300_pe": 16.97,
 =======
-    "hs300_pe": null,
+    "dxy": 98.1399,
 >>>>>>> Stashed changes
+    "hs300_pe": 16.97,
     "hs300_pe_pct": 92.6,
-    "erp": null
+    "erp": 4.08
   },
   "fx": {
     "rate": 6.8157,

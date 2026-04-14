@@ -1066,7 +1066,7 @@ function renderData(data) {
   }
 
   // 统一基金渲染函数
-  function renderFund(code, opts = {}) {
+  const renderFund = (code, opts = {}) => {
     const fund = f[code];
     if (!fund) return;
     const el = id => document.getElementById(id);

@@ -117,31 +117,37 @@ def safe_get_field(fields: list, index: int, lo: float = None, hi: float = None)
 def fetch_fund_price(code: str) -> dict | None:
     """
     通过 天天基金 gz.js 接口抓取基金实时估值和溢价率。
+    失败时自动重试最多 3 次（间隔 3s），避免 CI 场景因短暂网络波动丢失数据。
     返回: {code, name, price, change_pct, date, premium} 或 None
     """
-    text = _get(f"https://fundgz.1234567.com.cn/js/{code}.js", timeout=20)
-    if not text:
-        return None
-    try:
-        text = text.replace("jsonpgz(", "").rstrip(");")
-        d = json.loads(text)
-        price = float(d.get("gsz", 0))
-        nav   = float(d.get("dwjz", 0))
-        if price <= 0:
-            return None
-        result = {
-            "code":       d.get("fundcode"),
-            "name":       d.get("name"),
-            "price":      price,
-            "change_pct": float(d.get("gszzl", 0)),
-            "date":       d.get("gztime", "")[:10],
-        }
-        if nav > 0:
-            result["premium"] = round((price - nav) / nav * 100, 2)
-        return result
-    except Exception as e:
-        print(f"  [PARSE] fundgz {code}: {e}")
-        return None
+    import time
+    last_err = None
+    for attempt in range(3):
+        text = _get(f"https://fundgz.1234567.com.cn/js/{code}.js", timeout=20)
+        if text:
+            try:
+                text = text.replace("jsonpgz(", "").rstrip(");")
+                d = json.loads(text)
+                price = float(d.get("gsz", 0))
+                nav   = float(d.get("dwjz", 0))
+                if price > 0:
+                    result = {
+                        "code":       d.get("fundcode"),
+                        "name":       d.get("name"),
+                        "price":      price,
+                        "change_pct": float(d.get("gszzl", 0)),
+                        "date":       d.get("gztime", "")[:10],
+                    }
+                    if nav > 0:
+                        result["premium"] = round((price - nav) / nav * 100, 2)
+                    return result
+            except Exception as e:
+                last_err = e
+        if attempt < 2:
+            print(f"  [RETRY] fundgz {code} (attempt {attempt+1}/3 failed), waiting 3s...")
+            time.sleep(3)
+    print(f"  [FAIL] fundgz {code}: 3次尝试均失败: {last_err}")
+    return None
 
 
 # ============================================================
@@ -514,12 +520,15 @@ def main():
         "index":  {},
     }
 
-    # ---- 基金实时价格（fundgz） ----------------------------------------
+    # ---- 基金实时价格（fundgz，重试3次） -------------------------------
     for code, info in FUNDS.items():
         fund = fetch_fund_price(code)
+        # 即使失败也写入 key（保持所有基金 ID 始终存在）
+        market["funds"][code] = fund if fund else {"code": code, "name": FUNDS[code]["name"]}
         if fund:
-            market["funds"][code] = fund
             print(f"  [OK] {info['name']}({code}): {fund['price']} {fund['change_pct']:+.2f}%")
+        else:
+            print(f"  [WARN] {info['name']}({code}): fetch failed, 保存空数据")
     _save(market)   # 价格最关键，先落盘
 
     # ---- 基金指标：PE / 股息率 / PE分位 --------------------------------

@@ -1,53 +1,32 @@
 {
-  "updated": "2026-04-14 10:47:09",
+  "updated": "2026-04-14 10:47:50",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.399,
-      "change_pct": -0.47,
+      "price": 1.3989,
+      "change_pct": -0.48,
       "date": "2026-04-14",
-      "premium": -0.46,
-      "pe": 27.3,
-      "pe_percent": 80.4,
-      "annual_avg": 1.22,
-      "dev": 14.67,
-      "rsi": 55.9,
-      "signal": "sell",
-      "signal_text": "卖出",
-      "color": "red"
+      "premium": -0.48,
+      "pe": 4.6
     },
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.191,
-      "change_pct": 0.24,
+      "price": 1.1899,
+      "change_pct": 0.23,
       "date": "2026-04-14",
-      "premium": 0.24,
-      "dividend": 4.32,
-      "pe_percent": 66.5,
-      "annual_avg": 1.184,
-      "dev": 0.57,
-      "rsi": 52.6,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
+      "premium": 0.23,
+      "dividend": 4.32
     },
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.735,
+      "price": 1.6961,
       "change_pct": 0.58,
       "date": "2026-04-14",
-      "premium": 0.58,
-      "pe_percent": 79.4,
-      "annual_avg": 1.675,
-      "dev": 3.6,
-      "rsi": 65.1,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
+      "premium": 0.58
     },
     "518680": {
       "code": "518680",
@@ -60,29 +39,25 @@
   },
   "index": {
     "sh000001": {
-      "price": 4011.65,
+      "price": 4011.51,
       "change_pct": 0.58
-    },
-    "spx": {
-      "price": 6886.24,
-      "change_pct": 1.02
     }
   },
   "gold": {
-    "global": 4798.61,
+    "global": 4799.42,
     "sge": 1048.5
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
     "dxy": 98.3808,
-    "hs300_pe": 16.71,
-    "hs300_pe_pct": 91.7,
-    "erp": 4.17,
-    "fear_greed": 58.0
+    "hs300_pe": 16.7,
+    "hs300_pe_pct": null,
+    "erp": 4.18,
+    "fear_greed": null
   },
   "fx": {
     "rate": 6.8177,
-    "change_pct": -0.01
+    "change_pct": -0.03
   }
 }

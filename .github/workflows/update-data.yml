@@ -54,11 +54,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/gaoyingxie/permanent-portfolio.git
-          git fetch origin
+          git pull --rebase origin main
 
           # 仅当 market.json 有变化时才 commit+push
-          # 不 force-push，避免覆盖其他人的代码提交
-          if git diff --quiet origin/main -- data/market.json; then
+          if git diff --quiet HEAD -- data/market.json; then
             echo "market.json 无变化，跳过 push"
           else
             git add data/market.json

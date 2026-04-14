@@ -1,80 +1,31 @@
 {
-  "updated": "2026-04-14 10:54:22",
+  "updated": "2026-04-14 10:55:16",
   "updated_date": "2026-04-14",
   "funds": {
-    "159222": {
-      "code": "159222",
-      "name": "自由现金流ETF易方达",
-      "price": 1.398,
-      "change_pct": -0.46,
-      "date": "2026-04-14",
-      "premium": -0.46,
-      "pe": 27.2,
-      "pe_percent": 80.2,
-      "annual_avg": 1.22,
-      "dev": 14.59,
-      "rsi": 55.5,
-      "signal": "sell",
-      "signal_text": "卖出",
-      "color": "red"
-    },
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.189,
-      "change_pct": 0.15,
+      "price": 1.1889,
+      "change_pct": 0.14,
       "date": "2026-04-14",
-      "premium": 0.15,
-      "dividend": 4.23,
-      "pe_percent": 65.4,
-      "annual_avg": 1.184,
-      "dev": 0.4,
-      "rsi": 51.4,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
+      "premium": 0.14
     },
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.736,
+      "price": 1.6961,
       "change_pct": 0.58,
       "date": "2026-04-14",
-      "premium": 0.58,
-      "pe_percent": 79.4,
-      "annual_avg": 1.675,
-      "dev": 3.66,
-      "rsi": 65.2,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
-    }
-  },
-  "index": {
-    "sh000001": {
-      "price": 4007.01,
-      "change_pct": 0.46
+      "premium": 0.58
     },
-    "spx": {
-      "price": 6886.24,
-      "change_pct": 1.02
+    "518680": {
+      "code": "518680",
+      "name": "金ETF富国",
+      "price": 10.457,
+      "change_pct": 0.64,
+      "date": "2026-04-14",
+      "premium": 0.64
     }
   },
-  "gold": {
-    "global": 4798.43,
-    "sge": 1048.5
-  },
-  "risk": {
-    "cn10y": 1.81,
-    "us10y": 4.29,
-    "dxy": 98.388,
-    "hs300_pe": 16.63,
-    "hs300_pe_pct": 91.4,
-    "erp": 4.2,
-    "fear_greed": 57.7
-  },
-  "fx": {
-    "rate": 6.8188,
-    "change_pct": -0.0
-  }
+  "index": {}
 }

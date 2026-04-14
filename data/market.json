@@ -1,22 +1,30 @@
 {
-  "updated": "2026-04-14 14:14:08",
+  "updated": "2026-04-14 14:15:11",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.3969,
-      "change_pct": -0.62,
+      "price": 1.3967,
+      "change_pct": -0.64,
       "date": "2026-04-14",
-      "premium": -0.62
+      "premium": -0.63
     },
-    "563020": {
-      "code": "563020",
-      "name": "红利低波ETF易方达",
-      "price": 1.1898,
-      "change_pct": 0.22,
+    "513650": {
+      "code": "513650",
+      "name": "标普500ETF南方",
+      "price": 1.6961,
+      "change_pct": 0.58,
       "date": "2026-04-14",
-      "premium": 0.22
+      "premium": 0.58
+    },
+    "518680": {
+      "code": "518680",
+      "name": "金ETF富国",
+      "price": 10.457,
+      "change_pct": 0.64,
+      "date": "2026-04-14",
+      "premium": 0.64
     }
   },
   "index": {}

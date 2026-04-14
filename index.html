@@ -1003,8 +1003,6 @@ const USER_CONFIG = {
     dxy_max: 105, dxy_min: 95,
     // ERP(股权风险溢价): green>2.5, yellow>1, else red (逆色)
     erp_min: 1.0, erp_max: 2.5,
-    // 恐慌贪婪: green<30, yellow<70, else red
-    fg_max: 70, fg_min: 30,
   },
   // 目标配置比例（%）
   targets: [10, 10, 15, 20, 10, 15, 20],  // 现金10% / 债券10% / 自由现金流15% / 红利低波20% / 黄金10% / SPX15% / 自由仓位20%
@@ -1094,7 +1092,7 @@ function renderData(data) {
   updateSignal('159222', f510880);
 
   // 563020 红利低波（年线定投法信号）
-  const f563020 = f['563020'] || STATIC_DATA.funds['563020'];
+  const f563020 = f['563020'];
   ss('price-563020', f563020.price != null ? f563020.price.toFixed(3) : '--');
   setPriceColor('price-563020', f563020.change_pct);
   ss('change-563020', f563020.change_pct != null ? (f563020.change_pct >= 0 ? '+' : '') + f563020.change_pct.toFixed(2) + '%' : '');
@@ -1140,14 +1138,14 @@ function renderData(data) {
   card563020.className = 'card ' + (color === 'green' ? 'card-buy' : color === 'red' ? 'card-sell' : 'card-pending');
 
   // SPX - 读取实际指数点位
-  const spxData = data.index?.spx || STATIC_DATA.index?.spx;
+  const spxData = data.index?.spx;
   if (spxData) {
     ss('price-spx', spxData.price?.toFixed(2) || '--');
     ss('change-spx', spxData.change_pct != null ? (spxData.change_pct >= 0 ? '+' : '') + spxData.change_pct.toFixed(2) + '%' : '');
     document.getElementById('change-spx').style.color = spxData.change_pct > 0 ? 'var(--red)' : spxData.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
     setPriceColor('price-spx', spxData.change_pct);
   }
-  const fspx = f['513650'] || STATIC_DATA.funds['513650'];
+  const fspx = f['513650'];
   if (fspx) {
     ss('etf-spx', fspx.price?.toFixed(4) || '--');
     const premEl = document.getElementById('premium-spx');
@@ -1167,11 +1165,11 @@ function renderData(data) {
   }
 
   // 上证指数
-  const sh = data.sh || data.index?.sh000001 || STATIC_DATA.sh;
+  const sh = data.sh || data.index?.sh000001;
   const shPriceEl = document.getElementById('sh-index-price');
-  sa(shPriceEl, sh.price?.toFixed(2) || '--');
+  sa(shPriceEl, sh?.price?.toFixed(2) || '--');
   const changeEl = document.getElementById('sh-index-change');
-  if (sh.change_pct !== undefined) {
+  if (sh?.change_pct != null) {
     const shColor = sh.change_pct >= 0 ? 'var(--red)' : 'var(--green)';
     sa(changeEl, (sh.change_pct >= 0 ? '+' : '') + sh.change_pct.toFixed(2) + '%');
     changeEl.style.color = shColor;
@@ -1195,11 +1193,9 @@ function renderData(data) {
   ss('cleanup-amount', data.cleanup_amount || '');
 
   // 黄金
-  const static518680 = STATIC_DATA.funds['518680'] || { price: 0, change_pct: 0, name: '黄金ETF' };
   const api518680 = f['518680'];
   const cfg518680 = USER_CONFIG.holdings['518680'];
   const final518680 = {
-    ...static518680,
     ...(api518680 || {}),
     hold: cfg518680.hold,
     target: Math.round(USER_CONFIG.TOTAL_ASSETS * USER_CONFIG.targets[2] / 100),
@@ -1327,20 +1323,6 @@ function renderRiskItems(risk) {
         risk_high: '美元过强会导致全球资本回流美国，新兴市场货币和股市承压。',
         risk_low: '美元走弱有利于全球风险资产上涨，新兴市场股市通常表现较好。',
         current: '美元强弱直接影响大宗商品价格和全球资金流向。',
-      },
-    },
-    {
-      key: 'fear_greed',
-      name: '恐慌贪婪指数',
-      unit: '',
-      getValue: r => r.fear_greed != null ? r.fear_greed.toFixed(0) : null,
-      getLight: v => v == null ? 'green' : v > cfg.fg_max ? 'red' : v < cfg.fg_min ? 'green' : 'yellow',
-      detail: {
-        desc: '综合反映市场情绪的指标，0-30为恐慌，70-100为贪婪。',
-        normal: '指数 < 30 为极度恐慌（绿），30-70 为中性（黄），> 70 为极度贪婪（红）。',
-        risk_high: '极度贪婪往往是市场顶部信号，此时追高容易被套。',
-        risk_low: '极度恐慌往往是市场底部信号，此时逆向布局胜率较高。',
-        current: '结合其他指标综合判断，不作为唯一操作依据。',
       },
     },
   ];

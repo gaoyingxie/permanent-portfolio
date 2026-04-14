@@ -1,19 +1,19 @@
 {
-  "updated": "2026-04-14 10:40:29",
+  "updated": "2026-04-14 10:41:03",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.399,
-      "change_pct": -0.45,
+      "price": 1.4,
+      "change_pct": -0.42,
       "date": "2026-04-14",
-      "premium": -0.45,
-      "pe": 27.3,
-      "pe_percent": 80.4,
+      "premium": -0.42,
+      "pe": 2.7,
+      "pe_percent": 80.6,
       "annual_avg": 1.22,
-      "dev": 14.67,
-      "rsi": 55.9,
+      "dev": 14.75,
+      "rsi": 56.3,
       "signal": "sell",
       "signal_text": "卖出",
       "color": "red"
@@ -22,9 +22,9 @@
       "code": "563020",
       "name": "红利低波ETF易方达",
       "price": 1.191,
-      "change_pct": 0.24,
+      "change_pct": 0.25,
       "date": "2026-04-14",
-      "premium": 0.24,
+      "premium": 0.25,
       "dividend": 4.32,
       "pe_percent": 66.5,
       "annual_avg": 1.184,
@@ -37,14 +37,14 @@
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.737,
+      "price": 1.736,
       "change_pct": 0.58,
       "date": "2026-04-14",
       "premium": 0.58,
-      "pe_percent": 79.6,
+      "pe_percent": 79.4,
       "annual_avg": 1.675,
-      "dev": 3.72,
-      "rsi": 65.4,
+      "dev": 3.66,
+      "rsi": 65.2,
       "signal": "hold",
       "signal_text": "持有",
       "color": "yellow"
@@ -60,8 +60,8 @@
   },
   "index": {
     "sh000001": {
-      "price": 4006.93,
-      "change_pct": 0.46
+      "price": 4006.53,
+      "change_pct": 0.45
     },
     "spx": {
       "price": 6886.24,
@@ -69,20 +69,20 @@
     }
   },
   "gold": {
-    "global": 4791.94,
+    "global": 4792.96,
     "sge": 1048.5
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
     "dxy": 98.3979,
-    "hs300_pe": 16.59,
-    "hs300_pe_pct": 91.3,
+    "hs300_pe": 16.58,
+    "hs300_pe_pct": 91.2,
     "erp": 4.22,
     "fear_greed": 57.9
   },
   "fx": {
-    "rate": 6.8184,
+    "rate": 6.8181,
     "change_pct": -0.01
   }
 }

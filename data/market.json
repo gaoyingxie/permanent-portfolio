@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream
   "updated": "2026-04-14 23:58:53",
+=======
+  "updated": "2026-04-14 23:58:45",
+>>>>>>> Stashed changes
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -77,7 +81,11 @@
     }
   },
   "gold": {
+<<<<<<< Updated upstream
     "global": 4831.6,
+=======
+    "global": 4831.35,
+>>>>>>> Stashed changes
     "sge": 1048.5
   },
   "risk": {

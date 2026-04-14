@@ -351,18 +351,27 @@ def fetch_fx() -> dict | None:
 # ============================================================
 
 def fetch_index(secid: str) -> dict | None:
-    """抓取 A 股指数（东财 push2 接口），返回 {price, change_pct}"""
-    text = _get(f"https://push2.eastmoney.com/api/qt/stock/get?secid={secid}&fields=f43,f170",
-                timeout=10)
+    """
+    抓取 A 股指数（腾讯 qt.gtimg.cn 接口），返回 {price, change_pct}
+    secid 格式: "sh000001" 或 "sz399001"
+    """
+    text = _get(f"https://qt.gtimg.cn/q={secid}", timeout=10)
     if not text:
         return None
     try:
-        d = json.loads(text).get("data", {})
-        if not d:
+        m = re.search(r'"([^"]+)"', text)
+        if not m:
+            return None
+        fields = m.group(1).split("~")
+        if len(fields) < 40:
+            return None
+        price = safe_get_field(fields, 3, lo=0)
+        change_pct = safe_get_field(fields, 32, lo=-20, hi=20)
+        if price is None:
             return None
         return {
-            "price":      d.get("f43", 0) / 100,
-            "change_pct": round(d.get("f170", 0) / 100, 2),
+            "price":      round(price, 2),
+            "change_pct": round(change_pct, 2) if change_pct is not None else 0,
         }
     except Exception:
         return None
@@ -587,7 +596,7 @@ def main():
         market["fx"] = {"rate": None, "change_pct": None}
 
     # ---- 指数 --------------------------------------------------------
-    sh = fetch_index("1.000001")
+    sh = fetch_index("sh000001")
     if sh:
         market["index"]["sh000001"] = sh
         print(f"  [OK] 上证: {sh['price']} ({sh['change_pct']:+.2f}%)")

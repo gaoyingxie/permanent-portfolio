@@ -132,9 +132,9 @@ def fetch_fund_indicators(code: str) -> dict:
                         if 0 < div_raw < 5000:
                             if code == "563020" and div_raw > 5:
                                 result["dividend"] = round(div_raw / 2.1, 2)
-                            elif div_raw < 50 and code != "513650":
-                                # 513650 (SPX ETF) 的 f79 字段为美股 ETF 原始每股分红，
-                                # 非标准百分比，国内 API 无法正确换算，暂不显示股息率
+                            elif div_raw < 50 and code not in ("513650", "159222"):
+                                # 513650 (SPX ETF) 和 159222 (自由现金流ETF) 的 f79 字段为
+                                # 腾讯返回的特殊格式，非标准股息率百分比，国内 API 无法正确换算，暂不显示
                                 result["dividend"] = round(div_raw, 2)
                     except (ValueError, TypeError):
                         pass

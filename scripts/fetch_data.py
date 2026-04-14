@@ -229,8 +229,8 @@ def fetch_nav_history(secid: str, days: int = 250) -> list:
                 data = json.loads(resp.read().decode("utf-8"))
             if not isinstance(data, list) or not data:
                 return []
-            # Sina 返回 newest-first，需要反转
-            return [{"date": item["day"], "close": float(item["close"])} for item in reversed(data)]
+            # Sina K线 oldest-first（最老日期在前），无需反转
+            return [{"date": item["day"], "close": float(item["close"])} for item in data]
         except Exception as e:
             if attempt < 2:
                 print(f"  [RETRY] nav_history {secid}: {e}")
@@ -262,7 +262,7 @@ def calc_annual_deviation(code: str) -> dict:
         return None
     closes = [h["close"] for h in history]
     avg = sum(closes) / len(closes)
-    curr = closes[-1]
+    curr = closes[-1]  # 最后一条 = 最新收盘价（oldest-first）
     dev = (curr / avg - 1) * 100
     rsi = calc_rsi(closes, 14)
     if dev < 0:

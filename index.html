@@ -1087,7 +1087,6 @@ function renderData(data) {
     if (opts.showPe)   ss(`pe-${code}`,        fund.pe       != null ? fund.pe.toFixed(1)            : '--');
     if (opts.showPct)  ss(`pe_pct-${code}`,    fund.pe_percent != null ? fund.pe_percent.toFixed(1) + '%' : '--');
     if (opts.showEtf)  ss(`etf-${code}`,       fund.price    != null ? fund.price.toFixed(4)         : '--');
-    if (opts.showPrem) { const p = el(`premium-${code}`); if (p) sa(p, fund.premium != null ? (fund.premium >= 0 ? '+' : '') + fund.premium.toFixed(2) + '%' : '--'); }
     if (opts.signalColor) {
       const card = el(`card-${code}`);
       const c = fund.color || 'wait';
@@ -1137,8 +1136,19 @@ function renderData(data) {
     if (el) el.style.color = spxData.change_pct > 0 ? 'var(--red)' : spxData.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
     setPriceColor('price-spx', spxData.change_pct);
   }
-  // SPX ETF
-  renderFund('513650', { showDiv: true, showPe: true, showPct: true, showDev: true, showRsi: true, showPrem: true, signalColor: true });
+  // SPX ETF（etf-spx / premium-spx 为非标准 ID，需独立处理）
+  renderFund('513650', { showDiv: true, showPe: true, showPct: true, showDev: true, showRsi: true, signalColor: true });
+  const fspx = f['513650'];
+  if (fspx) {
+    ss('etf-spx', fspx.price != null ? fspx.price.toFixed(4) : '--');
+    // premium-spx 原为显示 change_pct（与 fund.premium 不同）
+    const premEl = document.getElementById('premium-spx');
+    if (premEl) {
+      const val = fspx.change_pct;
+      sa(premEl, val != null ? (val >= 0 ? '+' : '') + val.toFixed(2) + '%' : '--');
+      premEl.className = 'val ' + (val > 0 ? 'change-up' : val < 0 ? 'change-down' : '');
+    }
+  }
 
   // 上证指数
   const sh = data.sh || data.index?.sh000001;

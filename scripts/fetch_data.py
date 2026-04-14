@@ -547,10 +547,8 @@ def main():
             market["funds"][code]["pe_percent"] = pct
             print(f"  [OK] {code} PE分位: {pct:.1f}%")
 
-    # ---- 乖离率 + RSI（所有基金，518680跳过） -------------------------
+    # ---- 乖离率 + RSI（所有基金） ---------------------------------
     for code in ALL_FUND_CODES:
-        if code == GOLD_CODE:
-            continue
         dev = calc_fund_deviation(code)
         if dev:
             market["funds"][code].update(dev)

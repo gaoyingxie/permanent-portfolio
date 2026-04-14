@@ -183,13 +183,11 @@ def fetch_fund_pe_div(code: str) -> dict | None:
         f74 = safe_get_field(fields, 74, lo=1, hi=200)
         f75 = safe_get_field(fields, 75, lo=1, hi=200)
         pe = None
-        if code == "513650":
-            pass  # 不从腾讯取 PE（偏差大）
-        elif code == "563020" and f74 is not None:
+        if code == "563020" and f74 is not None:
             pe = round(f74 / 2.1, 1) if f74 > 15 else round(f74, 1)
         elif f74 is not None:
             pe = round(f74, 1)
-        elif f75 is not None and code != "513650":
+        elif f75 is not None:
             pe = round(f75, 1)
     if pe:
         result["pe"] = pe
@@ -205,7 +203,7 @@ def fetch_fund_pe_div(code: str) -> dict | None:
             result["dividend"] = round(f75 / 2.1, 2) if f75 > 5 else round(f75 / 100, 2)
     else:
         f79 = safe_get_field(fields, 79, lo=0, hi=5000)
-        if f79 and f79 < 50 and code not in ("513650", "159222"):
+        if f79 and f79 < 50 and code != "159222":
             result["dividend"] = round(f79, 2)
 
     return result if result else None
@@ -532,10 +530,8 @@ def main():
     _save(market)   # 价格最关键，先落盘
 
     # ---- 基金指标：PE / 股息率 / PE分位 --------------------------------
+    # ---- PE + 股息率 + PE分位（所有基金） ---------------------------
     for code in ALL_FUND_CODES:
-        if code == GOLD_CODE:
-            continue
-        # PE + 股息率（腾讯接口）
         ind = fetch_fund_pe_div(code)
         if ind:
             market["funds"][code].update(ind)

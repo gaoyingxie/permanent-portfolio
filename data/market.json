@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-14 16:40:13",
+  "updated": "2026-04-14 17:09:49",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -39,6 +39,8 @@
       "change_pct": 0.58,
       "date": "2026-04-14",
       "premium": 0.58,
+      "pe": 16.5,
+      "dividend": 21.88,
       "pe_percent": 79.7,
       "annual_avg": 1.675,
       "dev": 3.78,
@@ -54,6 +56,9 @@
       "change_pct": 0.0,
       "date": "2026-04-14",
       "premium": 0.0,
+      "pe": 35.1,
+      "dividend": 37.09,
+      "pe_percent": 64.6,
       "annual_avg": 8.981,
       "dev": 16.6,
       "rsi": 66.8,
@@ -64,19 +69,19 @@
   },
   "index": {},
   "gold": {
-    "global": 4811.94,
+    "global": 4810.25,
     "sge": 1048.5
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
-    "dxy": 98.2072,
+    "dxy": 98.164,
     "hs300_pe": 16.97,
     "hs300_pe_pct": 92.6,
     "erp": 4.08
   },
   "fx": {
-    "rate": 6.8159,
-    "change_pct": -0.01
+    "rate": 6.8164,
+    "change_pct": -0.0
   }
 }

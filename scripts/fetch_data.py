@@ -179,22 +179,33 @@ def fetch_fund_pe_div(code: str) -> dict | None:
     # --- PE ---
     f74 = safe_get_field(fields, 74, lo=1, hi=200)
     f75 = safe_get_field(fields, 75, lo=1, hi=200)
+    f44 = safe_get_field(fields, 44, lo=1, hi=300)
     pe = None
-    if code == "563020" and f74 is not None:
-        pe = round(f74 / 2.1, 1) if f74 > 15 else round(f74, 1)
-    elif f74 is not None:
-        pe = round(f74, 1)
-    elif f75 is not None:
+    if f74 is not None and f74 > 0:
+        pe = round(f74 / 2.1, 1) if code == "563020" and f74 > 15 else round(f74, 1)
+    elif f75 is not None and f75 > 0:
         pe = round(f75, 1)
+    elif code == "563020":
+        # 563020 的 f74/f75 为负，用中证红利低波指数 PE（腾讯 sh000821 f39）
+        idx_text = _get("https://qt.gtimg.cn/q=sh000821", timeout=8)
+        if idx_text:
+            m = re.search(r'v_sh000821="([^"]+)"', idx_text)
+            if m:
+                idx_fields = m.group(1).split("~")
+                idx_pe = safe_get_field(idx_fields, 39, lo=1, hi=100)
+                if idx_pe:
+                    pe = round(idx_pe, 1)
     if pe:
         result["pe"] = pe
 
-    # --- 股息率 ---
-    f75 = safe_get_field(fields, 75, lo=0, hi=5000)
+    # --- 股息率（腾讯 f38 字段，f38 是已换算的百分比值） ---
+    f38 = safe_get_field(fields, 38, lo=0, hi=100)
     f79 = safe_get_field(fields, 79, lo=0, hi=5000)
     div = None
-    if code == "563020" and f75 is not None:
-        div = round(f75 / 2.1, 2) if f75 > 5 else round(f75 / 100, 2)
+    if code == "518680":
+        pass  # 黄金ETF无股息
+    elif f38 is not None and f38 > 0:
+        div = round(f38, 2)
     elif f79 is not None and f79 < 50:
         div = round(f79, 2)
     if div:

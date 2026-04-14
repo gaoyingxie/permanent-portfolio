@@ -1,90 +1,23 @@
 {
-  "updated": "2026-04-14 09:48:08",
+  "updated": "2026-04-14 09:53:18",
   "updated_date": "2026-04-14",
   "funds": {
-    "159222": {
-      "code": "159222",
-      "name": "自由现金流ETF易方达",
-      "price": 1.402,
-      "change_pct": -0.27,
-      "date": "2026-04-14",
-      "premium": -0.26,
-      "pe": 27.6,
-      "dividend": 39.92,
-      "pe_percent": 81.0,
-      "annual_avg": 1.22,
-      "dev": 14.91,
-      "rsi": 57.0,
-      "signal": "sell",
-      "signal_text": "卖出",
-      "color": "red"
-    },
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.191,
-      "change_pct": 0.28,
+      "price": 1.1915,
+      "change_pct": 0.36,
       "date": "2026-04-14",
-      "premium": 0.28,
-      "pe": 13.5,
-      "dividend": 4.32,
-      "pe_percent": 66.5,
-      "annual_avg": 1.184,
-      "dev": 0.57,
-      "rsi": 52.6,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
+      "premium": 0.36
     },
     "513650": {
       "code": "513650",
       "name": "标普500ETF南方",
-      "price": 1.732,
+      "price": 1.6961,
       "change_pct": 0.58,
       "date": "2026-04-14",
-      "premium": 0.58,
-      "pe_percent": 78.6,
-      "annual_avg": 1.675,
-      "dev": 3.42,
-      "rsi": 64.7,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
-    },
-    "518680": {
-      "code": "518680",
-      "name": "金ETF富国",
-      "price": 10.3906,
-      "change_pct": 0.0,
-      "date": "2026-04-14",
-      "premium": 0.0
+      "premium": 0.58
     }
   },
-  "index": {
-    "sh000001": {
-      "price": 4002.18,
-      "change_pct": 0.34
-    },
-    "spx": {
-      "price": 6886.24,
-      "change_pct": 1.02
-    }
-  },
-  "gold": {
-    "global": 4791.48,
-    "sge": 1048.5
-  },
-  "risk": {
-    "cn10y": 1.81,
-    "us10y": 4.29,
-    "dxy": 98.3641,
-    "hs300_pe": 16.36,
-    "hs300_pe_pct": 90.5,
-    "erp": 4.3,
-    "fear_greed": 57.7
-  },
-  "fx": {
-    "rate": 6.8187,
-    "change_pct": -0.01
-  }
+  "index": {}
 }

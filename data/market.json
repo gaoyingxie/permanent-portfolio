@@ -1,12 +1,12 @@
 {
-  "updated": "2026-04-14 13:33:08",
+  "updated": "2026-04-14 13:33:57",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
       "price": 1.0,
-      "change_pct": -0.66,
+      "change_pct": -0.65,
       "date": "2026-04-14",
       "premium": -0.65,
       "pe": 26.9,
@@ -25,7 +25,7 @@
       "change_pct": 0.08,
       "date": "2026-04-14",
       "premium": 0.08,
-      "pe": 11.1,
+      "pe": 11.7,
       "dividend": 4.19,
       "pe_percent": 27.5,
       "annual_avg": 1.21,
@@ -60,17 +60,13 @@
     }
   },
   "index": {
-    "sh000001": {
-      "price": 3994.66,
-      "change_pct": 0.15
-    },
     "spx": {
       "price": 6886.24,
       "change_pct": 1.02
     }
   },
   "gold": {
-    "global": 4782.91,
+    "global": 4781.64,
     "sge": 1048.5
   },
   "risk": {

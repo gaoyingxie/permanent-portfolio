@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-14 13:11:19",
+  "updated": "2026-04-14 13:12:04",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -22,11 +22,11 @@
       "code": "563020",
       "name": "红利低波ETF易方达",
       "price": 1.16,
-      "change_pct": 0.04,
+      "change_pct": 0.03,
       "date": "2026-04-14",
-      "premium": 0.04,
-      "pe": 12.8,
-      "dividend": 4.14,
+      "premium": 0.03,
+      "pe": 11.6,
+      "dividend": 4.19,
       "pe_percent": 27.5,
       "annual_avg": 1.21,
       "dev": -4.15,
@@ -61,8 +61,8 @@
   },
   "index": {
     "sh000001": {
-      "price": 4007.08,
-      "change_pct": 0.46
+      "price": 4006.62,
+      "change_pct": 0.45
     },
     "spx": {
       "price": 6886.24,
@@ -70,16 +70,16 @@
     }
   },
   "gold": {
-    "global": 4790.29,
+    "global": 4788.54,
     "sge": 1048.5
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
-    "dxy": 98.3052,
-    "hs300_pe": 16.43,
+    "dxy": 98.3219,
+    "hs300_pe": 16.35,
     "hs300_pe_pct": 24.8,
-    "erp": 4.28,
+    "erp": 4.31,
     "fear_greed": 29.8
   },
   "fx": {

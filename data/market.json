@@ -1,23 +1,47 @@
 {
-  "updated": "2026-04-14 15:15:09",
+  "updated": "2026-04-14 15:56:09",
   "updated_date": "2026-04-14",
   "funds": {
+    "159222": {
+      "code": "159222",
+      "name": "自由现金流ETF",
+      "price": 1.4031,
+      "change_pct": 0.0
+    },
+    "563020": {
+      "code": "563020",
+      "name": "红利低波ETF",
+      "price": 1.1923,
+      "change_pct": 0.0
+    },
     "513650": {
       "code": "513650",
-      "name": "标普500ETF南方",
+      "name": "SPX ETF",
       "price": 1.6961,
-      "change_pct": 0.58,
-      "date": "2026-04-14",
-      "premium": 0.58
+      "change_pct": 0.0
     },
     "518680": {
       "code": "518680",
-      "name": "金ETF富国",
+      "name": "黄金ETF",
       "price": 10.3906,
-      "change_pct": 0.0,
-      "date": "2026-04-14",
-      "premium": 0.0
+      "change_pct": 0.0
     }
   },
-  "index": {}
+  "index": {},
+  "gold": {
+    "global": 4801.5,
+    "sge": 1048.5
+  },
+  "risk": {
+    "erp": 4.08,
+    "cn10y": 1.81,
+    "us10y": 4.29,
+    "dxy": 98.2083,
+    "hs300_pe": 16.97,
+    "hs300_pe_pct": 92.6
+  },
+  "fx": {
+    "rate": 6.8163,
+    "change_pct": null
+  }
 }

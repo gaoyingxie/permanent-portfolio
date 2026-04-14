@@ -101,9 +101,9 @@ def safe_get_field(fields: list, index: int, lo: float = None, hi: float = None)
     """安全提取字段：不存在/解析失败/超范围均返回 None"""
     try:
         val = float(fields[index])
-        if lo is not None and val <= lo:
+        if lo is not None and val < lo:
             return None
-        if hi is not None and val >= hi:
+        if hi is not None and val > hi:
             return None
         return val
     except (IndexError, ValueError, TypeError):
@@ -177,34 +177,28 @@ def fetch_fund_pe_div(code: str) -> dict | None:
     result = {}
 
     # --- PE ---
-    if code == "159222":
-        pe = safe_get_field(fields, 116, lo=1, hi=200)
-    else:
-        f74 = safe_get_field(fields, 74, lo=1, hi=200)
-        f75 = safe_get_field(fields, 75, lo=1, hi=200)
-        pe = None
-        if code == "563020" and f74 is not None:
-            pe = round(f74 / 2.1, 1) if f74 > 15 else round(f74, 1)
-        elif f74 is not None:
-            pe = round(f74, 1)
-        elif f75 is not None:
-            pe = round(f75, 1)
+    f74 = safe_get_field(fields, 74, lo=1, hi=200)
+    f75 = safe_get_field(fields, 75, lo=1, hi=200)
+    pe = None
+    if code == "563020" and f74 is not None:
+        pe = round(f74 / 2.1, 1) if f74 > 15 else round(f74, 1)
+    elif f74 is not None:
+        pe = round(f74, 1)
+    elif f75 is not None:
+        pe = round(f75, 1)
     if pe:
         result["pe"] = pe
 
     # --- 股息率 ---
-    if code == "159222":
-        div = safe_get_field(fields, 162, lo=0, hi=100)
-        if div:
-            result["dividend"] = round(div, 2)
-    elif code == "563020":
-        f75 = safe_get_field(fields, 75, lo=0, hi=5000)
-        if f75:
-            result["dividend"] = round(f75 / 2.1, 2) if f75 > 5 else round(f75 / 100, 2)
-    else:
-        f79 = safe_get_field(fields, 79, lo=0, hi=5000)
-        if f79 and f79 < 50 and code != "159222":
-            result["dividend"] = round(f79, 2)
+    f75 = safe_get_field(fields, 75, lo=0, hi=5000)
+    f79 = safe_get_field(fields, 79, lo=0, hi=5000)
+    div = None
+    if code == "563020" and f75 is not None:
+        div = round(f75 / 2.1, 2) if f75 > 5 else round(f75 / 100, 2)
+    elif f79 is not None and f79 < 50:
+        div = round(f79, 2)
+    if div:
+        result["dividend"] = div
 
     return result if result else None
 

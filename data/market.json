@@ -1,9 +1,5 @@
 {
-<<<<<<< Updated upstream
-  "updated": "2026-04-14 19:55:46",
-=======
-  "updated": "2026-04-14 19:56:49",
->>>>>>> Stashed changes
+  "updated": "2026-04-14 19:57:31",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -87,11 +83,7 @@
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
-<<<<<<< Updated upstream
-    "dxy": 98.0552,
-=======
     "dxy": 98.0709,
->>>>>>> Stashed changes
     "hs300_pe": 16.97,
     "hs300_pe_pct": 92.6,
     "erp": 4.08

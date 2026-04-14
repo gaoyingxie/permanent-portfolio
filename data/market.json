@@ -1,33 +1,5 @@
 {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  "updated": "2026-04-14 23:54:48",
-=======
-  "updated": "2026-04-14 23:16:48",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-14 23:55:32",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-14 23:55:54",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-14 23:56:17",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-14 23:56:36",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-14 23:57:02",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-14 23:57:15",
->>>>>>> Stashed changes
+  "updated": "2026-04-14 23:57:58",
   "updated_date": "2026-04-14",
   "funds": {
     "159222": {
@@ -105,66 +77,13 @@
     }
   },
   "gold": {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    "global": 4835.5,
-=======
-    "global": 4836.78,
->>>>>>> Stashed changes
-=======
-    "global": 4833.35,
->>>>>>> Stashed changes
-=======
-    "global": 4833.72,
->>>>>>> Stashed changes
-=======
-    "global": 4833.72,
->>>>>>> Stashed changes
-=======
-    "global": 4833.9,
->>>>>>> Stashed changes
-=======
-    "global": 4833.99,
->>>>>>> Stashed changes
-=======
-    "global": 4834.45,
->>>>>>> Stashed changes
+    "global": 4834.64,
     "sge": 1048.5
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    "dxy": 98.1492,
-<<<<<<< Updated upstream
-=======
-    "dxy": 98.1399,
->>>>>>> Stashed changes
-=======
-    "dxy": 98.1399,
->>>>>>> Stashed changes
-=======
-    "dxy": 98.1399,
->>>>>>> Stashed changes
-=======
-    "dxy": 98.1399,
->>>>>>> Stashed changes
-=======
-    "dxy": 98.1238,
->>>>>>> Stashed changes
-=======
-    "dxy": 98.1238,
->>>>>>> Stashed changes
+    "dxy": 98.1219,
     "hs300_pe": 16.97,
     "hs300_pe_pct": 92.6,
     "erp": 4.08

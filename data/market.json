@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-15 02:49:57",
+  "updated": "2026-04-15 02:50:44",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
@@ -45,13 +45,7 @@
       "premium": 0.4,
       "pe": 16.5,
       "dividend": 4.1,
-      "pe_percent": 79.7,
-      "annual_avg": 1.675,
-      "dev": 3.78,
-      "rsi": 65.5,
-      "signal": "hold",
-      "signal_text": "持有",
-      "color": "yellow"
+      "pe_percent": 79.7
     },
     "518680": {
       "code": "518680",
@@ -77,13 +71,13 @@
     }
   },
   "gold": {
-    "global": 4857.86,
+    "global": 4856.88,
     "sge": 1040.0
   },
   "risk": {
     "cn10y": 1.81,
     "us10y": 4.29,
-    "dxy": 98.1417,
+    "dxy": 98.1411,
     "hs300_pe": 16.97,
     "hs300_pe_pct": 92.6,
     "erp": 4.08

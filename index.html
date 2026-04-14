@@ -868,15 +868,15 @@
         <span>溢价率 <span class="val" id="premium-spx">--</span></span>
       </div>
       <div class="card-meta" style="margin-top:4px">
-        <span>市盈率 <span class="val" id="pe-spx">--</span></span>
-        <span>股息率 <span class="val" id="dividend-spx">--</span></span>
+        <span>市盈率 <span class="val" id="pe-513650">--</span></span>
+        <span>股息率 <span class="val" id="dividend-513650">--</span></span>
       </div>
       <div class="card-meta" style="margin-top:4px">
-        <span>乖离率 <span class="val" id="dev-spx">--</span></span>
-        <span>RSI <span class="val" id="rsi-spx">--</span></span>
+        <span>乖离率 <span class="val" id="dev-513650">--</span></span>
+        <span>RSI <span class="val" id="rsi-513650">--</span></span>
       </div>
       <div class="card-meta" style="margin-top:4px">
-        <span>PE百分位 <span class="val" id="pe_pct-spx">--</span></span>
+        <span>PE百分位 <span class="val" id="pe_pct-513650">--</span></span>
       </div>
     </div>
 
@@ -892,6 +892,10 @@
       <div class="card-meta">
         <span>国际金价 <span class="val" id="gold-global">--</span></span>
         <span>ETF场内 <span class="val" id="etf-518680">--</span></span>
+      </div>
+      <div class="card-meta" style="margin-top:4px">
+        <span>乖离率 <span class="val" id="dev-518680">--</span></span>
+        <span>RSI <span class="val" id="rsi-518680">--</span></span>
       </div>    </div>
 
   </div>
@@ -1221,6 +1225,9 @@ function renderData(data) {
     sa(etf518680El, '--');
   }
   updateSignal('518680', final518680);
+  // 黄金 ETF 乖离率和 RSI
+  ss('dev-518680', final518680.dev != null ? final518680.dev.toFixed(2) + '%' : '--');
+  ss('rsi-518680', final518680.rsi != null ? final518680.rsi.toFixed(1) : '--');
   // 持仓图表（优先用API，其次用用户配置）
   if (data.positions) {
     renderPosChart(data.positions);

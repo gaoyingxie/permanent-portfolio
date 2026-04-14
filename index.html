@@ -1013,20 +1013,10 @@ const USER_CONFIG = {
 };
 // =======================================================
 
-const STATIC_DATA = {
-  // 紧急fallback：仅在 GitHub Pages market.json 完全无法加载时使用。
-  // 静态数据与实时数据差异显著时会误导判断，优先显示 "--" 而非错误数据。
-  funds: {
-    '159222': { price: null, change_pct: null, name: '自由现金流ETF' },
-    '563020': { price: null, change_pct: null, name: '红利低波ETF' },
-    '513650': { price: null, change_pct: null, name: 'SPX' },
-    '518680': { price: null, change_pct: null, name: '富国上海金ETF' },
-  },
-  sh: null,
-  index: {
-    spx: null,
-  },
-  risk: {}
+// 无实时数据时的安全 fallback（所有字段为 null，渲染层统一显示 "--"）
+const EMPTY_DATA = {
+  funds: { '159222': {}, '563020': {}, '513650': {}, '518680': {} },
+  sh: null, index: {}, risk: {}
 };
 
 // ==================== 全局变量 ====================
@@ -1046,8 +1036,8 @@ async function loadData() {
     renderData(data);
     showToast('数据已更新', 'success');
   } catch (e) {
-    console.warn('加载实时数据失败，使用静态数据:', e.message, '\nSTACK:', (e.stack || '').split('\n').slice(0,5).join('\n'));
-    renderData(STATIC_DATA);
+    console.warn('加载实时数据失败:', e.message);
+    renderData(EMPTY_DATA);
   }
 }
 
@@ -1056,113 +1046,99 @@ function renderData(data) {
   function ss(id, val) { var e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; }
   function sa(el, val) { if (el) el.textContent = val != null ? val : ''; }
   const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');
-  ss('updateTime', '更新: ' + updateTime);
 
-  // 基金数据校验：若实时数据明显错误（价格超出合理范围），不显示以免误导
-  const f = {};
+  // 基金数据校验
   const fundRanges = {
     '159222': { price: [0.8, 2.5], pe: [5, 80] },
     '563020': { price: [0.8, 2.5], pe: [1, 50] },
     '513650': { price: [1.0, 3.0], pe: [5, 60] },
-    '518680': { price: [5.0, 20.0], pe: null },
+    '518680': { price: [5.0, 20.0] },
   };
+  const f = {};
   for (const [code, entry] of Object.entries(data.funds || {})) {
-    const ranges = fundRanges[code];
-    if (!ranges) { f[code] = entry; continue; }
-    const priceOk = (p) => p != null && p >= ranges.price[0] && p <= ranges.price[1];
-    const peOk = (pe) => pe == null || (pe > 0 && pe < (ranges.pe?.[1] ?? 200));
-    if (!priceOk(entry.price) || !peOk(entry.pe)) {
-      f[code] = { code, name: entry.name, price: null, change_pct: null };
-    } else {
-      f[code] = entry;
-    }
+    const r = fundRanges[code];
+    if (!r) { f[code] = entry; continue; }
+    const priceOk = p => p != null && p >= r.price[0] && p <= r.price[1];
+    const peOk    = pe => pe == null || (pe > 0 && pe < (r.pe?.[1] ?? 200));
+    f[code] = (!priceOk(entry.price) || !peOk(entry.pe))
+      ? { code, name: entry.name, price: null, change_pct: null }
+      : entry;
   }
 
-  // 510880
-  const f510880 = f['159222'];
-  ss('price-159222', f510880.price?.toFixed(3) || '--');
-  setPriceColor('price-159222', f510880.change_pct);
-  ss('change-159222', f510880.change_pct != null ? (f510880.change_pct >= 0 ? '+' : '') + f510880.change_pct.toFixed(2) + '%' : '');
-  document.getElementById('change-159222').style.color = f510880.change_pct > 0 ? 'var(--red)' : f510880.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
-  ss('dev-159222', f510880.dev ? f510880.dev.toFixed(2) + '%' : '--');
-  ss('rsi-159222', f510880.rsi ? f510880.rsi.toFixed(1) : '--');
-  ss('dividend-159222', f510880.dividend != null ? f510880.dividend.toFixed(2) + '%' : '--');
-  ss('pe-159222', f510880.pe != null ? f510880.pe.toFixed(1) : '--');
-  ss('pe_pct-159222', f510880.pe_percent != null ? f510880.pe_percent.toFixed(1) + '%' : '--');
-  updateSignal('159222', f510880);
+  // 统一基金渲染函数
+  function renderFund(code, opts = {}) {
+    const fund = f[code];
+    if (!fund) return;
+    const el = id => document.getElementById(id);
+    const priceEl = el(`price-${code}`);
+    if (priceEl) priceEl.textContent = fund.price != null
+      ? fund.price.toFixed(opts.priceDec ?? 3) : '--';
+    setPriceColor(`price-${code}`, fund.change_pct);
+    const chgEl = el(`change-${code}`);
+    if (chgEl) {
+      chgEl.textContent = fund.change_pct != null
+        ? (fund.change_pct >= 0 ? '+' : '') + fund.change_pct.toFixed(2) + '%' : '';
+      chgEl.style.color = fund.change_pct > 0 ? 'var(--red)'
+        : fund.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
+    }
+    if (opts.showDev)  ss(`dev-${code}`,      fund.dev      != null ? fund.dev.toFixed(2) + '%'      : '--');
+    if (opts.showRsi)  ss(`rsi-${code}`,       fund.rsi      != null ? fund.rsi.toFixed(1)            : '--');
+    if (opts.showDiv)  ss(`dividend-${code}`,  fund.dividend != null ? fund.dividend.toFixed(2) + '%' : '--');
+    if (opts.showPe)   ss(`pe-${code}`,        fund.pe       != null ? fund.pe.toFixed(1)            : '--');
+    if (opts.showPct)  ss(`pe_pct-${code}`,    fund.pe_percent != null ? fund.pe_percent.toFixed(1) + '%' : '--');
+    if (opts.showEtf)  ss(`etf-${code}`,       fund.price    != null ? fund.price.toFixed(4)         : '--');
+    if (opts.showPrem) { const p = el(`premium-${code}`); if (p) sa(p, fund.premium != null ? (fund.premium >= 0 ? '+' : '') + fund.premium.toFixed(2) + '%' : '--'); }
+    if (opts.signalColor) {
+      const card = el(`card-${code}`);
+      const c = fund.color || 'wait';
+      if (card) card.className = 'card ' + (c === 'green' ? 'card-buy' : c === 'red' ? 'card-sell' : 'card-pending');
+    }
+    updateSignal(code, fund);
+  }
+
+  // ---- 各基金卡片渲染 ----
+  renderFund('159222', { showDev: true, showRsi: true, showDiv: true, showPe: true, showPct: true, signalColor: true });
 
   // 563020 红利低波（年线定投法信号）
-  const f563020 = f['563020'];
-  ss('price-563020', f563020.price != null ? f563020.price.toFixed(3) : '--');
-  setPriceColor('price-563020', f563020.change_pct);
-  ss('change-563020', f563020.change_pct != null ? (f563020.change_pct >= 0 ? '+' : '') + f563020.change_pct.toFixed(2) + '%' : '');
-  document.getElementById('change-563020').style.color = f563020.change_pct > 0 ? 'var(--red)' : f563020.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
-  ss('dividend-563020', f563020.dividend != null ? f563020.dividend.toFixed(2) + '%' : '--');
-  ss('pe-563020', f563020.pe != null ? f563020.pe.toFixed(1) : '--');
-  ss('pe_pct-563020', f563020.pe_percent != null ? f563020.pe_percent.toFixed(1) + '%' : '--');
-  ss('dev-563020', f563020.dev != null ? f563020.dev.toFixed(2) + '%' : '--');
-  ss('rsi-563020', f563020.rsi != null ? f563020.rsi.toFixed(1) : '--');
-  const dev563020 = f563020.dev;
-
-  // 渲染年线信号
-  const signalTag = document.getElementById('signal-tag-563020');
-  const signalDesc = document.getElementById('signal-desc-563020');
-  const needle = document.getElementById('signal-needle-563020');
-  const card563020 = document.getElementById('card-563020');
-  const color = f563020.color || 'wait';
-  const signalText = f563020.signal_text || '--';
-  sa(signalTag, signalText);
-  const avgText = f563020.annual_avg != null ? '，均线' + f563020.annual_avg.toFixed(3) + '元' : '';
-  sa(signalDesc, '年线收益差' + avgText);
-  signalTag.className = 'signal-tag ' + (color === 'green' ? 'buy' : color === 'yellow' ? 'hold' : color === 'red' ? 'sell' : 'hold');
-  // 针位置: 绿区(0-30%,dev<0%), 黄区(30-70%,dev 0-10%), 红区(70-100%,dev>10%)
-  let needlePct;
-  if (dev563020 == null) {
-    needlePct = 50;
-  } else if (dev563020 <= 0) {
-    needlePct = 30 + (dev563020 / 10) * 30; // -10%~0% → 0%~30%
-    needlePct = Math.max(0, Math.min(30, needlePct));
-  } else if (dev563020 <= 10) {
-    needlePct = 30 + (dev563020 / 10) * 40; // 0%~10% → 30%~70%
-    needlePct = Math.max(30, Math.min(70, needlePct));
-  } else {
-    needlePct = 70 + ((dev563020 - 10) / 15) * 30; // 10%~25% → 70%~100%
-    needlePct = Math.max(70, Math.min(100, needlePct));
+  renderFund('563020', { showDev: true, showRsi: true, showDiv: true, showPe: true, showPct: true, signalColor: true });
+  const dev563020 = f['563020']?.dev;
+  // 年线信号条 + 标签
+  const needle563020 = document.getElementById('signal-needle-563020');
+  const card563020  = document.getElementById('card-563020');
+  const tag563020   = document.getElementById('signal-tag-563020');
+  const desc563020  = document.getElementById('signal-desc-563020');
+  if (needle563020) {
+    let pct = 50;
+    if (dev563020 != null) {
+      if      (dev563020 <= 0)  pct = Math.max(0,  Math.min(30, 30 + dev563020 / 10 * 30));
+      else if (dev563020 <= 10) pct = Math.max(30, Math.min(70, 30 + dev563020 / 10 * 40));
+      else                     pct = Math.max(70, Math.min(100, 70 + (dev563020 - 10) / 15 * 30));
+    }
+    needle563020.style.left = pct + '%';
+    needle563020.className  = 'signal-bar-needle' + (dev563020 > 10 ? ' over' : '');
+    needle563020.title      = '偏离：' + (dev563020 != null ? dev563020.toFixed(2) + '%' : '--');
   }
-  needle.style.left = needlePct + '%';
-  needle.className = 'signal-bar-needle' + (dev563020 > 10 ? ' over' : '');
-  needle.title = '偏离：' + (dev563020 != null ? dev563020.toFixed(2) + '%' : '--');
-  const bar563020 = document.getElementById('bar-563020');
-  bar563020.title = needle.title;
-  // 卡片边框色跟随信号
-  card563020.className = 'card ' + (color === 'green' ? 'card-buy' : color === 'red' ? 'card-sell' : 'card-pending');
+  if (tag563020) {
+    const c = f['563020']?.color || 'wait';
+    tag563020.textContent = f['563020']?.signal_text || '--';
+    tag563020.className   = 'signal-tag ' + (c === 'green' ? 'buy' : c === 'red' ? 'sell' : 'hold');
+  }
+  if (desc563020) {
+    const avg = f['563020']?.annual_avg;
+    desc563020.textContent = '年线收益差' + (avg != null ? '，均线' + avg.toFixed(3) + '元' : '');
+  }
 
-  // SPX - 读取实际指数点位
+  // SPX 指数点位
   const spxData = data.index?.spx;
   if (spxData) {
-    ss('price-spx', spxData.price?.toFixed(2) || '--');
+    ss('price-spx', spxData.price != null ? spxData.price.toFixed(2) : '--');
     ss('change-spx', spxData.change_pct != null ? (spxData.change_pct >= 0 ? '+' : '') + spxData.change_pct.toFixed(2) + '%' : '');
-    document.getElementById('change-spx').style.color = spxData.change_pct > 0 ? 'var(--red)' : spxData.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
+    const el = document.getElementById('change-spx');
+    if (el) el.style.color = spxData.change_pct > 0 ? 'var(--red)' : spxData.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
     setPriceColor('price-spx', spxData.change_pct);
   }
-  const fspx = f['513650'];
-  if (fspx) {
-    ss('etf-spx', fspx.price?.toFixed(4) || '--');
-    const premEl = document.getElementById('premium-spx');
-    if (fspx.premium != null) {
-      const sign = fspx.premium >= 0 ? '+' : '';
-      sa(premEl, sign + fspx.premium.toFixed(2) + '%');
-      premEl.className = 'val ' + (fspx.premium >= 0 ? 'change-up' : 'change-down');
-    } else {
-      sa(premEl, '--');
-    }
-    ss('dividend-spx', fspx.dividend != null ? fspx.dividend.toFixed(2) + '%' : '--');
-    ss('pe-spx', (fspx.pe ?? null) !== null ? fspx.pe.toFixed(1) : '--');
-    ss('pe_pct-spx', fspx.pe_percent != null ? fspx.pe_percent.toFixed(1) + '%' : '--');
-    ss('dev-spx', fspx.dev != null ? fspx.dev.toFixed(2) + '%' : '--');
-    ss('rsi-spx', fspx.rsi != null ? fspx.rsi.toFixed(1) : '--');
-    updateSignal('513650', fspx);
-  }
+  // SPX ETF
+  renderFund('513650', { showDiv: true, showPe: true, showPct: true, showDev: true, showRsi: true, showPrem: true, signalColor: true });
 
   // 上证指数
   const sh = data.sh || data.index?.sh000001;

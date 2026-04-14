@@ -1,248 +1,91 @@
 #!/usr/bin/env python3
 """
-Permanent Portfolio Data Fetcher
-Fetches latest market data for all holdings
+Permanent Portfolio - 市场数据抓取脚本
+========================================
+职责：抓取所有持仓基金、指数、风险指标，输出 data/market.json
 """
 
+import csv
+import io
 import json
-import urllib.request
-import ssl
 import os
 import re
+import ssl
+import subprocess
 import sys
-from datetime import datetime, timezone, timedelta
+import urllib.request
+from datetime import datetime, timedelta, timezone
 
+# ============================================================
+# 初始化
+# ============================================================
 os.environ['TZ'] = 'Asia/Shanghai'
-_tz = timezone(timedelta(hours=8))
+_TZ = timezone(timedelta(hours=8))
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
+# 持仓基金配置
 FUNDS = {
-    "159222": {"name": "自由现金流ETF", "target": 0.70},
-    "563020": {"name": "红利低波", "target": 0.20},
-    "513650": {"name": "标普500ETF", "target": 0.20},
-    "518680": {"name": "黄金ETF", "target": 0.10},
+    "159222": {"name": "自由现金流ETF", "is_sz": True},
+    "563020": {"name": "红利低波ETF", "is_sz": False},
+    "513650": {"name": "SPX ETF",     "is_sz": False},
+    "518680": {"name": "黄金ETF",     "is_sz": False},
 }
+GOLD_CODE = "518680"
+ALL_FUND_CODES = list(FUNDS)
 
-def fetch_fund_data(code: str) -> dict:
-    url = f"https://fundgz.1234567.com.cn/js/{code}.js"
-    for attempt in range(3):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                text = resp.read().decode("utf-8")
-            text = text.replace("jsonpgz(", "").rstrip(");")
-            data = json.loads(text)
-            price = float(data.get("gsz", 0))
-            nav = float(data.get("dwjz", 0))
-            result = {
-                "code": data.get("fundcode"),
-                "name": data.get("name"),
-                "price": price,
-                "change_pct": float(data.get("gszzl", 0)),
-                "date": data.get("gztime", "")[:10],
-            }
-            if nav and nav > 0:
-                result["premium"] = round((price - nav) / nav * 100, 2)
-            return result
-        except Exception as e:
-            if attempt < 2:
-                print(f"  [RETRY] fund {code}: {e}")
-            else:
-                print(f"  [FAIL] fund {code}: {e}")
-            return None
 
-def fetch_fund_nav(code: str) -> dict:
-    fields_str = "f43,f170,f116,f162" if code != "513650" else "f43,f85,f170,f116,f162"
-    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields={fields_str}"
+# ============================================================
+# 通用工具
+# ============================================================
+
+def _get(url: str, headers: dict = None, timeout: int = 10, encoding: str = "utf-8") -> str | None:
+    """通用 HTTP GET，返回文本或 None（失败时自动打印日志）"""
+    h = {"User-Agent": "Mozilla/5.0"}
+    if headers:
+        h.update(headers)
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        fields = data.get("data", {})
-        if not fields:
-            return None
-        f43 = fields.get("f43")
-        f170 = fields.get("f170")
-        if not isinstance(f43, (int, float)) or not isinstance(f170, (int, float)):
-            return None
-        price = round(float(f43) / 100, 4)
-        if code == "513650" and fields.get("f85"):
-            price = round(float(fields["f85"]), 4)
-        result = {
-            "price": price,
-            "change_pct": round(float(f170) / 100, 2),
-        }
-        f116 = fields.get("f116")
-        if f116 and isinstance(f116, (int, float)) and 0 < f116 < 300:
-            result["pe"] = round(float(f116), 1)
-        f162 = fields.get("f162")
-        if f162 and isinstance(f162, (int, float)) and 0 < f162 < 50:
-            result["dividend"] = round(float(f162), 2)
-        return result
+        req = urllib.request.Request(url, headers=h)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.read().decode(encoding, errors="ignore")
     except Exception as e:
-        print(f"  [FAIL] nav {code}: {e}")
+        print(f"  [NET] GET {url[:60]}... failed: {e}")
         return None
 
-def fetch_fund_indicators(code: str) -> dict:
-    """Fetch PE, dividend yield and PE historical percentile for indoor funds.
-    Uses Tencent fund API for PE/dividend, and price history for percentile.
-    Returns {pe: float, dividend: float, pe_percent: float} or partial dict.
-    Note: Skips gold ETF (518680) as Tencent API returns unreliable data for it.
+
+def _parse_market_history(secid: str, days: int = 250) -> list[dict] | None:
     """
-    if code == "518680":
-        return None
-    prefix = "sz" if code == "159222" else "sh"
-    url = f"https://qt.gtimg.cn/q={prefix}{code}"
-    result = {}
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            text = resp.read().decode("utf-8", errors="ignore")
-        m = re.search(r'"([^"]+)"', text)
-        if m:
-            fields = m.group(1).split("~")
-            if len(fields) >= 80:
-                f74 = fields[74] if len(fields) > 74 else None
-                f75 = fields[75] if len(fields) > 75 else None
-                f79 = fields[79] if len(fields) > 79 else None
-                f85 = fields[85] if len(fields) > 85 else None
-                f116 = fields[116] if len(fields) > 116 else None
-                f162 = fields[162] if len(fields) > 162 else None
+    从 Sina K线接口获取历史收盘价。
 
-                # PE: 159222 uses f116 (腾讯真实PE); others use f74
-                if code == "159222" and f116:
-                    try:
-                        pe_val = float(f116)
-                        if 1 < pe_val < 200:
-                            result["pe"] = round(pe_val, 1)
-                    except (ValueError, TypeError):
-                        pass
-                elif f74:
-                    try:
-                        pe_raw = float(f74)
-                        if 1 < pe_raw < 200 and code != "513650":
-                            if code == "563020" and pe_raw > 15:
-                                result["pe"] = round(pe_raw / 2.1, 1)
-                            else:
-                                result["pe"] = round(pe_raw, 1)
-                    except (ValueError, TypeError):
-                        pass
-                if f75:
-                    try:
-                        pe_raw = float(f75)
-                        if 1 < pe_raw < 200 and "pe" not in result and code != "513650":
-                            result["pe"] = round(pe_raw, 1)
-                    except (ValueError, TypeError):
-                        pass
-
-                # Dividend: 159222 uses f162 (真实股息率); 563020 uses f75 with /100
-                if code == "159222" and f162:
-                    try:
-                        div_val = float(f162)
-                        if 0 < div_val < 100:
-                            result["dividend"] = round(div_val, 2)
-                    except (ValueError, TypeError):
-                        pass
-                elif code == "563020" and f75:
-                    try:
-                        div_raw = float(f75)
-                        if 0 < div_raw < 5000:
-                            if div_raw > 5:
-                                result["dividend"] = round(div_raw / 2.1, 2)
-                            elif div_raw < 50:
-                                result["dividend"] = round(div_raw, 2)
-                    except (ValueError, TypeError):
-                        pass
-                elif f79:
-                    try:
-                        div_raw = float(f79)
-                        if 0 < div_raw < 5000 and code not in ("513650", "159222"):
-                            if div_raw < 50:
-                                result["dividend"] = round(div_raw, 2)
-                    except (ValueError, TypeError):
-                        pass
-    except Exception as e:
-        print(f"  [FAIL] fund indicators {code}: {e}")
-
-    # PE percentile: compute from price history vs annual range
-    try:
-        secid = "0." + code if code == "159222" else "1." + code
-        history = fetch_nav_history(secid, 250)
-        if history and len(history) >= 20:
-            closes = [h["close"] for h in history]
-            curr = closes[-1]
-            avg = sum(closes) / len(closes)
-            mn, mx = min(closes), max(closes)
-            if mx > mn:
-                pct = (curr - mn) / (mx - mn) * 100
-                result["pe_percent"] = round(pct, 1)
-    except Exception as e:
-        print(f"  [FAIL] pe_percent {code}: {e}")
-
-    if result:
-        print(f"  [OK] {code} indicators: {result}")
-    return result if result else None
-
-def fetch_index(code: str, name: str) -> dict:
-    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.{code}&fields=f43,f170"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        fields = data.get("data", {})
-        return {
-            "price": fields.get("f43", 0) / 100,
-            "change_pct": round(fields.get("f170", 0) / 100, 2),
-        }
-    except Exception as e:
-        print(f"  [FAIL] index {code}: {e}")
-        return None
-
-def fetch_us_index(secid: str, name: str) -> dict:
-    url = f"https://push2.eastmoney.com/api/qt/stock/get?secid={secid}&fields=f43,f170"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        fields = data.get("data", {})
-        return {
-            "price": fields.get("f43", 0) / 100,
-            "change_pct": round(fields.get("f170", 0) / 100, 2),
-        }
-    except Exception as e:
-        print(f"  [FAIL] us_index {name}: {e}")
-        return None
-
-def fetch_nav_history(secid: str, days: int = 250) -> list:
-    # secid: "0.xxx"=深圳基金, "1.xxx"=上海股票/ETF
-    # 改用 Sina K线 API (money.finance.sina.com.cn)，绕开 EastMoney 在 GitHub Actions 的连通性问题
+    secid 格式: "0.xxx"（深圳）或 "1.xxx"（上海）
+    Sina K线返回 oldest-first（最老日期在前），无需反转。
+    失败时返回 None（调用方自行处理降级）。
+    """
     market = "sz" if secid.startswith("0.") else "sh"
     code = secid.split(".")[1]
     url = (f"https://money.finance.sina.com.cn/quotes_service/api/json_v2.php"
            f"/CN_MarketData.getKLineData?symbol={market}{code}"
            f"&scale=240&ma=no&datalen={days}")
-    for attempt in range(3):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0",
-                                                        "Referer": "https://finance.sina.com.cn/"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-            if not isinstance(data, list) or not data:
-                return []
-            # Sina K线 oldest-first（最老日期在前），无需反转
-            return [{"date": item["day"], "close": float(item["close"])} for item in data]
-        except Exception as e:
-            if attempt < 2:
-                print(f"  [RETRY] nav_history {secid}: {e}")
-            else:
-                print(f"  [FAIL] nav_history {secid}: {e}")
-                return []
 
-def calc_rsi(prices, period=14):
+    text = _get(url, {"Referer": "https://finance.sina.com.cn/"}, timeout=15)
+    if not text:
+        return None
+    try:
+        data = json.loads(text)
+        if not isinstance(data, list) or len(data) < 10:
+            return None
+        # oldest-first: data[0] = 最老, data[-1] = 最新
+        return [{"date": item["day"], "close": float(item["close"])} for item in data]
+    except Exception as e:
+        print(f"  [PARSE] nav_history {secid}: {e}")
+        return None
+
+
+def calc_rsi(prices: list[float], period: int = 14) -> float | None:
+    """14日 RSI，失败返回 None"""
     if len(prices) < period + 1:
         return None
-    gains = []
-    losses = []
+    gains, losses = [], []
     for i in range(1, len(prices)):
         diff = prices[i] - prices[i - 1]
         gains.append(max(diff, 0))
@@ -251,506 +94,520 @@ def calc_rsi(prices, period=14):
     avg_loss = sum(losses[-period:]) / period
     if avg_loss == 0:
         return 100.0
-    rs = avg_gain / avg_loss
-    return round(100 - (100 / (1 + rs)), 1)
+    return round(100 - (100 / (1 + avg_gain / avg_loss)), 1)
 
-def calc_annual_deviation(code: str) -> dict:
-    # secid mapping: 159222=深圳基金(0), others=上海(1)
-    hist_code = "0." + code if code == "159222" else "1." + code
-    history = fetch_nav_history(hist_code, 250)
+
+def safe_get_field(fields: list, index: int, lo: float = None, hi: float = None) -> float | None:
+    """安全提取字段：不存在/解析失败/超范围均返回 None"""
+    try:
+        val = float(fields[index])
+        if lo is not None and val <= lo:
+            return None
+        if hi is not None and val >= hi:
+            return None
+        return val
+    except (IndexError, ValueError, TypeError):
+        return None
+
+
+# ============================================================
+# 基金数据：fundgz（实时估值，场内价格）
+# ============================================================
+
+def fetch_fund_price(code: str) -> dict | None:
+    """
+    通过 天天基金 gz.js 接口抓取基金实时估值和溢价率。
+    返回: {code, name, price, change_pct, date, premium} 或 None
+    """
+    text = _get(f"https://fundgz.1234567.com.cn/js/{code}.js", timeout=20)
+    if not text:
+        return None
+    try:
+        text = text.replace("jsonpgz(", "").rstrip(");")
+        d = json.loads(text)
+        price = float(d.get("gsz", 0))
+        nav   = float(d.get("dwjz", 0))
+        if price <= 0:
+            return None
+        result = {
+            "code":       d.get("fundcode"),
+            "name":       d.get("name"),
+            "price":      price,
+            "change_pct": float(d.get("gszzl", 0)),
+            "date":       d.get("gztime", "")[:10],
+        }
+        if nav > 0:
+            result["premium"] = round((price - nav) / nav * 100, 2)
+        return result
+    except Exception as e:
+        print(f"  [PARSE] fundgz {code}: {e}")
+        return None
+
+
+# ============================================================
+# 基金指标：PE / 股息率 / PE历史分位
+# ============================================================
+
+def fetch_fund_pe_div(code: str) -> dict | None:
+    """
+    通过腾讯 88字段接口抓取 PE 和股息率（室内基金适用）。
+    PE: 159222 用 f116，其他用 f74（>15时对563020除以2.1）
+    股息率: 159222 用 f162，其他用 f75（563020用f75除以100）
+    返回: {pe, dividend} 或部分字典
+    """
+    prefix = "sz" if FUNDS[code]["is_sz"] else "sh"
+    text = _get(f"https://qt.gtimg.cn/q={prefix}{code}", timeout=8)
+    if not text:
+        return None
+
+    m = re.search(r'"([^"]+)"', text)
+    if not m:
+        return None
+
+    fields = m.group(1).split("~")
+    if len(fields) < 80:
+        return None
+
+    result = {}
+
+    # --- PE ---
+    if code == "159222":
+        pe = safe_get_field(fields, 116, lo=1, hi=200)
+    else:
+        f74 = safe_get_field(fields, 74, lo=1, hi=200)
+        f75 = safe_get_field(fields, 75, lo=1, hi=200)
+        pe = None
+        if code == "513650":
+            pass  # 不从腾讯取 PE（偏差大）
+        elif code == "563020" and f74 is not None:
+            pe = round(f74 / 2.1, 1) if f74 > 15 else round(f74, 1)
+        elif f74 is not None:
+            pe = round(f74, 1)
+        elif f75 is not None and code != "513650":
+            pe = round(f75, 1)
+    if pe:
+        result["pe"] = pe
+
+    # --- 股息率 ---
+    if code == "159222":
+        div = safe_get_field(fields, 162, lo=0, hi=100)
+        if div:
+            result["dividend"] = round(div, 2)
+    elif code == "563020":
+        f75 = safe_get_field(fields, 75, lo=0, hi=5000)
+        if f75:
+            result["dividend"] = round(f75 / 2.1, 2) if f75 > 5 else round(f75 / 100, 2)
+    else:
+        f79 = safe_get_field(fields, 79, lo=0, hi=5000)
+        if f79 and f79 < 50 and code not in ("513650", "159222"):
+            result["dividend"] = round(f79, 2)
+
+    return result if result else None
+
+
+def calc_fund_pe_percentile(code: str) -> float | None:
+    """
+    基于 250 日 K 线计算价格所处历史区间百分位：(curr-min)/(max-min)*100
+    用于 159222 / 563020 / 513650；518680 跳过。
+    """
+    secid = "0." + code if FUNDS[code]["is_sz"] else "1." + code
+    history = _parse_market_history(secid, 250)
+    if not history or len(history) < 20:
+        return None
+    closes = [h["close"] for h in history]   # oldest-first
+    curr = closes[-1]                        # 最新价格
+    mn, mx = min(closes), max(closes)
+    if mx == mn:
+        return None
+    return round((curr - mn) / (mx - mn) * 100, 1)
+
+
+def calc_fund_deviation(code: str) -> dict | None:
+    """
+    计算乖离率和 RSI（基于 250 日均线）。
+    返回: {annual_avg, dev, rsi, signal, signal_text, color}
+    """
+    secid = "0." + code if FUNDS[code]["is_sz"] else "1." + code
+    history = _parse_market_history(secid, 250)
     if not history or len(history) < 10:
         return None
-    closes = [h["close"] for h in history]
-    avg = sum(closes) / len(closes)
-    curr = closes[-1]  # 最后一条 = 最新收盘价（oldest-first）
-    dev = (curr / avg - 1) * 100
-    rsi = calc_rsi(closes, 14)
+    closes = [h["close"] for h in history]   # oldest-first
+    avg   = sum(closes) / len(closes)
+    curr  = closes[-1]                        # 最新价格
+    dev   = (curr / avg - 1) * 100
+    rsi   = calc_rsi(closes, 14)
     if dev < 0:
         sig, txt, color = "buy", "买入", "green"
     elif dev <= 10:
         sig, txt, color = "hold", "持有", "yellow"
     else:
         sig, txt, color = "sell", "卖出", "red"
-    # Note: price from fundgz (实时估值) is authoritative; K-line close is NOT used
-    # to avoid overwriting with stale NAV data for indoor funds (159222 etc.)
-    result = {
-        "annual_avg": round(avg, 3),
-        "dev": round(dev, 2),
-        "rsi": rsi,
-        "signal": sig, "signal_text": txt, "color": color,
+    return {
+        "annual_avg":   round(avg, 3),
+        "dev":          round(dev, 2),
+        "rsi":          rsi,
+        "signal":       sig,
+        "signal_text":  txt,
+        "color":        color,
     }
-    return result
 
-def fetch_gold() -> dict:
-    """Get international gold price (COMEX USD/oz) and domestic SGE Au99.99 CNY/g.
-    Falls back to COMEX*FX/31.1035 if SGE is unavailable (weekends/network)."""
+
+# ============================================================
+# 黄金
+# ============================================================
+
+def fetch_gold() -> dict | None:
+    """
+    获取国际金价 COMEX（USD/oz）和国内金价 SGE Au99.99（CNY/g）。
+    SGE 周末休市，失败时用 COMEX*汇率/31.1035 估算。
+    """
     result = {}
-    # COMEX international gold (USD/oz) - most reliable source
-    try:
-        url_g = "https://hq.sinajs.cn/list=hf_GC"
-        req_g = urllib.request.Request(url_g, headers={
-            "User-Agent": "Mozilla/5.0",
-            "Referer": "https://finance.sina.com.cn/"
-        })
-        with urllib.request.urlopen(req_g, timeout=8) as resp:
-            text = resp.read().decode("utf-8", errors="ignore")
+
+    # COMEX 国际金价（最可靠来源）
+    text = _get("https://hq.sinajs.cn/list=hf_GC",
+                {"Referer": "https://finance.sina.com.cn/"}, timeout=8)
+    if text:
         m = re.search(r'"([^"]+)"', text)
         if m:
-            result["global"] = round(float(m.group(1).split(",")[0]), 2)
-            print(f"  [OK] COMEX: {result['global']} USD/oz")
-    except Exception as e:
-        print(f"  [FAIL] COMEX gold: {e}")
-        return result if result else None
+            try:
+                result["global"] = round(float(m.group(1).split(",")[0]), 2)
+                print(f"  [OK] COMEX: {result['global']} USD/oz")
+            except (ValueError, IndexError):
+                pass
 
-    # SGE Au99.99 domestic price (CNY/g) - fetch last 5 business days
-    # Note: SGE is closed on weekends and holidays
+    # SGE Au99.99 国内金价（从最近工作日起向前找）
+    now = datetime.now(_TZ)
     for days_ago in range(1, 8):
-        dt = datetime.now(_tz) - timedelta(days=days_ago)
-        # Skip weekends
+        dt = now - timedelta(days=days_ago)
         if dt.weekday() >= 5:
             continue
         date_str = dt.strftime("%Y-%m-%d")
-        url_sge = ("https://www.sge.com.cn/sjzx/quotation_daily_new"
-                   f"?start_date={date_str}&end_date={date_str}&product=Au99.99")
-        try:
-            req_sge = urllib.request.Request(url_sge, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "Referer": "https://www.sge.com.cn/",
-                "Accept-Language": "zh-CN,zh;q=0.9"
-            })
-            with urllib.request.urlopen(req_sge, timeout=10) as resp:
-                html = resp.read().decode("utf-8", errors="ignore")
-            rows = re.findall(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
-            for row in rows:
-                # Match both Au99.99 and iAu99.99 contract names
-                if re.search(r"Au99\.99", row):
-                    cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.DOTALL)
-                    clean = [re.sub(r"<[^>]+>", "", c).strip() for c in cells]
-                    # Price is typically in column 3 or 4
-                    for val in clean[2:7]:
-                        try:
-                            price = float(val)
-                            if 500 < price < 2000:  # Reasonable CNY/g range
-                                result["sge"] = round(price, 2)
-                                print(f"  [OK] SGE Au99.99: {result['sge']} CNY/g ({date_str})")
-                                break
-                        except ValueError:
-                            continue
-                    if "sge" in result:
-                        break
-        except Exception as e:
-            print(f"  [FAIL] SGE Au99.99 ({date_str}): {e}")
+        url = (f"https://www.sge.com.cn/sjzx/quotation_daily_new"
+               f"?start_date={date_str}&end_date={date_str}&product=Au99.99")
+        text = _get(url, {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Referer": "https://www.sge.com.cn/",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+        }, timeout=10)
+        if text:
+            for row in re.findall(r"<tr[^>]*>.*?</tr>", text, re.DOTALL):
+                if not re.search(r"Au99\.99", row):
+                    continue
+                cells = [re.sub(r"<[^>]+>", "", c).strip() for c in re.findall(r"<td[^>]*>(.*?)</td>", row, re.DOTALL)]
+                for val in cells[2:7]:
+                    try:
+                        price = float(val)
+                        if 500 < price < 2000:
+                            result["sge"] = round(price, 2)
+                            print(f"  [OK] SGE Au99.99: {result['sge']} CNY/g ({date_str})")
+                            break
+                    except ValueError:
+                        continue
+                if "sge" in result:
+                    break
         if "sge" in result:
             break
 
-    # If SGE still missing (weekend or network), compute from COMEX * FX / oz_conversion
-    if "sge" not in result:
-        try:
-            fx_url = "https://hq.sinajs.cn/list=fx_susdcny"
-            req_fx = urllib.request.Request(fx_url, headers={
-                "User-Agent": "Mozilla/5.0",
-                "Referer": "https://finance.sina.com.cn/"
-            })
-            with urllib.request.urlopen(req_fx, timeout=8) as resp:
-                text_fx = resp.read().decode("gbk", errors="ignore")
-            m_fx = re.search(r'"([^"]+)"', text_fx)
-            if m_fx:
-                fx = float(m_fx.group(1).split(",")[1])
-                sge_est = round(result["global"] * fx / 31.1035, 2)
-                result["sge"] = sge_est
-                print(f"  [OK] SGE (computed from COMEX*FX): {sge_est} CNY/g (FX={fx})")
-        except Exception as e:
-            print(f"  [WARN] SGE fallback compute failed: {e}")
+    # 周末/网络失败时：用 COMEX * USD/CNY / 31.1035 估算
+    if "sge" not in result and result.get("global"):
+        text = _get("https://hq.sinajs.cn/list=fx_susdcny",
+                    {"Referer": "https://finance.sina.com.cn/"}, encoding="gbk", timeout=8)
+        if text:
+            m = re.search(r'"([^"]+)"', text)
+            if m:
+                try:
+                    fx = float(m.group(1).split(",")[1])
+                    result["sge"] = round(result["global"] * fx / 31.1035, 2)
+                    print(f"  [OK] SGE (估算): {result['sge']} CNY/g  FX={fx}")
+                except (ValueError, IndexError):
+                    pass
 
     return result if result else None
 
-def fetch_fx_usdcny() -> dict:
-    """USD/CNY exchange rate"""
-    try:
-        url = "https://hq.sinajs.cn/list=fx_susdcny"
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0",
-            "Referer": "https://finance.sina.com.cn/"
-        })
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            text = resp.read().decode("gbk", errors="ignore")
-        m = re.search(r'"([^"]+)"', text)
-        if m:
-            parts = m.group(1).split(",")
-            if len(parts) > 2:
-                curr = float(parts[1])
-                prev = float(parts[2])
-                chg_pct = round((curr - prev) / prev * 100, 2) if prev else None
-                return {"rate": round(curr, 4), "change_pct": chg_pct}
-    except Exception as e:
-        print(f"  [FAIL] USD/CNY: {e}")
-    return None
 
-def fetch_bond_yield() -> float:
-    """10-Year China Government Bond Yield - multiple sources"""
-    import subprocess
-    # Source 1: Trading Economics (web scraping)
-    try:
-        result = subprocess.run(
-            ['curl', '-s', '--max-time', '8', '-A', 'Mozilla/5.0',
-             'https://zh.tradingeconomics.com/china/government-bond-yield'],
-            capture_output=True, text=True, timeout=12
-        )
-        text = result.stdout
-        if text and len(text) > 500:
-            matches = re.findall(r'(\d+\.\d+)%', text)
-            for m in matches:
-                val = float(m)
-                if 1.0 < val < 5.0:
-                    print(f"  [OK] 10年国债收益率(tradingeconomics): {val}%")
-                    return round(val, 2)
-    except Exception as e:
-        print(f"  [FAIL] 10年国债收益率(tradingeconomics): {e}")
+# ============================================================
+# 汇率
+# ============================================================
 
-    # Source 2: Sina CN10YT bond yield
+def fetch_fx() -> dict | None:
+    """USD/CNY 即期汇率和涨跌幅"""
+    text = _get("https://hq.sinajs.cn/list=fx_susdcny",
+                {"Referer": "https://finance.sina.com.cn/"}, encoding="gbk", timeout=8)
+    if not text:
+        return None
+    m = re.search(r'"([^"]+)"', text)
+    if not m or len(m.group(1).split(",")) < 3:
+        return None
     try:
-        url = "https://hq.sinajs.cn/list=cn10yt"
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0",
-            "Referer": "https://finance.sina.com.cn/"
-        })
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            text = resp.read().decode("utf-8", errors="ignore")
-        m = re.search(r'"([^"]+)"', text)
-        if m:
-            fields = m.group(1).split(',')
-            if len(fields) > 1:
-                val_str = fields[1].strip()
-                if val_str.replace('.', '').isdigit():
-                    val = float(val_str)
-                    if 1.0 < val < 5.0:
-                        print(f"  [OK] 10年国债收益率(sina cn10yt): {val}%")
-                        return round(val, 2)
-    except Exception as e:
-        print(f"  [FAIL] 10年国债收益率(sina): {e}")
+        parts = m.group(1).split(",")
+        curr = float(parts[1])
+        prev = float(parts[2])
+        chg  = round((curr - prev) / prev * 100, 2) if prev else None
+        return {"rate": round(curr, 4), "change_pct": chg}
+    except (ValueError, IndexError):
+        return None
 
-    # Source 3: macroview.club via curl
+
+# ============================================================
+# 指数
+# ============================================================
+
+def fetch_index(secid: str) -> dict | None:
+    """抓取 A 股指数（东财 push2 接口），返回 {price, change_pct}"""
+    text = _get(f"https://push2.eastmoney.com/api/qt/stock/get?secid={secid}&fields=f43,f170",
+                timeout=10)
+    if not text:
+        return None
     try:
-        result = subprocess.run(
-            ['curl', '-s', '--max-time', '8', '-A', 'Mozilla/5.0',
-             '-H', 'Referer: https://www.macroview.club/',
-             'https://www.macroview.club/data?code=cn_bond_tenyear'],
-            capture_output=True, text=True, timeout=10
-        )
-        text = result.stdout
-        if text and '登录' not in text and len(text) > 1000:
-            matches = re.findall(r'<em>\s*([\d.]+)\s*</em>', text)
-            if len(matches) >= 2:
-                val = float(matches[1])
-                if 0.5 < val < 10:
-                    print(f"  [OK] 10年国债收益率(macroview): {val}%")
-                    return round(val, 4)
-    except Exception as e:
-        print(f"  [FAIL] 10年国债收益率(macroview): {e}")
-
-    return None
-
-def fetch_us_yield() -> float | None:
-    """US 10-Year Treasury Yield from Trading Economics"""
-    import subprocess
-    try:
-        result = subprocess.run(
-            ['curl', '-s', '--max-time', '8', '-A', 'Mozilla/5.0',
-             'https://zh.tradingeconomics.com/united-states/government-bond-yield'],
-            capture_output=True, text=True, timeout=12
-        )
-        text = result.stdout
-        if text and len(text) > 500:
-            # Extract first yield value between 3.0 and 6.0 (US 10Y typically)
-            matches = re.findall(r'(\d+\.\d+)%', text)
-            for m in matches:
-                val = float(m)
-                if 3.0 < val < 6.0:
-                    print(f"  [OK] 美债10年收益率(tradingeconomics): {val}%")
-                    return round(val, 2)
-    except Exception as e:
-        print(f"  [FAIL] 美债10年收益率: {e}")
-    return None
-
-def fetch_dxy() -> float | None:
-    """US Dollar Index (DXY) from Trading Economics
-    DXY value appears as plain number (e.g. 98.6954), not with % suffix"""
-    import subprocess
-    try:
-        result = subprocess.run(
-            ['curl', '-s', '--max-time', '8', '-A', 'Mozilla/5.0',
-             'https://zh.tradingeconomics.com/united-states/currency'],
-            capture_output=True, text=True, timeout=12
-        )
-        text = result.stdout
-        if text and len(text) > 500:
-            # Look for DXY value: find '降至98.6954' or similar patterns
-            m = re.search(r'\u964d\u81f4?(\d{2,3}\.\d{4})', text)  # 降至XXX
-            if not m:
-                m = re.search(r'\u6307\u6570[\u5f02\u5230\u4e0d\u540c]*(\d{2,3}\.\d{4})', text)  # 指数XXX
-            if not m:
-                # Fallback: find 5-digit numbers in range 95-105
-                matches = re.findall(r'\b(9[5-9]\.\d{4}|10[0-5]\.\d{4})\b', text)
-                if matches:
-                    m = type('M', (), {'group': lambda self, i: matches[0]})()
-            if m:
-                val = float(m.group(1))
-                if 90 < val < 110:
-                    print(f"  [OK] 美元指数DXY(tradingeconomics): {val}")
-                    return round(val, 4)
-    except Exception as e:
-        print(f"  [FAIL] 美元指数DXY: {e}")
-    return None
-
-def fetch_hs300_pe() -> float | None:
-    """沪深300 PE (TTM) from Tencent sh000300 f75 (position 75 in 88-field tilde format)"""
-    try:
-        url = "https://qt.gtimg.cn/q=sh000300"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            text = resp.read().decode("utf-8", errors="ignore")
-        m = re.search(r'v_sh000300="([^"]+)"', text)
-        if m:
-            fields = m.group(1).split('~')
-            if len(fields) >= 76:
-                val = float(fields[75])  # f75 = PE
-                if 5 < val < 100:
-                    print(f"  [OK] 沪深300 PE(sh000300): {val}")
-                    return round(val, 2)
-    except Exception as e:
-        print(f"  [FAIL] 沪深300 PE: {e}")
-    return None
-
-def fetch_hs300_pe_percentile() -> float | None:
-    """沪深300 PE percentile: current PE in 250-day range"""
-    try:
-        # Fetch 250-day K-line for 沪深300 (secid=1.000300)
-        url = ("https://money.finance.sina.com.cn/quotes_service/api/json_v2.php"
-               "/CN_MarketData.getKLineData?symbol=sh000300&scale=240&ma=no&datalen=250")
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0",
-                                                    "Referer": "https://finance.sina.com.cn/"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        if not isinstance(data, list) or len(data) < 30:
+        d = json.loads(text).get("data", {})
+        if not d:
             return None
-        closes = [float(item["close"]) for item in reversed(data)]
-        curr = closes[-1]
-        min_p = min(closes)
-        max_p = max(closes)
-        if max_p == min_p:
-            return None
-        pct = (curr - min_p) / (max_p - min_p) * 100
-        print(f"  [OK] 沪深300 PE分位: {pct:.1f}% ({len(closes)}日区间)")
-        return round(pct, 1)
-    except Exception as e:
-        print(f"  [FAIL] 沪深300 PE分位: {e}")
-    return None
-
-def calc_erp(pe: float, bond_yield: float) -> float | None:
-    """Equity Risk Premium = 1/PE - bond_yield (in %)"""
-    if pe and bond_yield and pe > 0:
-        # PE倒数即盈利收益率，再乘100转为%
-        return round((1.0 / pe) * 100 - bond_yield, 2)
-    return None
-
-def fetch_vix() -> float | None:
-    """VIX from FRED (Federal Reserve Bank of St. Louis) - accessible from GitHub Actions"""
-    try:
-        import csv, io
-        url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            text = resp.read().decode("utf-8")
-        reader = csv.reader(io.StringIO(text))
-        next(reader)  # skip header
-        rows = list(reader)
-        if rows:
-            vix = float(rows[-1][1])
-            print(f"  [OK] VIX (FRED): {vix}")
-            return vix
-    except Exception as e:
-        print(f"  [FAIL] VIX (FRED): {e}")
-    return None
-
-def fetch_563020_dividend() -> float:
-    """563020 dividend yield"""
-    try:
-        url = f"https://push2.eastmoney.com/api/qt/stock/get?secid=1.563020&fields=f10"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        div = data.get("data", {}).get("f10", 0)
-        if div:
-            return round(float(div), 2)
-    except Exception as e:
-        print(f"  [FAIL] 563020 dividend: {e}")
-    return None
-
-def fetch_pe_percentile(code: str) -> float | None:
-    """Fetch PE historical percentile for a fund from eastmoney"""
-    try:
-        url = (f"https://datacenter.eastmoney.com/securities/api/data/v1/get"
-               f"?reportName=RPT_FUND_BASIC_INFO"
-               f"&columns=SECURITY_CODE,PE_TTM_HISTORY_PECT"
-               f"&filter=SECURITY_CODE%3D%22{code}%22")
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        result = data.get("result", {})
-        if result:
-            items = result.get("data", [])
-            if items:
-                pct = items[0].get("PE_TTM_HISTORY_PECT")
-                if pct and isinstance(pct, (int, float)):
-                    return round(float(pct), 1)
-    except Exception:
-        pass
-    # Fallback: use price-based approximation from nav history
-    try:
-        secid = "0." + code if code == "159222" else "1." + code
-        history = fetch_nav_history(secid, 250)
-        if not history or len(history) < 20:
-            return None
-        closes = [h["close"] for h in history]
-        curr = closes[-1]
-        min_p = min(closes)
-        max_p = max(closes)
-        if max_p == min_p:
-            return None
-        pct = (curr - min_p) / (max_p - min_p) * 100
-        return round(pct, 1)
+        return {
+            "price":      d.get("f43", 0) / 100,
+            "change_pct": round(d.get("f170", 0) / 100, 2),
+        }
     except Exception:
         return None
 
+
+# ============================================================
+# 风险指标
+# ============================================================
+
+def _curl_text(url: str, referer: str = "", timeout: int = 8) -> str | None:
+    """通过 curl 子进程抓取（绕开部分 Python urllib 连接问题）"""
+    try:
+        args = ["curl", "-s", "--max-time", str(timeout), "-A", "Mozilla/5.0"]
+        if referer:
+            args += ["-H", f"Referer: {referer}"]
+        args.append(url)
+        result = subprocess.run(args, capture_output=True, text=True, timeout=timeout + 2)
+        return result.stdout if result.stdout and len(result.stdout) > 100 else None
+    except Exception:
+        return None
+
+
+def fetch_bond_yield() -> float | None:
+    """中国10年国债收益率（多源优先）"""
+    # 源1: Sina cn10yt（最稳定）
+    text = _get("https://hq.sinajs.cn/list=cn10yt",
+                {"Referer": "https://finance.sina.com.cn/"}, timeout=8)
+    if text:
+        m = re.search(r'"([^"]+)"', text)
+        if m:
+            fields = m.group(1).split(",")
+            if len(fields) > 1:
+                val_str = fields[1].strip()
+                if val_str.replace(".", "").isdigit():
+                    val = float(val_str)
+                    if 1.0 < val < 5.0:
+                        print(f"  [OK] 中国10Y (sina): {val}%")
+                        return round(val, 2)
+
+    # 源2: Trading Economics
+    text = _curl_text("https://zh.tradingeconomics.com/china/government-bond-yield")
+    if text:
+        for m in re.findall(r"(\d+\.\d+)%", text):
+            val = float(m)
+            if 1.0 < val < 5.0:
+                print(f"  [OK] 中国10Y (tradingeconomics): {val}%")
+                return round(val, 2)
+    return None
+
+
+def fetch_us_yield() -> float | None:
+    """美国10年国债收益率（Trading Economics）"""
+    text = _curl_text("https://zh.tradingeconomics.com/united-states/government-bond-yield")
+    if text:
+        for m in re.findall(r"(\d+\.\d+)%", text):
+            val = float(m)
+            if 3.0 < val < 6.0:
+                print(f"  [OK] 美债10Y (tradingeconomics): {val}%")
+                return round(val, 2)
+    return None
+
+
+def fetch_dxy() -> float | None:
+    """美元指数 DXY（Trading Economics）"""
+    text = _curl_text("https://zh.tradingeconomics.com/united-states/currency")
+    if text:
+        # 匹配 "降至98.6954" 或 95-105 范围内的数字
+        m = re.search(r"\u964d\u81f4?(\d{2,3}\.\d{4})", text)
+        if not m:
+            matches = re.findall(r"\b(9[5-9]\.\d{4}|10[0-5]\.\d{4})\b", text)
+            if matches:
+                m = type("M", (), {"group": lambda s, i: matches[0]})()
+        if m:
+            val = float(m.group(1))
+            if 90 < val < 110:
+                print(f"  [OK] DXY (tradingeconomics): {val}")
+                return round(val, 4)
+    return None
+
+
+def fetch_hs300_pe() -> float | None:
+    """沪深300 PE（腾讯 sh000300 f75 字段）"""
+    text = _get("https://qt.gtimg.cn/q=sh000300", timeout=8)
+    if not text:
+        return None
+    m = re.search(r'v_sh000300="([^"]+)"', text)
+    if not m:
+        return None
+    fields = m.group(1).split("~")
+    val = safe_get_field(fields, 75, lo=5, hi=100)
+    if val:
+        print(f"  [OK] 沪深300 PE: {val}")
+        return round(val, 2)
+    return None
+
+
+def fetch_hs300_pe_percentile() -> float | None:
+    """沪深300 PE 历史分位（基于 250 日 K 线）"""
+    # Sina K线是 oldest-first（无需反转）
+    url = ("https://money.finance.sina.com.cn/quotes_service/api/json_v2.php"
+           "/CN_MarketData.getKLineData?symbol=sh000300&scale=240&ma=no&datalen=250")
+    text = _get(url, {"Referer": "https://finance.sina.com.cn/"}, timeout=15)
+    if not text:
+        return None
+    try:
+        data = json.loads(text)
+        if not isinstance(data, list) or len(data) < 30:
+            return None
+        closes = [float(item["close"]) for item in data]   # oldest-first
+        curr = closes[-1]
+        mn, mx = min(closes), max(closes)
+        if mx == mn:
+            return None
+        pct = (curr - mn) / (mx - mn) * 100
+        print(f"  [OK] 沪深300 PE分位: {pct:.1f}%")
+        return round(pct, 1)
+    except Exception as e:
+        print(f"  [PARSE] 沪深300 PE分位: {e}")
+        return None
+
+
+def calc_erp(pe: float, bond: float) -> float | None:
+    """股权风险溢价 = E/P - bond = 100/PE(%) - bond(%)"""
+    if pe and bond and pe > 0:
+        return round(100 / pe - bond, 2)
+    return None
+
+
+# ============================================================
+# 主流程
+# ============================================================
+
+def _save(data: dict):
+    """保存 market.json（所有路径相对于脚本目录）"""
+    with open("data/market.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 def main():
-    now = datetime.now(_tz).strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{now}] Fetching market data...")
+    now = datetime.now(_TZ).strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n[{now}] 开始抓取市场数据...")
 
     market = {
-        "updated": now,
-        "updated_date": datetime.now(_tz).strftime("%Y-%m-%d"),
-        "funds": {},
-        "index": {},
+        "updated":      now,
+        "updated_date": datetime.now(_TZ).strftime("%Y-%m-%d"),
+        "funds":  {},
+        "index":  {},
     }
 
-    # Funds via 天天基金
+    # ---- 基金实时价格（fundgz） ----------------------------------------
     for code, info in FUNDS.items():
-        fund = fetch_fund_data(code)
+        fund = fetch_fund_price(code)
         if fund:
             market["funds"][code] = fund
-            print(f"  [OK] {info['name']}({code}): {fund['price']} ({fund['change_pct']:+.2f}%)")
-    # Save after funds (in case later steps fail)
-    with open("data/market.json", "w", encoding="utf-8") as f:
-        json.dump(market, f, ensure_ascii=False, indent=2)
+            print(f"  [OK] {info['name']}({code}): {fund['price']} {fund['change_pct']:+.2f}%")
+    _save(market)   # 价格最关键，先落盘
 
-    # Save after funds (in case later steps fail)
-    with open("data/market.json", "w", encoding="utf-8") as f:
-        json.dump(market, f, ensure_ascii=False, indent=2)
-
-    # Note: 腾讯 indoor 接口 (secid 1.xxx) 单位与 fundgz 不一致，会导致价格错误，
-    # 故 indoor 基金改价直接用 fundgz 数据，不再用腾讯接口覆盖。
-    # PE/股息率改为单独从腾讯基金接口获取。
-
-    # Fetch PE and dividend for equity funds (skip gold ETF)
-    print(f"\n  -- Fetching fund indicators (PE/dividend)...")
-    for code in FUNDS:
-        if code == "518680":
+    # ---- 基金指标：PE / 股息率 / PE分位 --------------------------------
+    for code in ALL_FUND_CODES:
+        if code == GOLD_CODE:
             continue
-        ind = fetch_fund_indicators(code)
+        # PE + 股息率（腾讯接口）
+        ind = fetch_fund_pe_div(code)
         if ind:
             market["funds"][code].update(ind)
-            pe_str = f"{ind['pe']:.1f}" if 'pe' in ind else 'N/A'
-            div_str = f"{ind['dividend']:.2f}%" if 'dividend' in ind else 'N/A'
-            print(f"  [OK] {code}: PE={pe_str}, 股息率={div_str}")
+            print(f"  [OK] {code} PE={ind.get('pe')}, 股息率={ind.get('dividend')}")
 
-    # Annual deviation + RSI for all funds (except gold ETF)
-    print(f"\n  -- Calculating annual deviation + RSI for all funds...")
-    for code in FUNDS:
-        if code == "518680":
+        # PE 历史分位（价格区间法）
+        pct = calc_fund_pe_percentile(code)
+        if pct is not None:
+            market["funds"][code]["pe_percent"] = pct
+            print(f"  [OK] {code} PE分位: {pct:.1f}%")
+
+    # ---- 乖离率 + RSI（所有基金，518680跳过） -------------------------
+    for code in ALL_FUND_CODES:
+        if code == GOLD_CODE:
             continue
-        dev_result = calc_annual_deviation(code)
-        if dev_result:
-            market["funds"][code].update(dev_result)
-            rsi_str = f", RSI={dev_result['rsi']}" if dev_result.get('rsi') else ""
-            print(f"  [OK] {code}: dev={dev_result['dev']:+.2f}% -> {dev_result['signal_text']}{rsi_str}")
+        dev = calc_fund_deviation(code)
+        if dev:
+            market["funds"][code].update(dev)
+            rsi_s = f", RSI={dev['rsi']}" if dev.get("rsi") else ""
+            print(f"  [OK] {code}: 乖离率={dev['dev']:+.2f}% -> {dev['signal_text']}{rsi_s}")
 
-    # Gold prices
-    print(f"\n  -- Fetching gold prices...")
+    # ---- 黄金 ---------------------------------------------------------
     gold = fetch_gold()
     if gold:
         market["gold"] = gold
-        if gold.get("global"):
-            print(f"  [OK] COMEX: {gold['global']} USD/oz")
-        if gold.get("sge"):
-            print(f"  [OK] SGE Au99.99: {gold['sge']} CNY/g")
+        print(f"  [OK] 黄金: COMEX={gold.get('global')} USD/oz  SGE={gold.get('sge')} CNY/g")
     else:
         market["gold"] = None
-    # Save after gold (critical data, save early)
-    with open("data/market.json", "w", encoding="utf-8") as f:
-        json.dump(market, f, ensure_ascii=False, indent=2)
+    _save(market)
 
-    # Bond yield + risk indicators
-    print(f"\n  -- Fetching risk indicators...")
-    cn10y = fetch_bond_yield()           # 中国10年国债收益率
-    us10y = fetch_us_yield()            # 美债10年收益率
-    dxy   = fetch_dxy()                 # 美元指数
-    hs300_pe = fetch_hs300_pe()         # 沪深300 PE
-    hs300_pe_pct = fetch_hs300_pe_percentile()  # 沪深300 PE分位
+    # ---- 风险指标 ----------------------------------------------------
+    cn10y = fetch_bond_yield()
+    us10y = fetch_us_yield()
+    dxy   = fetch_dxy()
+    pe300 = fetch_hs300_pe()
+    pct300 = fetch_hs300_pe_percentile()
+    erp   = calc_erp(pe300, cn10y)
 
-    if cn10y:
-        print(f"  [OK] 中国10Y: {cn10y:.2f}%")
-    if us10y:
-        print(f"  [OK] 美债10Y: {us10y:.2f}%")
-    if dxy:
-        print(f"  [OK] 美元指数: {dxy:.2f}")
-    if hs300_pe:
-        print(f"  [OK] 沪深300 PE: {hs300_pe:.1f}")
-    if hs300_pe_pct is not None:
-        print(f"  [OK] 沪深300 PE分位: {hs300_pe_pct:.1f}%")
-
-    # ERP = 盈利收益率(1/PE*100) - 国债收益率
-    erp = calc_erp(hs300_pe, cn10y) if hs300_pe else None
-    if erp is not None:
-        print(f"  [OK] 股权风险溢价ERP: {erp:.2f}%")
+    if cn10y:  print(f"  [OK] 中国10Y: {cn10y}%")
+    if us10y:  print(f"  [OK] 美债10Y: {us10y}%")
+    if dxy:    print(f"  [OK] DXY: {dxy}")
+    if pe300: print(f"  [OK] 沪深300 PE: {pe300}")
+    if pct300: print(f"  [OK] 沪深300 PE分位: {pct300}%")
+    if erp:    print(f"  [OK] ERP: {erp}%")
 
     market["risk"] = {
-        "cn10y": cn10y,
-        "us10y": us10y,
-        "dxy": dxy,
-        "hs300_pe": hs300_pe,
-        "hs300_pe_pct": hs300_pe_pct,
-        "erp": erp,
+        "cn10y":        cn10y,
+        "us10y":        us10y,
+        "dxy":          dxy,
+        "hs300_pe":     pe300,
+        "hs300_pe_pct": pct300,
+        "erp":          erp,
     }
 
-    # USD/CNY
-    print(f"\n  -- Fetching USD/CNY...")
-    fx = fetch_fx_usdcny()
+    # ---- 汇率 --------------------------------------------------------
+    fx = fetch_fx()
     if fx:
         market["fx"] = fx
-        print(f"  [OK] USD/CNY: {fx['rate']:.4f}")
+        print(f"  [OK] USD/CNY: {fx['rate']}")
     else:
         market["fx"] = {"rate": None, "change_pct": None}
 
-    # Shanghai Index
-    sh = fetch_index("000001", "SSE")
+    # ---- 指数 --------------------------------------------------------
+    sh = fetch_index("1.000001")
     if sh:
         market["index"]["sh000001"] = sh
-        print(f"\n  [OK] SSE: {sh['price']} ({sh['change_pct']:+.2f}%)")
+        print(f"  [OK] 上证: {sh['price']} ({sh['change_pct']:+.2f}%)")
 
-    # S&P 500
-    spx = fetch_us_index("100.SPX", "S&P 500")
+    spx = fetch_index("100.SPX")
     if spx:
         market["index"]["spx"] = spx
-        print(f"  [OK] S&P 500: {spx['price']} ({spx['change_pct']:+.2f}%)")
+        print(f"  [OK] S&P500: {spx['price']} ({spx['change_pct']:+.2f}%)")
 
-    # Save final
-    with open("data/market.json", "w", encoding="utf-8") as f:
-        json.dump(market, f, ensure_ascii=False, indent=2)
-    print(f"\n  [DONE] data/market.json saved")
+    # ---- 落盘 --------------------------------------------------------
+    _save(market)
+    print(f"\n[DONE] data/market.json saved")
+
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
         print(f"[FATAL] {e}")
-    sys.exit(0)  # 始终退出0，避免CI网络波动导致workflow失败
+    sys.exit(0)   # 始终退出0，避免网络波动导致 CI 误判失败

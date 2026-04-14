@@ -191,19 +191,29 @@ def fetch_us_index(secid: str, name: str) -> dict:
         return None
 
 def fetch_nav_history(secid: str, days: int = 250) -> list:
-    url = (f"https://push2his.eastmoney.com/api/qt/stock/kline/get"
-           f"?secid={secid}&fields1=f1,f2,f3,f4,f5,f6"
-           f"&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61"
-           f"&klt=101&fqt=1&end=20500101&lmt={days}")
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        klines = data.get("data", {}).get("klines", []) if data.get("data") else []
-        return [{"date": line.split(",")[0], "close": float(line.split(",")[2])} for line in klines]
-    except Exception as e:
-        print(f"  [FAIL] nav_history {secid}: {e}")
-        return []
+    # secid: "0.xxx"=深圳基金, "1.xxx"=上海股票/ETF
+    # 改用 Sina K线 API (money.finance.sina.com.cn)，绕开 EastMoney 在 GitHub Actions 的连通性问题
+    market = "sz" if secid.startswith("0.") else "sh"
+    code = secid.split(".")[1]
+    url = (f"https://money.finance.sina.com.cn/quotes_service/api/json_v2.php"
+           f"/CN_MarketData.getKLineData?symbol={market}{code}"
+           f"&scale=240&ma=no&datalen={days}")
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0",
+                                                        "Referer": "https://finance.sina.com.cn/"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            if not isinstance(data, list) or not data:
+                return []
+            # Sina 返回 newest-first，需要反转
+            return [{"date": item["day"], "close": float(item["close"])} for item in reversed(data)]
+        except Exception as e:
+            if attempt < 2:
+                print(f"  [RETRY] nav_history {secid}: {e}")
+            else:
+                print(f"  [FAIL] nav_history {secid}: {e}")
+                return []
 
 def calc_rsi(prices, period=14):
     if len(prices) < period + 1:
@@ -491,22 +501,15 @@ def fetch_hs300_pe_percentile() -> float | None:
     """沪深300 PE percentile: current PE in 250-day range"""
     try:
         # Fetch 250-day K-line for 沪深300 (secid=1.000300)
-        url = ("https://push2his.eastmoney.com/api/qt/stock/kline/get"
-               "?secid=1.000300&fields1=f1,f2,f3,f4,f5"
-               "&fields2=f51,f52,f53,f54,f55,f56"
-               "&klt=101&fqt=1&end=20500101&lmt=250")
+        url = ("https://money.finance.sina.com.cn/quotes_service/api/json_v2.php"
+               "/CN_MarketData.getKLineData?symbol=sh000300&scale=240&ma=no&datalen=250")
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0",
-                                                    "Referer": "https://quote.eastmoney.com/"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            raw = resp.read()
-            import gzip
-            if raw[0:2] == b'\x1f\x8b':
-                raw = gzip.decompress(raw)
-            data = json.loads(raw.decode("utf-8"))
-        klines = data.get("data", {}).get("klines", [])
-        if not klines or len(klines) < 30:
+                                                    "Referer": "https://finance.sina.com.cn/"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        if not isinstance(data, list) or len(data) < 30:
             return None
-        closes = [float(k.split(",")[2]) for k in klines]  # close price
+        closes = [float(item["close"]) for item in reversed(data)]
         curr = closes[-1]
         min_p = min(closes)
         max_p = max(closes)
@@ -526,20 +529,49 @@ def calc_erp(pe: float, bond_yield: float) -> float | None:
         return round((1.0 / pe) * 100 - bond_yield, 2)
     return None
 
-def calc_fear_greed(pe_pct: float, dev: float, rsi: float, erp: float) -> float | None:
-    """Simple Fear & Greed index (0-100) from existing indicators"""
+def fetch_vix() -> float | None:
+    """VIX from FRED (Federal Reserve Bank of St. Louis) - accessible from GitHub Actions"""
     try:
-        # PE分位 (0-100 normalized)
-        pe_score = pe_pct
-        # 乖离率 (偏离均线程度，越高越恐慌)
-        dev_score = min(max(dev / 20 * 50, 0), 50)  # ±20% -> 0-50
-        # RSI ( >50 =贪婪, <50=恐慌)
-        rsi_score = rsi
-        # ERP (越高=股票越有吸引力=贪婪)
-        erp_score = min(max((erp + 2) / 6 * 50, 0), 50)  # -2%到4% -> 0-50
+        import csv, io
+        url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            text = resp.read().decode("utf-8")
+        reader = csv.reader(io.StringIO(text))
+        next(reader)  # skip header
+        rows = list(reader)
+        if rows:
+            vix = float(rows[-1][1])
+            print(f"  [OK] VIX (FRED): {vix}")
+            return vix
+    except Exception as e:
+        print(f"  [FAIL] VIX (FRED): {e}")
+    return None
 
-        # 综合得分 (0=极度恐慌, 100=极度贪婪)
-        composite = (pe_score * 0.3 + dev_score * 0.2 + rsi_score * 0.3 + erp_score * 0.2)
+def calc_fear_greed(pe_pct: float, dev: float, rsi: float, erp: float, vix: float = None) -> float | None:
+    """Simple Fear & Greed index (0-100) from available indicators.
+    When dev/rsi unavailable (nav_history failed), uses VIX as fallback signal."""
+    try:
+        # PE分位 (0-100)
+        pe_score = pe_pct if pe_pct is not None else 50.0
+        # 乖离率
+        dev_score = min(max((dev or 0) / 20 * 50, 0), 50)
+        # RSI
+        rsi_score = rsi if rsi is not None else 50.0
+        # ERP
+        erp_score = min(max(((erp or 0) + 2) / 6 * 50, 0), 50)
+
+        # 有 dev/rsi 时用原始权重，否则用 VIX 兜底
+        if dev is not None and rsi is not None:
+            composite = pe_score * 0.3 + dev_score * 0.2 + rsi_score * 0.3 + erp_score * 0.2
+        elif vix is not None:
+            # VIX -> 恐贪分 (VIX 高=恐慌=低分, VIX 低=贪婪=高分)
+            # 历史中枢约 19-20，极低10以下，极高80以上
+            vix_score = max(0, min(100, (40 - vix) / 30 * 50 + 25))
+            composite = pe_score * 0.4 + erp_score * 0.3 + vix_score * 0.3
+            print(f"  [INFO] 恐贪指数量化（VIX fallback）: pe={pe_score:.1f} erp={erp_score:.1f} vix={vix_score:.1f}")
+        else:
+            return None
         return round(composite, 1)
     except Exception:
         return None
@@ -668,6 +700,7 @@ def main():
     dxy   = fetch_dxy()                 # 美元指数
     hs300_pe = fetch_hs300_pe()         # 沪深300 PE
     hs300_pe_pct = fetch_hs300_pe_percentile()  # 沪深300 PE分位
+    vix = fetch_vix()                    # VIX (FRED，国际可达）
 
     if cn10y:
         print(f"  [OK] 中国10Y: {cn10y:.2f}%")
@@ -701,7 +734,7 @@ def main():
                 devs.append(fd["dev"])
         avg_rsi = sum(rsis) / len(rsis) if rsis else 50.0
         avg_dev = sum(devs) / len(devs) if devs else 0.0
-        fear_greed = calc_fear_greed(hs300_pe_pct, avg_dev, avg_rsi, erp or 0)
+        fear_greed = calc_fear_greed(hs300_pe_pct, avg_dev, avg_rsi, erp or 0, vix)
         if fear_greed is not None:
             print(f"  [OK] 恐慌贪婪指数: {fear_greed:.1f}")
 

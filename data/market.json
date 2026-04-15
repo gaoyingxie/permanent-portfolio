@@ -1,16 +1,16 @@
 {
-  "updated": "2026-04-15 09:55:59",
+  "updated": "2026-04-15 09:56:40",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.4034,
-      "change_pct": 0.03,
+      "price": 1.4021,
+      "change_pct": -0.07,
       "date": "2026-04-15",
-      "premium": 0.03,
-      "pe": 4.3,
-      "dividend": 1.04,
+      "premium": -0.06,
+      "pe": 9.9,
+      "dividend": 1.05,
       "pe_percent": 81.7,
       "annual_avg": 1.22,
       "dev": 15.16,
@@ -26,7 +26,7 @@
       "change_pct": 0.09,
       "date": "2026-04-15",
       "premium": 0.09,
-      "pe": 8.8,
+      "pe": 2.7,
       "dividend": 0.39,
       "pe_percent": 47.5,
       "annual_avg": 1.21,
@@ -43,8 +43,8 @@
       "change_pct": 0.67,
       "date": "2026-04-15",
       "premium": 0.67,
-      "pe": 19.7,
-      "dividend": 1.03,
+      "pe": 21.5,
+      "dividend": 1.04,
       "pe_percent": 79.7,
       "annual_avg": 1.675,
       "dev": 3.78,
@@ -72,24 +72,24 @@
   },
   "index": {
     "sh000001": {
-      "price": 4043.55,
+      "price": 4043.73,
       "change_pct": 0.42
     }
   },
   "gold": {
-    "global": 4866.9,
+    "global": 4868.34,
     "sge": 1040.0
   },
   "risk": {
     "cn10y": 1.78,
     "us10y": 4.25,
     "dxy": 98.1239,
-    "hs300_pe": 17.73,
+    "hs300_pe": 17.7,
     "hs300_pe_pct": 92.6,
-    "erp": 3.86
+    "erp": 3.87
   },
   "fx": {
-    "rate": 6.8166,
-    "change_pct": -0.02
+    "rate": 6.8165,
+    "change_pct": -0.01
   }
 }

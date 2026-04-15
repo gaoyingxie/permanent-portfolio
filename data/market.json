@@ -1,33 +1,5 @@
 {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  "updated": "2026-04-15 11:45:39",
-=======
-  "updated": "2026-04-15 11:45:45",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-15 11:46:15",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-15 11:46:19",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-15 11:46:46",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-15 11:46:51",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-15 11:47:21",
->>>>>>> Stashed changes
-=======
-  "updated": "2026-04-15 11:47:24",
->>>>>>> Stashed changes
+  "updated": "2026-04-15 11:48:04",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
@@ -106,33 +78,13 @@
     }
   },
   "gold": {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    "global": 4851.89,
-=======
-    "global": 4852.13,
->>>>>>> Stashed changes
-=======
-    "global": 4852.5,
->>>>>>> Stashed changes
-=======
-    "global": 4851.98,
->>>>>>> Stashed changes
-=======
-    "global": 4852.12,
->>>>>>> Stashed changes
-=======
-    "global": 4851.98,
->>>>>>> Stashed changes
+    "global": 4850.92,
     "sge": 1040.0
   },
   "risk": {
     "cn10y": 1.78,
     "us10y": 4.25,
-    "dxy": 98.1668,
+    "dxy": 98.1585,
     "hs300_pe": 17.52,
     "hs300_pe_pct": 92.6,
     "erp": 3.93

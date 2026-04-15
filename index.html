@@ -1050,6 +1050,7 @@ function renderData(data) {
   function ss(id, val) { var e = document.getElementById(id); if (e) e.textContent = val != null ? val : ''; }
   function sa(el, val) { if (el) el.textContent = val != null ? val : ''; }
   const updateTime = data.updated || data.updated_date || new Date().toLocaleString('zh-CN');
+  ss('updateTime', updateTime);
 
   // 基金数据校验
   const fundRanges = {

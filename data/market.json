@@ -1,9 +1,5 @@
 {
-<<<<<<< Updated upstream
-  "updated": "2026-04-15 12:01:49",
-=======
-  "updated": "2026-04-15 12:02:06",
->>>>>>> Stashed changes
+  "updated": "2026-04-15 12:02:45",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
@@ -47,6 +43,9 @@
       "change_pct": 0.67,
       "date": "2026-04-15",
       "premium": 0.67,
+      "pe": null,
+      "dividend": null,
+      "pe_percent": null,
       "annual_avg": 1.675,
       "dev": 3.78,
       "rsi": 65.5,
@@ -61,6 +60,9 @@
       "change_pct": 0.91,
       "date": "2026-04-15",
       "premium": 0.92,
+      "pe": null,
+      "dividend": null,
+      "pe_percent": null,
       "annual_avg": 8.981,
       "dev": 16.6,
       "rsi": 66.8,
@@ -76,17 +78,13 @@
     }
   },
   "gold": {
-<<<<<<< Updated upstream
-    "global": 4845.86,
-=======
-    "global": 4845.54,
->>>>>>> Stashed changes
+    "global": 4846.61,
     "sge": 1040.0
   },
   "risk": {
     "cn10y": 1.78,
     "us10y": 4.25,
-    "dxy": 98.1702,
+    "dxy": 98.1627,
     "hs300_pe": 17.52,
     "hs300_pe_pct": 92.6,
     "erp": 3.93

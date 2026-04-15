@@ -54,19 +54,47 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/gaoyingxie/permanent-portfolio.git
-          # stash 脚本新写入的 market.json，然后拉取远程最新，再 stash pop 回来
-          git stash push -m "local market data" || true
-          git pull --rebase origin main
-          # stash pop 后，新 market.json 会覆盖冲突文件，但 git 会标记为已暂存
-          git stash pop || true
-          # 提交（如果有变化）
-          if git diff --quiet HEAD -- data/market.json; then
-            echo "market.json 无变化，跳过 push"
-          else
-            git add data/market.json
-            git commit -m "auto: 更新行情数据 $(date '+%Y-%m-%d %H:%M')"
-            git push --force-with-lease origin main
-          fi
+          # 抓取远程最新后合并，不 rebase，避免冲突标记
+          git fetch origin main
+          git merge origin/main --no-edit -q
+          # 重新运行抓取脚本（确保用的是最新代码）
+          python3 scripts/fetch_data.py
+          # 通过 GitHub API 更新 market.json（避免 git force push 覆盖代码改动）
+          python3 -c "
+import json, base64, urllib.request, subprocess, os
+token = os.environ['GH_TOKEN']
+repo = 'gaoyingxie/permanent-portfolio'
+path = 'data/market.json'
+# 获取当前 SHA
+req = urllib.request.Request(
+    f'https://api.github.com/repos/{repo}/contents/{path}',
+    headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json'}
+)
+with urllib.request.urlopen(req, timeout=10) as r:
+    sha = json.loads(r.read())['sha']
+# 读取本地文件
+with open(path) as f:
+    content = f.read()
+json.loads(content)  # 验证 JSON 合法
+encoded = base64.b64encode(content.encode('utf-8')).decode('ascii')
+# 推送
+data = json.dumps({'message': 'auto: 更新行情数据 $(date +%Y-%m-%d\ %H:%M)', 'content': encoded, 'sha': sha}).encode()
+req2 = urllib.request.Request(
+    f'https://api.github.com/repos/{repo}/contents/{path}',
+    data=data,
+    headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'},
+    method='PUT'
+)
+try:
+    with urllib.request.urlopen(req2, timeout=15) as r:
+        result = json.loads(r.read())
+        print('market.json updated:', result['commit']['sha'][:8])
+except urllib.error.HTTPError as e:
+    if e.code == 409:
+        print('market.json 冲突，跳过')
+    else:
+        print('HTTP Error:', e.code, e.read().decode()[:200])
+"
 
       - name: 触发 GitHub Pages 部署
         env:

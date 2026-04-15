@@ -3,6 +3,7 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   "updated": "2026-04-15 13:10:43",
 =======
   "updated": "2026-04-15 13:11:05",
@@ -16,6 +17,9 @@
 =======
   "updated": "2026-04-15 13:11:55",
 >>>>>>> Stashed changes
+=======
+  "updated": "2026-04-15 13:12:22",
+>>>>>>> Stashed changes
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
@@ -24,6 +28,7 @@
       "price": 1.4017,
       "change_pct": -0.1,
       "date": "2026-04-15",
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -46,6 +51,10 @@
       "premium": -0.09,
       "pe": 3.6,
 >>>>>>> Stashed changes
+=======
+      "premium": -0.09,
+      "pe": 2.1,
+>>>>>>> Stashed changes
       "dividend": 3.32,
       "pe_percent": 81.7,
       "annual_avg": 1.22,
@@ -58,9 +67,10 @@
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.1962,
-      "change_pct": 0.32,
+      "price": 1.1967,
+      "change_pct": 0.36,
       "date": "2026-04-15",
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
       "premium": 0.33,
@@ -84,6 +94,11 @@
 =======
       "premium": 0.32,
       "pe": 9.8,
+      "dividend": 1.13,
+>>>>>>> Stashed changes
+=======
+      "premium": 0.36,
+      "pe": 10.6,
       "dividend": 1.13,
 >>>>>>> Stashed changes
       "pe_percent": 47.5,
@@ -129,6 +144,7 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       "price": 4040.87,
 =======
       "price": 4040.73,
@@ -166,11 +182,20 @@
   "gold": {
     "global": 4849.28,
 >>>>>>> Stashed changes
+=======
+      "price": 4038.93,
+      "change_pct": 0.31
+    }
+  },
+  "gold": {
+    "global": 4848.18,
+>>>>>>> Stashed changes
     "sge": 1040.0
   },
   "risk": {
     "cn10y": 1.78,
     "us10y": 4.25,
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -201,6 +226,12 @@
 >>>>>>> Stashed changes
 =======
     "erp": 3.93
+>>>>>>> Stashed changes
+=======
+    "dxy": 98.1333,
+    "hs300_pe": 17.46,
+    "hs300_pe_pct": 92.6,
+    "erp": 3.95
 >>>>>>> Stashed changes
   },
   "fx": {

@@ -1,16 +1,16 @@
 {
-  "updated": "2026-04-15 10:08:04",
+  "updated": "2026-04-15 10:08:38",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.4023,
-      "change_pct": -0.05,
+      "price": 1.4015,
+      "change_pct": -0.1,
       "date": "2026-04-15",
-      "premium": -0.05,
-      "pe": 18.4,
-      "dividend": 1.43,
+      "premium": -0.11,
+      "pe": 28.1,
+      "dividend": 1.44,
       "pe_percent": 81.7,
       "annual_avg": 1.22,
       "dev": 15.16,
@@ -22,10 +22,10 @@
     "563020": {
       "code": "563020",
       "name": "红利低波ETF易方达",
-      "price": 1.1934,
-      "change_pct": 0.08,
+      "price": 1.1935,
+      "change_pct": 0.09,
       "date": "2026-04-15",
-      "premium": 0.08,
+      "premium": 0.09,
       "pe": 6.5,
       "dividend": 0.46,
       "pe_percent": 47.5,
@@ -43,7 +43,7 @@
       "change_pct": 0.67,
       "date": "2026-04-15",
       "premium": 0.67,
-      "pe": 26.2,
+      "pe": 21.3,
       "dividend": 1.43,
       "pe_percent": 79.7,
       "annual_avg": 1.675,
@@ -60,7 +60,7 @@
       "change_pct": 0.0,
       "date": "2026-04-15",
       "premium": 0.0,
-      "pe": 37.5,
+      "pe": 37.4,
       "pe_percent": 64.6,
       "annual_avg": 8.981,
       "dev": 16.6,
@@ -72,24 +72,24 @@
   },
   "index": {
     "sh000001": {
-      "price": 4047.99,
-      "change_pct": 0.53
+      "price": 4045.53,
+      "change_pct": 0.47
     }
   },
   "gold": {
-    "global": 4876.77,
+    "global": 4876.86,
     "sge": 1040.0
   },
   "risk": {
     "cn10y": 1.78,
     "us10y": 4.25,
-    "dxy": 98.1376,
-    "hs300_pe": 17.81,
+    "dxy": 98.1387,
+    "hs300_pe": 17.7,
     "hs300_pe_pct": 92.6,
-    "erp": 3.83
+    "erp": 3.87
   },
   "fx": {
-    "rate": 6.8164,
-    "change_pct": -0.01
+    "rate": 6.8172,
+    "change_pct": -0.0
   }
 }

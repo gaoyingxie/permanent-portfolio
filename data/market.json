@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-15 09:09:57",
+  "updated": "2026-04-15 09:10:35",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
@@ -9,8 +9,8 @@
       "change_pct": -0.18,
       "date": "2026-04-14",
       "premium": -0.18,
-      "pe": 17.9,
-      "dividend": 4.54,
+      "pe": 28.3,
+      "dividend": 40.22,
       "pe_percent": 81.7,
       "annual_avg": 1.22,
       "dev": 15.16,
@@ -27,7 +27,7 @@
       "date": "2026-04-14",
       "premium": 0.43,
       "pe": 8.8,
-      "dividend": 1.67,
+      "dividend": 7.78,
       "pe_percent": 47.5,
       "annual_avg": 1.21,
       "dev": -1.51,
@@ -77,7 +77,7 @@
     }
   },
   "gold": {
-    "global": 4865.14,
+    "global": 4867.24,
     "sge": 1040.0
   },
   "risk": {

@@ -361,6 +361,33 @@ def fetch_fx() -> dict | None:
 # 指数
 # ============================================================
 
+def fetch_spx_futures() -> dict | None:
+    """
+    通过 Sina hf_ES（CME E-mini S&P 500 期货）获取 S&P 500 指数数据。
+    返回 {price, change_pct}，change_pct 基于昨收结算价计算。
+    """
+    text = _get("https://hq.sinajs.cn/list=hf_ES",
+                headers={"Referer": "https://finance.sina.com.cn/"}, timeout=8)
+    if not text:
+        return None
+    try:
+        m = re.search(r'"([^"]+)"', text)
+        if not m:
+            return None
+        fields = m.group(1).split(",")
+        if len(fields) < 9:
+            return None
+        curr = safe_get_field(fields, 7, lo=1000, hi=10000)
+        prev = safe_get_field(fields, 8, lo=1000, hi=10000)
+        if curr is None or prev is None or prev == 0:
+            return None
+        change_pct = round((curr - prev) / prev * 100, 2)
+        return {"price": round(curr, 2), "change_pct": change_pct}
+    except Exception as e:
+        print(f"  [PARSE] hf_ES: {e}")
+        return None
+
+
 def fetch_index(secid: str) -> dict | None:
     """
     抓取 A 股指数（腾讯 qt.gtimg.cn 接口），返回 {price, change_pct}
@@ -618,7 +645,7 @@ def main():
         market["index"]["sh000001"] = sh
         print(f"  [OK] 上证: {sh['price']} ({sh['change_pct']:+.2f}%)")
 
-    spx = fetch_index("100.SPX")
+    spx = fetch_spx_futures()
     if spx:
         market["index"]["spx"] = spx
         print(f"  [OK] S&P500: {spx['price']} ({spx['change_pct']:+.2f}%)")

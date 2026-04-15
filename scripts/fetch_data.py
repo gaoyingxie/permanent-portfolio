@@ -544,8 +544,9 @@ def main():
     _save(market)   # 价格最关键，先落盘
 
     # ---- 基金指标：PE / 股息率 / PE分位 --------------------------------
-    # ---- PE + 股息率 + PE分位（所有基金） ---------------------------
-    for code in ALL_FUND_CODES:
+    # 513650(SPX) 和 518680(黄金) 的 PE/股息率数据不稳定，不再抓取，直接置 null
+    STABLE_CODES = [c for c in ALL_FUND_CODES if c not in ("513650", "518680")]
+    for code in STABLE_CODES:
         ind = fetch_fund_pe_div(code)
         if ind:
             market["funds"][code].update(ind)
@@ -556,6 +557,11 @@ def main():
         if pct is not None:
             market["funds"][code]["pe_percent"] = pct
             print(f"  [OK] {code} PE分位: {pct:.1f}%")
+
+    # 513650 和 518680 不再拉取 PE/股息率/PE分位，显式置 null
+    for code in ("513650", "518680"):
+        for key in ("pe", "dividend", "pe_percent"):
+            market["funds"][code][key] = None
 
     # ---- 乖离率 + RSI（所有基金） ---------------------------------
     for code in ALL_FUND_CODES:

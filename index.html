@@ -1142,7 +1142,7 @@ function renderData(data) {
     setPriceColor('price-spx', spxData.change_pct);
   }
   // SPX ETF（etf-spx / premium-spx 为非标准 ID，需独立处理）
-  renderFund('513650', { showDiv: true, showPe: true, showPct: true, showDev: true, showRsi: true, signalColor: true });
+  renderFund('513650', { showDev: true, showRsi: true, signalColor: true });
   const fspx = f['513650'];
   if (fspx) {
     ss('etf-spx', fspx.price != null ? fspx.price.toFixed(4) : '--');

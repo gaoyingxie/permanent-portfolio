@@ -5,6 +5,7 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   "updated": "2026-04-15 11:45:39",
 =======
   "updated": "2026-04-15 11:45:45",
@@ -23,6 +24,9 @@
 >>>>>>> Stashed changes
 =======
   "updated": "2026-04-15 11:47:21",
+>>>>>>> Stashed changes
+=======
+  "updated": "2026-04-15 11:47:24",
 >>>>>>> Stashed changes
   "updated_date": "2026-04-15",
   "funds": {
@@ -106,6 +110,7 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "global": 4851.89,
 =======
     "global": 4852.13,
@@ -118,6 +123,9 @@
 >>>>>>> Stashed changes
 =======
     "global": 4852.12,
+>>>>>>> Stashed changes
+=======
+    "global": 4851.98,
 >>>>>>> Stashed changes
     "sge": 1040.0
   },

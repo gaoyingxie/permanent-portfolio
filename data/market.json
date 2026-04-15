@@ -1,16 +1,16 @@
 {
-  "updated": "2026-04-15 10:20:02",
+  "updated": "2026-04-15 10:20:36",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
       "code": "159222",
       "name": "自由现金流ETF易方达",
-      "price": 1.4014,
-      "change_pct": -0.11,
+      "price": 1.4013,
+      "change_pct": -0.12,
       "date": "2026-04-15",
-      "premium": -0.11,
-      "pe": 27.9,
-      "dividend": 1.78,
+      "premium": -0.12,
+      "pe": 20.5,
+      "dividend": 1.79,
       "pe_percent": 81.7,
       "annual_avg": 1.22,
       "dev": 15.16,
@@ -27,7 +27,7 @@
       "date": "2026-04-15",
       "premium": 0.26,
       "pe": 8.8,
-      "dividend": 0.56,
+      "dividend": 0.57,
       "pe_percent": 47.5,
       "annual_avg": 1.21,
       "dev": -1.51,
@@ -43,8 +43,8 @@
       "change_pct": 0.67,
       "date": "2026-04-15",
       "premium": 0.67,
-      "pe": 24.4,
-      "dividend": 1.56,
+      "pe": 27.8,
+      "dividend": 1.57,
       "pe_percent": 79.7,
       "annual_avg": 1.675,
       "dev": 3.78,
@@ -60,7 +60,7 @@
       "change_pct": 0.0,
       "date": "2026-04-15",
       "premium": 0.0,
-      "pe": 37.3,
+      "pe": 15.1,
       "pe_percent": 64.6,
       "annual_avg": 8.981,
       "dev": 16.6,
@@ -72,12 +72,12 @@
   },
   "index": {
     "sh000001": {
-      "price": 4045.29,
-      "change_pct": 0.46
+      "price": 4045.76,
+      "change_pct": 0.48
     }
   },
   "gold": {
-    "global": 4865.64,
+    "global": 4864.43,
     "sge": 1040.0
   },
   "risk": {
@@ -89,7 +89,7 @@
     "erp": 3.88
   },
   "fx": {
-    "rate": 6.8188,
-    "change_pct": -0.0
+    "rate": 6.8174,
+    "change_pct": -0.01
   }
 }

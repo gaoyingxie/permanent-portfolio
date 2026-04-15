@@ -1,12 +1,16 @@
 {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   "updated": "2026-04-15 12:34:26",
 =======
   "updated": "2026-04-15 12:34:12",
 >>>>>>> Stashed changes
 =======
   "updated": "2026-04-15 12:35:50",
+>>>>>>> Stashed changes
+=======
+  "updated": "2026-04-15 12:35:58",
 >>>>>>> Stashed changes
   "updated_date": "2026-04-15",
   "funds": {
@@ -82,9 +86,13 @@
   "gold": {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "global": 4850.45,
 =======
     "global": 4850.17,
+>>>>>>> Stashed changes
+=======
+    "global": 4849.91,
 >>>>>>> Stashed changes
 =======
     "global": 4849.91,
@@ -94,13 +102,13 @@
   "risk": {
     "cn10y": 1.78,
     "us10y": 4.25,
-    "dxy": 98.1528,
+    "dxy": 98.1503,
     "hs300_pe": 17.52,
     "hs300_pe_pct": 92.6,
     "erp": 3.93
   },
   "fx": {
-    "rate": 6.8173,
-    "change_pct": -0.0
+    "rate": 6.8165,
+    "change_pct": -0.01
   }
 }

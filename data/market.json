@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-15 10:57:28",
+  "updated": "2026-04-15 10:58:10",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
@@ -9,7 +9,7 @@
       "change_pct": -0.25,
       "date": "2026-04-15",
       "premium": -0.25,
-      "pe": 17.7,
+      "pe": 17.6,
       "dividend": 2.43,
       "pe_percent": 81.7,
       "annual_avg": 1.22,
@@ -26,7 +26,7 @@
       "change_pct": 0.14,
       "date": "2026-04-15",
       "premium": 0.14,
-      "pe": 7.0,
+      "pe": 7.1,
       "dividend": 0.8,
       "pe_percent": 47.5,
       "annual_avg": 1.21,
@@ -43,7 +43,7 @@
       "change_pct": 0.67,
       "date": "2026-04-15",
       "premium": 0.67,
-      "pe": 9.2,
+      "pe": 9.1,
       "dividend": 1.97,
       "pe_percent": 79.7,
       "annual_avg": 1.675,
@@ -72,24 +72,24 @@
   },
   "index": {
     "sh000001": {
-      "price": 4040.56,
-      "change_pct": 0.35
+      "price": 4039.8,
+      "change_pct": 0.33
     }
   },
   "gold": {
-    "global": 4849.18,
+    "global": 4847.11,
     "sge": 1040.0
   },
   "risk": {
     "cn10y": 1.78,
     "us10y": 4.25,
-    "dxy": 98.1988,
-    "hs300_pe": 17.46,
+    "dxy": 98.2049,
+    "hs300_pe": 17.47,
     "hs300_pe_pct": 92.6,
-    "erp": 3.95
+    "erp": 3.94
   },
   "fx": {
-    "rate": 6.8172,
-    "change_pct": -0.01
+    "rate": 6.817,
+    "change_pct": -0.03
   }
 }

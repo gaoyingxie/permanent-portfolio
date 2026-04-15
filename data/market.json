@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-15 09:17:35",
+  "updated": "2026-04-15 09:19:16",
   "updated_date": "2026-04-15",
   "funds": {
     "159222": {
@@ -26,7 +26,7 @@
       "change_pct": 0.43,
       "date": "2026-04-14",
       "premium": 0.43,
-      "pe": 9.2,
+      "pe": 9.1,
       "dividend": 7.78,
       "pe_percent": 47.5,
       "annual_avg": 1.21,
@@ -38,8 +38,12 @@
     },
     "513650": {
       "code": "513650",
-      "name": "SPX ETF",
-      "pe": 47.0,
+      "name": "标普500ETF南方",
+      "price": 1.7147,
+      "change_pct": 0.67,
+      "date": "2026-04-15",
+      "premium": 0.67,
+      "pe": 48.3,
       "dividend": 23.66,
       "pe_percent": 79.7,
       "annual_avg": 1.675,
@@ -56,7 +60,7 @@
       "change_pct": 0.0,
       "date": "2026-04-15",
       "premium": 0.0,
-      "pe": 28.0,
+      "pe": 4.8,
       "pe_percent": 64.6,
       "annual_avg": 8.981,
       "dev": 16.6,
@@ -73,7 +77,7 @@
     }
   },
   "gold": {
-    "global": 4890.85,
+    "global": 4889.97,
     "sge": 1040.0
   },
   "risk": {

@@ -558,10 +558,10 @@ def main():
             market["funds"][code]["pe_percent"] = pct
             print(f"  [OK] {code} PE分位: {pct:.1f}%")
 
-    # 513650 和 518680 不再拉取 PE/股息率/PE分位，显式置 null
+    # 513650 和 518680 不再拉取 PE/股息率/PE分位，字段直接删除
     for code in ("513650", "518680"):
         for key in ("pe", "dividend", "pe_percent"):
-            market["funds"][code][key] = None
+            market["funds"][code].pop(key, None)
 
     # ---- 乖离率 + RSI（所有基金） ---------------------------------
     for code in ALL_FUND_CODES:

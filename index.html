@@ -857,7 +857,7 @@
     <!-- SPX -->
     <div class="card card-buy" id="card-513650">
       <div class="card-header">
-        <span class="card-label" id="label-513650" style="cursor:pointer">SPX 标普500 期货</span>
+        <span class="card-label" id="label-513650" style="cursor:pointer">SPX 标普500指数</span>
       </div>
       <div class="price-row">
         <span class="price" id="price-spx">--</span>
@@ -958,7 +958,6 @@
 <script>
 // ==================== 配置 ====================
 const GITHUB_REPO = 'gaoyingxie/permanent-portfolio';
-const DATA_PATH = 'data/market.json';
 
 // 资产统一配色（确保当前持仓和目标配置颜色一致）
 const ASSET_COLORS = {
@@ -1017,31 +1016,405 @@ const USER_CONFIG = {
 };
 // =======================================================
 
-// 无实时数据时的安全 fallback（所有字段为 null，渲染层统一显示 "--"）
+// 无实时数据时只显示空值，避免把历史数据误当成当前数据。
 const EMPTY_DATA = {
   funds: { '159222': {}, '563020': {}, '513650': {}, '518680': {} },
-  sh: null, index: {}, risk: {}
+  sh: null, index: {}, risk: {}, gold: null, fx: null
 };
+
+const FUND_META = {
+  '159222': { name: '自由现金流ETF', secid: '0.159222', tencent: 'sz159222', priceDec: 3 },
+  '563020': { name: '红利低波ETF', secid: '1.563020', tencent: 'sh563020', priceDec: 3 },
+  '513650': { name: '标普500ETF', secid: '1.513650', tencent: 'sh513650', priceDec: 4 },
+  '518680': { name: '黄金ETF', secid: '1.518680', tencent: 'sh518680', priceDec: 4 },
+};
+const US500_PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
+const US500_PE_PAGE = 'https://us500.com/tools/data/sp500-pe-ratio';
+const US500_DIV_PAGE = 'https://us500.com/tools/data/sp500-dividend-yield';
+const LIVE_TIMEOUT = 9000;
+let jsonpSeq = 0;
+
+function toNum(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function round(n, digits = 2) {
+  const x = toNum(n);
+  if (x == null) return null;
+  const p = 10 ** digits;
+  return Math.round(x * p) / p;
+}
+
+function parseMetric(v) {
+  if (v == null || v === '-' || v === '') return null;
+  return toNum(String(v).replace(/[$,%\s]/g, '').replace(/,/g, ''));
+}
+
+function todayText() {
+  return new Date().toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).replace(/\//g, '-');
+}
+
+function withTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error((label || 'request') + ' timeout')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function loadScript(src, opts = {}) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      script.remove();
+      reject(new Error(opts.label || src));
+    }, opts.timeout || LIVE_TIMEOUT);
+    script.src = src;
+    script.async = true;
+    if (opts.charset) script.charset = opts.charset;
+    script.onload = () => { clearTimeout(timer); script.remove(); resolve(); };
+    script.onerror = () => { clearTimeout(timer); script.remove(); reject(new Error(opts.label || src)); };
+    document.head.appendChild(script);
+  });
+}
+
+function jsonp(url, callbackParam = 'cb', timeout = LIVE_TIMEOUT) {
+  return new Promise((resolve, reject) => {
+    const cb = `ppJsonp_${Date.now()}_${++jsonpSeq}`;
+    const sep = url.includes('?') ? '&' : '?';
+    let done = false;
+    const cleanup = () => {
+      done = true;
+      delete window[cb];
+      script.remove();
+      clearTimeout(timer);
+    };
+    window[cb] = payload => {
+      if (done) return;
+      cleanup();
+      resolve(payload);
+    };
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      if (done) return;
+      cleanup();
+      reject(new Error(url));
+    }, timeout);
+    script.async = true;
+    script.src = `${url}${sep}${callbackParam}=${cb}`;
+    script.onerror = () => {
+      if (done) return;
+      cleanup();
+      reject(new Error(url));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function safeMerge(base, live) {
+  const out = structuredClone(base || EMPTY_DATA);
+  out.funds = { ...(base?.funds || {}) };
+  out.index = { ...(base?.index || {}) };
+  out.risk = { ...(base?.risk || {}) };
+  for (const [code, fund] of Object.entries(live.funds || {})) {
+    out.funds[code] = { ...(out.funds[code] || {}), ...fund };
+  }
+  out.index = { ...out.index, ...(live.index || {}) };
+  out.risk = { ...out.risk, ...(live.risk || {}) };
+  if (live.gold) out.gold = { ...(out.gold || {}), ...live.gold };
+  if (live.fx) out.fx = { ...(out.fx || {}), ...live.fx };
+  return { ...out, ...live, funds: out.funds, index: out.index, risk: out.risk, gold: out.gold, fx: out.fx };
+}
+
+function parseTencentVar(symbol) {
+  const raw = window[`v_${symbol}`];
+  if (!raw) return null;
+  return raw.split('~');
+}
+
+function safeField(fields, index, lo, hi) {
+  const v = toNum(fields?.[index]);
+  if (v == null) return null;
+  if (lo != null && v < lo) return null;
+  if (hi != null && v > hi) return null;
+  return v;
+}
+
+function calcRsi(prices, period = 14) {
+  if (!prices || prices.length < period + 1) return null;
+  let gains = 0;
+  let losses = 0;
+  for (let i = prices.length - period; i < prices.length; i++) {
+    const diff = prices[i] - prices[i - 1];
+    if (diff >= 0) gains += diff;
+    else losses -= diff;
+  }
+  const avgGain = gains / period;
+  const avgLoss = losses / period;
+  if (avgLoss === 0) return 100;
+  return round(100 - (100 / (1 + avgGain / avgLoss)), 1);
+}
+
+function calcTrend(closes) {
+  if (!closes || closes.length < 20) return {};
+  const curr = closes[closes.length - 1];
+  const annualAvg = closes.reduce((s, v) => s + v, 0) / closes.length;
+  const dev = (curr / annualAvg - 1) * 100;
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const pePercent = max === min ? null : (curr - min) / (max - min) * 100;
+  const signal = dev < 0 ? 'buy' : dev <= 10 ? 'hold' : 'sell';
+  return {
+    annual_avg: round(annualAvg, 3),
+    dev: round(dev, 2),
+    rsi: calcRsi(closes, 14),
+    pe_percent: round(pePercent, 1),
+    signal,
+    signal_text: signal === 'buy' ? '买入' : signal === 'hold' ? '持有' : '卖出',
+    color: signal === 'buy' ? 'green' : signal === 'hold' ? 'yellow' : 'red',
+  };
+}
+
+async function fetchEastmoneyQuotes() {
+  const secids = [
+    '0.159222', '1.563020', '1.513650', '1.518680',
+    '1.000001', '1.000300', '100.UDI', '101.GC00Y', '100.SPX',
+  ].join(',');
+  const data = await jsonp(
+    `https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&secids=${secids}&fields=f12,f14,f2,f3,f4`,
+    'cb'
+  );
+  const rows = data?.data?.diff || [];
+  const market = { funds: {}, index: {}, risk: {} };
+  rows.forEach(row => {
+    const code = row.f12;
+    const price = toNum(row.f2);
+    const change = toNum(row.f3);
+    if (FUND_META[code]) {
+      market.funds[code] = {
+        code,
+        name: FUND_META[code].name,
+        price,
+        change_pct: change,
+        date: new Date().toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' }).replace(/\//g, '-'),
+      };
+    } else if (code === '000001') {
+      market.index.sh000001 = { price, change_pct: change };
+    } else if (code === '000300') {
+      market.index.hs300 = { price, change_pct: change };
+    } else if (code === 'UDI') {
+      market.risk.dxy = price;
+    } else if (code === 'GC00Y') {
+      market.gold = { global: price };
+    } else if (code === 'SPX') {
+      market.index.spx = { price, change_pct: change };
+    }
+  });
+  return market;
+}
+
+async function fetchTencentIndicators() {
+  const symbols = ['sz159222', 'sh563020', 'sh513650', 'sh518680', 'sh000300', 'sh000821'].join(',');
+  await loadScript(`https://qt.gtimg.cn/q=${symbols}&_=${Date.now()}`, {
+    charset: 'gbk',
+    label: 'tencent quote',
+  });
+  const out = { funds: {}, risk: {} };
+  const f159222 = parseTencentVar('sz159222');
+  const f563020 = parseTencentVar('sh563020');
+  const idx821 = parseTencentVar('sh000821');
+  const hs300 = parseTencentVar('sh000300');
+
+  const pe159222 = safeField(f159222, 75, 1, 100) ?? safeField(f159222, 44, 1, 100);
+  const div159222 = safeField(f159222, 38, 0, 30);
+  if (pe159222 || div159222) out.funds['159222'] = { pe: round(pe159222, 1), dividend: round(div159222, 2) };
+
+  const pe563020 = safeField(idx821, 39, 1, 100) ?? safeField(f563020, 74, 1, 100);
+  const div563020 = safeField(f563020, 38, 0, 30);
+  if (pe563020 || div563020) out.funds['563020'] = { pe: round(pe563020, 1), dividend: round(div563020, 2) };
+
+  const hs300Pe = safeField(hs300, 75, 5, 100) ?? safeField(hs300, 39, 5, 100);
+  if (hs300Pe) out.risk.hs300_pe = round(hs300Pe, 2);
+  return out;
+}
+
+async function fetchKline(secid, limit = 250) {
+  const data = await jsonp(
+    `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${secid}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55&klt=101&fqt=1&end=20500101&lmt=${limit}`,
+    'cb'
+  );
+  const lines = data?.data?.klines || [];
+  return lines.map(line => {
+    const parts = line.split(',');
+    return { date: parts[0], close: toNum(parts[2]) };
+  }).filter(x => x.close != null);
+}
+
+async function fetchHistoryIndicators() {
+  const out = { funds: {}, risk: {} };
+  const jobs = Object.entries(FUND_META).map(async ([code, meta]) => {
+    const rows = await fetchKline(meta.secid, 250);
+    out.funds[code] = calcTrend(rows.map(x => x.close));
+    if (code === '513650') delete out.funds[code].pe_percent;
+  });
+  jobs.push((async () => {
+    const rows = await fetchKline('1.000300', 250);
+    const closes = rows.map(x => x.close);
+    const min = Math.min(...closes);
+    const max = Math.max(...closes);
+    const curr = closes[closes.length - 1];
+    out.risk.hs300_pe_pct = max === min ? null : round((curr - min) / (max - min) * 100, 1);
+  })());
+  await Promise.allSettled(jobs);
+  return out;
+}
+
+async function fetchBondYields() {
+  const data = await jsonp(
+    'https://datacenter.eastmoney.com/api/data/get?type=RPTA_WEB_TREASURYYIELD&sty=ALL&source=WEB&client=WEB&st=SOLAR_DATE&sr=-1&p=1&ps=1',
+    'callback'
+  );
+  const row = data?.result?.data?.[0] || {};
+  return {
+    risk: {
+      cn10y: round(row.EMM00166466, 2),
+      us10y: round(row.EMG00001310, 2),
+    },
+  };
+}
+
+async function fetchFxRate() {
+  const resp = await withTimeout(fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' }), 5000, 'fx');
+  if (!resp.ok) throw new Error('fx');
+  const data = await resp.json();
+  const rate = toNum(data?.rates?.CNY);
+  return rate ? { fx: { rate: round(rate, 4), change_pct: null } } : {};
+}
+
+async function readText(url, timeout = 9000) {
+  const resp = await withTimeout(fetch(url, { cache: 'no-store' }), timeout, url);
+  if (!resp.ok) throw new Error(url);
+  return resp.text();
+}
+
+async function fetchUs500Json(pageUrl, slug) {
+  const html = await readText(US500_PROXY + encodeURIComponent(pageUrl), 12000);
+  const buildId = html.match(/\/_next\/static\/([^/]+)\/_ssgManifest\.js/)?.[1];
+  if (!buildId) throw new Error('us500 build id missing');
+  const dataUrl = `https://us500.com/_next/data/${buildId}/tools/data/${slug}.json`;
+  return JSON.parse(await readText(US500_PROXY + encodeURIComponent(dataUrl), 12000));
+}
+
+async function fetchSp500Valuation() {
+  const [peJson, divJson] = await Promise.all([
+    fetchUs500Json(US500_PE_PAGE, 'sp500-pe-ratio'),
+    fetchUs500Json(US500_DIV_PAGE, 'sp500-dividend-yield'),
+  ]);
+  const peData = peJson?.pageProps?.peData;
+  const divData = divJson?.pageProps?.divData;
+  const pe = parseMetric(peData?.estimate?.rate);
+  const dividend = parseMetric(divData?.estimate?.rate);
+  if (pe == null && dividend == null) throw new Error('SPX valuation fields missing');
+
+  const rates = Array.isArray(peData?.rates)
+    ? peData.rates.map(parseMetric).filter(v => v != null)
+    : [];
+  const pePercent = pe != null && rates.length
+    ? rates.filter(v => v <= pe).length / rates.length * 100
+    : null;
+
+  return {
+    funds: {
+      '513650': {
+        pe: round(pe, 1),
+        dividend: round(dividend, 2),
+        pe_percent: round(pePercent, 1),
+      },
+    },
+  };
+}
+
+function combinePieces(base, pieces) {
+  return pieces.reduce((acc, piece) => safeMerge(acc, piece || {}), base);
+}
+
+async function buildLiveMarket() {
+  const base = structuredClone(EMPTY_DATA);
+  const tasks = [
+    fetchEastmoneyQuotes(),
+    fetchTencentIndicators(),
+    fetchHistoryIndicators(),
+    fetchBondYields(),
+    fetchFxRate(),
+    fetchSp500Valuation(),
+  ];
+  const settled = await Promise.allSettled(tasks);
+  const pieces = settled.filter(x => x.status === 'fulfilled').map(x => x.value);
+  if (!pieces.length) throw new Error('所有实时数据源都失败了');
+  const live = combinePieces(base, pieces);
+  if (live.risk?.hs300_pe && live.risk?.cn10y) {
+    live.risk.erp = round(100 / live.risk.hs300_pe - live.risk.cn10y, 2);
+  }
+  if (live.gold?.global && live.fx?.rate) {
+    live.gold.sge = round(live.gold.global * live.fx.rate / 31.1035, 2);
+  }
+  live.updated = todayText();
+  live.updated_date = new Date().toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' }).replace(/\//g, '-');
+  live.source_errors = settled
+    .filter(x => x.status === 'rejected')
+    .map(x => x.reason?.message || 'unknown source error');
+  return live;
+}
+
+function setRefreshState(loading) {
+  const btn = document.getElementById('refreshBtn');
+  const text = document.getElementById('btnText');
+  if (btn) {
+    btn.disabled = loading;
+    btn.classList.toggle('loading', loading);
+  }
+  if (text) text.textContent = loading ? '刷新中' : '刷新数据';
+}
 
 // ==================== 全局变量 ====================
 let posChart, targetChart;
 
 // ==================== 初始化 ====================
 document.addEventListener('DOMContentLoaded', () => {
-  loadData();
+  loadData({ initial: true });
 });
 
 // ==================== 数据加载 ====================
-async function loadData() {
+async function loadData(opts = {}) {
+  setRefreshState(true);
+  if (opts.initial) {
+    try { localStorage.removeItem('permanent-portfolio-live-market-v2'); } catch {}
+    renderData({ ...structuredClone(EMPTY_DATA), updated: '正在刷新实时数据...' });
+  }
   try {
-    const resp = await fetch(DATA_PATH + '?t=' + Date.now());
-    if (!resp.ok) throw new Error('数据文件不存在');
-    const data = await resp.json();
-    renderData(data);
-    showToast('数据已更新', 'success');
+    const live = await buildLiveMarket();
+    renderData(live);
+    if (live.source_errors?.length) {
+      showToast('部分数据源失败，失败项已留空', 'error');
+    } else {
+      showToast('实时数据已刷新', 'success');
+    }
   } catch (e) {
-    console.warn('加载实时数据失败:', e.message);
-    renderData(EMPTY_DATA);
+    console.warn('刷新实时数据失败:', e.message);
+    renderData({ ...structuredClone(EMPTY_DATA), updated: '实时刷新失败，数据已留空' });
+    showToast('实时刷新失败，数据已留空', 'error');
+  } finally {
+    setRefreshState(false);
   }
 }
 
@@ -1140,9 +1513,13 @@ function renderData(data) {
     const el = document.getElementById('change-spx');
     if (el) el.style.color = spxData.change_pct > 0 ? 'var(--red)' : spxData.change_pct < 0 ? 'var(--green)' : 'var(--text-dim)';
     setPriceColor('price-spx', spxData.change_pct);
+  } else {
+    ss('price-spx', '--');
+    ss('change-spx', '');
+    setPriceColor('price-spx', null);
   }
   // SPX ETF（etf-spx / premium-spx 为非标准 ID，需独立处理）
-  renderFund('513650', { showDev: true, showRsi: true, signalColor: true });
+  renderFund('513650', { showDev: true, showRsi: true, showDiv: true, showPe: true, showPct: true, signalColor: true });
   const fspx = f['513650'];
   if (fspx) {
     ss('etf-spx', fspx.price != null ? fspx.price.toFixed(4) : '--');
@@ -1165,19 +1542,28 @@ function renderData(data) {
     sa(changeEl, (sh.change_pct >= 0 ? '+' : '') + sh.change_pct.toFixed(2) + '%');
     changeEl.style.color = shColor;
     shPriceEl.style.color = shColor;
+  } else {
+    sa(changeEl, '');
+    if (shPriceEl) shPriceEl.style.color = 'var(--text)';
   }
   // 美元/人民币汇率
-  if (data.fx) {
-    if (data.fx.rate != null) {
-      ss('fx-price', data.fx.rate.toFixed(4));
-    }
+  const fxPriceEl = document.getElementById('fx-price');
+  const fxChangeEl = document.getElementById('fx-change');
+  if (data.fx?.rate != null) {
+    ss('fx-price', data.fx.rate.toFixed(4));
     if (data.fx.change_pct != null) {
-      const fxChangeEl = document.getElementById('fx-change');
       const fxColor = data.fx.change_pct >= 0 ? 'var(--red)' : 'var(--green)';
       sa(fxChangeEl, (data.fx.change_pct >= 0 ? '+' : '') + data.fx.change_pct.toFixed(2) + '%');
       fxChangeEl.style.color = fxColor;
-      document.getElementById('fx-price').style.color = fxColor;
+      if (fxPriceEl) fxPriceEl.style.color = fxColor;
+    } else {
+      sa(fxChangeEl, '');
+      if (fxPriceEl) fxPriceEl.style.color = 'var(--text)';
     }
+  } else {
+    ss('fx-price', '--');
+    sa(fxChangeEl, '');
+    if (fxPriceEl) fxPriceEl.style.color = 'var(--text)';
   }
 
   // 杂仓
@@ -1382,13 +1768,13 @@ const ASSET_DETAILS = {
     ],
   },
   '513650': {
-    name: 'SPX 标普500 期货',
-    desc: '华夏标普500ETF（513650），复制跟踪美国标普500指数，覆盖美国500家最大上市公司，是配置美国资产的核心工具。场内交易，存在溢价/折价。',
+    name: 'SPX 标普500指数',
+    desc: '标普500指数覆盖美国500家大型上市公司，是观察美国核心股票市场的基准。513650 为场内跟踪工具，存在溢价/折价。',
     footer: '<strong>提示：</strong>溢价率超过 +2% 时需谨慎，可能存在溢价过高被套利回归的风险。',
     sections: [
       { title: 'ETF场内价格', body: '在A股市场实时交易的报价。由于套利机制，ETF价格通常围绕净值小幅波动。' },
       { title: '溢价率', body: 'ETF价格相对净值的偏离程度。正溢价表示买贵了，负溢价（折价）表示买得划算。溢价率超过 ±2% 时需注意。' },
-      { title: '市盈率 PE', body: '标普500成分股的整体市盈率，反映美股整体估值水平。与历史均值对比可判断美股贵贱。' },
+      { title: '市盈率 PE', body: '标普500指数的普通市盈率口径，用于观察美股整体估值水平。' },
       { title: '股息率', body: '标普500成分股的整体现金股息率。美股股息率通常低于A股高股息ETF。' },
       { title: '乖离率 / RSI', body: '乖离率反映与均线的偏离程度；RSI 衡量涨跌速度，RSI > 70 超买，RSI < 30 超卖。' },
     ],
@@ -1602,8 +1988,7 @@ function renderTargetChart(data) {
 
 // ==================== 刷新按钮 ====================
 function triggerRefresh() {
-  // 直接跳转到 GitHub Actions 页面手动触发
-  window.open('https://github.com/' + GITHUB_REPO + '/actions', '_blank');
+  loadData();
 }
 
 // ==================== Tab切换 ====================
